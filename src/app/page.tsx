@@ -65,13 +65,13 @@ export default async function Home() {
     <div className="flex flex-col min-h-screen bg-[#FAF9F6] text-zinc-900 overflow-hidden">
       
       {/* 1. Header Navigation */}
-      <Navbar user={user} theme="transparent" />
+      <Navbar user={user} theme="light" />
 
       {/* Main Body */}
       <main className="flex-1 flex flex-col">
         
         {/* 2. Hero Section */}
-        <div className="relative w-full overflow-hidden bg-[#0E4B31] pt-32 pb-20 md:pt-40 md:pb-28 px-6 md:px-12 flex flex-col items-center">
+        <div className="relative w-full overflow-hidden bg-[#0E4B31] pt-20 pb-20 md:pt-24 md:pb-28 px-6 md:px-12 flex flex-col items-center">
           {/* Background Image with Green Gradient Mask */}
           <div className="absolute inset-0 z-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
