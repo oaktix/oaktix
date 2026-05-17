@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 interface NavbarProps {
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "transparent";
   user?: { id: string; email?: string } | null;
 }
 
@@ -22,13 +22,16 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
   };
 
   const isDark = theme === "dark";
+  const isTransparent = theme === "transparent";
 
   return (
     <header className="relative w-full">
       {/* Main Nav Container */}
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
-          isDark
+          isTransparent
+            ? "bg-transparent border-white/10 text-white"
+            : isDark
             ? "bg-[#09090b]/95 backdrop-blur-md border-zinc-800/80 text-white"
             : "bg-[#FAF9F6]/95 backdrop-blur-md border-[#E8EBE7] text-zinc-900"
         } px-6 py-4 flex items-center justify-between`}
@@ -46,7 +49,7 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
         {/* Desktop Links */}
         <div
           className={`hidden md:flex items-center gap-8 text-sm font-bold ${
-            isDark ? "text-zinc-400" : "text-zinc-600"
+            isDark || isTransparent ? "text-zinc-200" : "text-zinc-600"
           }`}
         >
           <Link href="/events" className={`hover:text-indigo-500 transition-colors ${isDark ? "hover:text-white" : ""}`}>
@@ -123,7 +126,7 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
             className={`p-2 rounded-lg transition-colors ${
-              isDark ? "hover:bg-white/5 text-white" : "hover:bg-zinc-100 text-zinc-950"
+              isDark || isTransparent ? "hover:bg-white/5 text-white" : "hover:bg-zinc-100 text-zinc-950"
             }`}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -143,7 +146,7 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
         {/* Content Side Drawer */}
         <div
           className={`absolute right-0 top-0 h-full w-4/5 max-w-sm p-8 shadow-2xl transition-transform duration-300 flex flex-col justify-between ${
-            isDark ? "bg-[#09090b] text-white" : "bg-[#FAF9F6] text-zinc-900"
+            isDark || isTransparent ? "bg-[#09090b] text-white" : "bg-[#FAF9F6] text-zinc-900"
           } ${isOpen ? "translate-x-0" : "translate-x-full"}`}
         >
           <div className="space-y-8 mt-12">
