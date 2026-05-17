@@ -13,7 +13,7 @@ function VerifyOTPForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [countdown, setCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
+  const canResend = countdown <= 0;
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,10 +23,7 @@ function VerifyOTPForm() {
 
   // Countdown timer for resend
   useEffect(() => {
-    if (countdown <= 0) {
-      setCanResend(true);
-      return;
-    }
+    if (countdown <= 0) return;
     const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(timer);
   }, [countdown]);
@@ -131,7 +128,6 @@ function VerifyOTPForm() {
       } else {
         sessionStorage.setItem(`otp_sig_${email}`, data.signature);
         setCountdown(60);
-        setCanResend(false);
         setOtp(["", "", "", "", "", ""]);
         setTimeout(() => inputRefs.current[0]?.focus(), 100);
       }
