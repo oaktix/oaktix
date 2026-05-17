@@ -24,10 +24,10 @@ interface Profile {
 
 interface UserRoleManagerProps {
   initialUsers: Profile[];
-  currentUserEmail: string;
+  currentUserId: string;
 }
 
-export default function UserRoleManager({ initialUsers, currentUserEmail }: UserRoleManagerProps) {
+export default function UserRoleManager({ initialUsers, currentUserId }: UserRoleManagerProps) {
   const [users, setUsers] = useState<Profile[]>(initialUsers);
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -179,12 +179,18 @@ export default function UserRoleManager({ initialUsers, currentUserEmail }: User
                         </div>
                       ) : (
                         <div className="inline-block text-left">
-                          <button
-                            onClick={() => setOpenDropdownId(openDropdownId === profile.id ? null : profile.id)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold text-zinc-700 bg-white transition-all cursor-pointer"
-                          >
-                            Assign Role <ChevronDown className="w-3.5 h-3.5" />
-                          </button>
+                          {profile.id === currentUserId ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 bg-zinc-55/10 text-zinc-400 text-xs font-bold select-none cursor-not-allowed">
+                              Active Admin Session
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => setOpenDropdownId(openDropdownId === profile.id ? null : profile.id)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold text-zinc-700 bg-white transition-all cursor-pointer"
+                            >
+                              Assign Role <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                          )}
 
                           {openDropdownId === profile.id && (
                             <div className="absolute right-4 mt-2 w-48 rounded-xl bg-white border border-zinc-200 shadow-xl z-20 overflow-hidden py-1 animate-in fade-in duration-100">
@@ -255,6 +261,8 @@ export default function UserRoleManager({ initialUsers, currentUserEmail }: User
                 <select
                   value={roleToPromote}
                   onChange={(e) => setRoleToPromote(e.target.value)}
+                  title="Target Promotion Role"
+                  aria-label="Target Promotion Role"
                   className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-indigo-500 text-sm font-bold bg-white"
                 >
                   <option value="super_admin">Super Admin</option>

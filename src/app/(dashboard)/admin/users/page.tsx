@@ -48,7 +48,7 @@ export default async function AdminUsersPage() {
         <p className="text-zinc-550">Search for platform users, modify roles, or authorize new administrators.</p>
       </div>
 
-      <UserRoleManager initialUsers={safeProfiles} currentUserEmail={user.email || ""} />
+      <UserRoleManager initialUsers={safeProfiles} currentUserId={user.id} />
     </div>
   );
 }
