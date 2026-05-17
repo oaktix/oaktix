@@ -50,7 +50,7 @@ export default function SignupPage() {
     }
 
     if (data.user) {
-      router.push("/login?message=Check your email to verify your account.");
+      router.push(`/verify?email=${encodeURIComponent(email)}`);
     }
   }
 
