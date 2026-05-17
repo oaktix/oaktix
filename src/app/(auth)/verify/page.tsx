@@ -190,7 +190,7 @@ function VerifyOTPForm() {
             {/* OTP Input Grid */}
             <fieldset className="border-0 p-0 m-0">
               <legend className="sr-only">Enter your 6-digit verification code</legend>
-              <div className="flex items-center justify-center gap-3 my-6" onPaste={handlePaste}>
+              <div className="flex items-center justify-center gap-1.5 sm:gap-3 my-6" onPaste={handlePaste}>
                 {otp.map((digit, i) => (
                   <input
                     key={i}
@@ -204,7 +204,7 @@ function VerifyOTPForm() {
                     placeholder="·"
                     onChange={(e) => handleInput(i, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(i, e)}
-                    className={`w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 transition-all outline-none
+                    className={`w-9 sm:w-12 h-11 sm:h-14 text-center text-xl sm:text-2xl font-bold rounded-xl border-2 transition-all outline-none
                       ${digit
                         ? "border-indigo-500 bg-indigo-50 text-indigo-600"
                         : "border-zinc-200 bg-zinc-50 text-zinc-800"

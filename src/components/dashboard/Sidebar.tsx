@@ -68,7 +68,7 @@ export function Sidebar({ role }: SidebarProps) {
   const items = role === 'super_admin' ? navItems.admin : navItems[role] || navItems.user;
 
   return (
-    <div className="w-64 h-full flex flex-col p-6 bg-white border-r border-[#E8EBE7]">
+    <div className="w-full lg:w-64 h-full flex flex-col p-6 bg-white border-r border-[#E8EBE7]">
       <div className="flex items-center gap-2 mb-10 px-2">
         <TicketIcon className="w-8 h-8 text-indigo-500" />
         <span className="text-xl font-bold font-heading tracking-tight flex items-center">

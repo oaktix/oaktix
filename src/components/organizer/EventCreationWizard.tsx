@@ -189,7 +189,7 @@ export default function EventCreationWizard() {
                 <h2 className="text-2xl font-bold font-heading mb-2">Date & Location</h2>
                 <p className="text-zinc-400 text-sm">When and where is it happening?</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="start_date" className="text-sm font-bold text-zinc-300 flex items-center gap-2"><Calendar className="w-4 h-4"/> Start Date & Time</label>
                   <input 
@@ -327,7 +327,7 @@ export default function EventCreationWizard() {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="text-xs font-bold text-zinc-400">Tier Name</label>
                         <input 

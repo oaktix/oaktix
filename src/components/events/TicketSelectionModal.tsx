@@ -95,7 +95,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="glass-card w-full max-w-md p-8 relative z-10 bg-white/95 border-zinc-200/80 shadow-2xl text-zinc-800">
+      <div className="glass-card w-full max-w-md p-5 sm:p-8 max-h-[90vh] overflow-y-auto relative z-10 bg-white/95 border-zinc-200/80 shadow-2xl text-zinc-800">
         <button aria-label="Close modal" onClick={onClose} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer">
           <X className="w-6 h-6" />
         </button>
