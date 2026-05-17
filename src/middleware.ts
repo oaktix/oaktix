@@ -35,9 +35,10 @@ export async function middleware(request: NextRequest) {
   const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
   const isOrganizerRoute = request.nextUrl.pathname.startsWith('/organizer')
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isAdminSubRoute = request.nextUrl.pathname.startsWith('/admin/')
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
 
-  if (!user && (isDashboardRoute || isOrganizerRoute || isAdminRoute)) {
+  if (!user && (isDashboardRoute || isOrganizerRoute || isAdminSubRoute)) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

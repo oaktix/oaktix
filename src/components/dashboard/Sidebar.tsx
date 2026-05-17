@@ -53,6 +53,13 @@ export function Sidebar({ role }: SidebarProps) {
     ],
     admin: [
       { name: "Platform Health", href: "/admin", icon: LayoutDashboard },
+      { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
+      { name: "Events", href: "/admin/events", icon: Calendar },
+      { name: "Transactions", href: "/admin/transactions", icon: Wallet },
+      { name: "System", href: "/admin/system", icon: Settings },
+    ],
+    super_admin: [
+      { name: "Platform Health", href: "/admin", icon: LayoutDashboard },
       { name: "Users", href: "/admin/users", icon: Users },
       { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
       { name: "Events", href: "/admin/events", icon: Calendar },
@@ -62,10 +69,9 @@ export function Sidebar({ role }: SidebarProps) {
     staff: [
       { name: "Scan Tickets", href: "/scan", icon: TicketIcon },
     ],
-    super_admin: [], // Shared with admin for now
   };
 
-  const items = role === 'super_admin' ? navItems.admin : navItems[role] || navItems.user;
+  const items = navItems[role] || navItems.user;
 
   return (
     <div className="w-full lg:w-64 h-full flex flex-col p-6 bg-white border-r border-[#E8EBE7]">
