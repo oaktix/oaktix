@@ -15,7 +15,14 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   }
 
 
-  const role = user.user_metadata?.role || 'user';
+  // Fetch user role from profiles database table first for database-driven auth
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const role = profile?.role || user.user_metadata?.role || 'user';
 
   return (
     <ResponsiveLayout role={role}>

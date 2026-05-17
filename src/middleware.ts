@@ -47,7 +47,13 @@ export async function middleware(request: NextRequest) {
 
   // Role-based protection
   if (user) {
-    const userRole = user.user_metadata?.role
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const userRole = profile?.role || user.user_metadata?.role
 
     if (isOrganizerRoute && userRole !== 'vendor' && userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.redirect(new URL('/dashboard', request.url))

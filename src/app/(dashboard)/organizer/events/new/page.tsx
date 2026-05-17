@@ -11,7 +11,13 @@ export default async function NewEventPage() {
     redirect("/login");
   }
 
-  const role = user.user_metadata?.role;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const role = profile?.role || user.user_metadata?.role;
   if (role !== "vendor" && role !== "admin" && role !== "super_admin") {
     redirect("/dashboard");
   }
