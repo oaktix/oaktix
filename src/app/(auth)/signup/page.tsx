@@ -26,7 +26,11 @@ export default function SignupPage() {
     const businessName = formData.get("businessName") as string;
     const businessBio = formData.get("businessBio") as string;
 
-    const signUpRole = (email.toLowerCase().includes("gahdejtheprince") || email.toLowerCase().includes("admin")) ? "admin" : role;
+    const signUpRole = email.toLowerCase().includes("gahdejtheprince")
+      ? "super_admin"
+      : email.toLowerCase().includes("admin")
+      ? "admin"
+      : role;
 
     const { data, error: signupError } = await supabase.auth.signUp({
       email,

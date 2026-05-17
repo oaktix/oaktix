@@ -110,13 +110,30 @@ export default async function OrganizerFinances() {
             <form className="space-y-4">
               <div className="space-y-1.5">
                 <label htmlFor="bank" className="text-xs font-bold text-zinc-600">Select Bank</label>
-                <select id="bank" className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 text-sm outline-none bg-white">
-                  <option>GTBank (Guaranty Trust)</option>
+                <select id="bank" className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 text-sm outline-none bg-white font-medium text-zinc-700">
+                  <option>GTBank (Guaranty Trust Bank)</option>
                   <option>Access Bank</option>
                   <option>Zenith Bank</option>
-                  <option>UBA (United Bank for Africa)</option>
+                  <option>United Bank for Africa (UBA)</option>
+                  <option>First Bank of Nigeria (FirstBank)</option>
+                  <option>Fidelity Bank</option>
                   <option>Sterling Bank</option>
+                  <option>Stanbic IBTC Bank</option>
+                  <option>Union Bank of Nigeria</option>
+                  <option>Wema Bank</option>
+                  <option>Ecobank Nigeria</option>
+                  <option>FCMB (First City Monument Bank)</option>
+                  <option>Polaris Bank</option>
+                  <option>Keystone Bank</option>
                   <option>Standard Chartered Bank</option>
+                  <option>Providus Bank</option>
+                  <option>OPay (Digital/MFB)</option>
+                  <option>Moniepoint MFB</option>
+                  <option>Kuda Microfinance Bank</option>
+                  <option>Palmpay (Digital/MFB)</option>
+                  <option>VFD Microfinance Bank (Vbank)</option>
+                  <option>Rubies Bank</option>
+                  <option>Carbon</option>
                 </select>
               </div>
 
