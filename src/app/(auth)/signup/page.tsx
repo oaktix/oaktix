@@ -1,0 +1,182 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Ticket, User, Store, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+
+export default function SignupPage() {
+  const [role, setRole] = useState<"user" | "vendor">("user");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const supabase = createClient();
+
+  async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const fullName = formData.get("fullName") as string;
+    const businessName = formData.get("businessName") as string;
+    const businessBio = formData.get("businessBio") as string;
+
+    const { data, error: signupError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: role,
+          ...(role === "vendor" && {
+              vendor_details: {
+                business_name: businessName,
+                bio: businessBio,
+                verified: true,
+              },
+          }),
+        },
+      },
+    });
+
+    if (signupError) {
+      setError(signupError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      router.push("/login?message=Check your email to verify your account.");
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 flex flex-col items-center justify-center p-6 relative">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none -z-10" />
+
+      <Link href="/" className="flex items-center gap-2 mb-8 relative z-10 group">
+        <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+          <Ticket className="w-5 h-5" />
+        </div>
+        <span className="text-2xl font-bold font-heading tracking-tight flex items-center">
+          <span className="text-indigo-500">Oak</span>
+          <span className="text-amber-500">Tix</span>
+        </span>
+      </Link>
+
+      <div className="glass-card w-full max-w-md p-8 relative z-10 bg-white border border-[#E8EBE7] shadow-sm">
+        <h1 className="text-2xl font-bold font-heading mb-2 text-center text-zinc-900">Create your account</h1>
+        <p className="text-zinc-500 text-center mb-8 text-sm">Join Oaktix to start booking or hosting events.</p>
+
+        <form onSubmit={handleSignup} className="space-y-4">
+          {/* Role Selection */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <button
+              type="button"
+              onClick={() => setRole("user")}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                role === "user" 
+                  ? "bg-indigo-500/10 border-indigo-500 text-indigo-500 font-bold" 
+                  : "bg-white border border-[#E8EBE7] text-zinc-500 hover:border-zinc-300"
+              }`}
+            >
+              <User className="w-6 h-6" />
+              <span className="text-sm font-bold">Attendee</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("vendor")}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                role === "vendor" 
+                  ? "bg-indigo-500/10 border-indigo-500 text-indigo-500 font-bold" 
+                  : "bg-white border border-[#E8EBE7] text-zinc-500 hover:border-zinc-300"
+              }`}
+            >
+              <Store className="w-6 h-6" />
+              <span className="text-sm font-bold">Organizer</span>
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Full Name</label>
+            <input
+              name="fullName"
+              type="text"
+              required
+              placeholder="John Doe"
+              className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Email Address</label>
+            <input
+              name="email"
+              type="email"
+              required
+              placeholder="name@example.com"
+              className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Password</label>
+            <input
+              name="password"
+              type="password"
+              required
+              placeholder="••••••••"
+              className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
+            />
+          </div>
+
+          {role === "vendor" && (
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Business Name</label>
+                <input
+                  name="businessName"
+                  type="text"
+                  required
+                  placeholder="The Event Co."
+                  className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Short Bio</label>
+                <textarea
+                  name="businessBio"
+                  placeholder="Tell us about your events..."
+                  className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors min-h-[100px] text-sm text-zinc-800 placeholder:text-zinc-400"
+                />
+              </div>
+            </div>
+          )}
+
+          {error && <p className="text-red-500 text-xs font-bold text-center mt-2">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10 mt-6 cursor-pointer"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Create Account"}
+          </button>
+        </form>
+
+        <div className="mt-8 text-center">
+          <p className="text-zinc-500 text-sm">
+            Already have an account?{" "}
+            <Link href="/login" className="text-indigo-500 hover:text-indigo-600 font-bold transition-colors">
+              Log in
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

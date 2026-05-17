@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
+  
+  --color-background: #FAF9F6;
+  --color-foreground: #1A1A1A;
+
+  --color-indigo-50: #f0f7f4;
+  --color-indigo-100: #e1efe8;
+  --color-indigo-200: #c2dfd1;
+  --color-indigo-300: #93c5b0;
+  --color-indigo-400: #5fa589;
+  --color-indigo-500: #0E4B31; /* Rich primary Oak forest green */
+  --color-indigo-600: #0B3F29;
+  --color-indigo-700: #082E1E;
+  --color-indigo-800: #062215;
+  --color-indigo-900: #04160E;
+  --color-indigo-950: #020B07;
+
+  --color-amber-50: #fefbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #F19E23; /* Secondary Oak golden amber */
+  --color-amber-600: #D98716;
+  --color-amber-700: #B26B10;
+  --color-amber-800: #8C510D;
+  --color-amber-900: #73400C;
+
+  /* Elevate zinc palette with soft olive-slate tones */
+  --color-zinc-900: #141E18;
+  --color-zinc-800: #212F26;
+  --color-zinc-700: #35473B;
+  --color-zinc-600: #4A5D50;
+  --color-zinc-500: #64786B;
+  --color-zinc-400: #889C8F;
+  --color-zinc-300: #BAC6BF;
+  --color-zinc-200: #DCE3DF;
+  --color-zinc-100: #EFF2F0;
+  --color-zinc-50: #F7F9F8;
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/90 backdrop-blur-md border border-[#E8EBE7] rounded-2xl shadow-sm text-zinc-900;
+  }
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), sans-serif;
+}
+
+/* Custom styling to keep dashboard/auth interfaces looking premium */
+.dashboard-workspace {
+  background-color: #FAF9F6;
+  color: #1A1A1A;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(14, 75, 49, 0.15);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(14, 75, 49, 0.3);
+}
