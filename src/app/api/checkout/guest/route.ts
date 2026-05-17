@@ -14,36 +14,80 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // 1. Try to list users to find if one with this email already exists
-    const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (listError) {
-      console.error("Admin list users error:", listError);
-      throw listError;
-    }
+    let user = null;
 
-    let user = existingUsers?.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    try {
+      // 1. Try to list users to find if one with this email already exists
+      const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+      
+      if (!listError && existingUsers) {
+        user = existingUsers.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
-    if (!user) {
-      // Create user
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName,
-          role: "user"
+        if (!user) {
+          // Create user
+          const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            email_confirm: true,
+            user_metadata: {
+              full_name: fullName,
+              role: "user"
+            }
+          });
+
+          if (!createError && newUser?.user) {
+            user = newUser.user;
+          }
         }
-      });
-
-      if (createError) {
-        console.error("Admin create user error:", createError);
-        throw createError;
       }
-
-      user = newUser.user;
+    } catch (err) {
+      console.warn("Admin list/create failed, falling back to public client signup:", err);
     }
 
-    // 2. Double check if profile exists, if not, create it
+    // 2. Fallback: If admin flow failed (due to invalid service key), use public signup
+    if (!user) {
+      // Check if profile already exists in DB
+      const { data: existingProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("id, email")
+        .eq("email", email.toLowerCase())
+        .maybeSingle();
+
+      if (existingProfile) {
+        user = { id: existingProfile.id, email: existingProfile.email };
+      } else {
+        // Sign up public client-side statelessly
+        const { data: signUpData, error: signUpError } = await supabaseAdmin.auth.signUp({
+          email,
+          password: `guest_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`,
+          options: {
+            data: {
+              full_name: fullName,
+              role: "user"
+            }
+          }
+        });
+
+        if (signUpError) {
+          console.error("Public guest signup failed:", signUpError);
+          // If signup fails because user already exists, try to get their profile by email
+          const { data: retryProfile } = await supabaseAdmin
+            .from("profiles")
+            .select("id, email")
+            .eq("email", email.toLowerCase())
+            .maybeSingle();
+          
+          if (retryProfile) {
+            user = { id: retryProfile.id, email: retryProfile.email };
+          } else {
+            throw signUpError;
+          }
+        } else if (signUpData?.user) {
+          user = signUpData.user;
+        }
+      }
+    }
+
+    // 3. Double check if profile exists, if not, create it
     if (user) {
       const { data: profile } = await supabaseAdmin
         .from("profiles")

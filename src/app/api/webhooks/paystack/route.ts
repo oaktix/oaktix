@@ -37,37 +37,99 @@ export async function POST(req: Request) {
 
     if (isGuest && data.customer?.email) {
       const customerEmail = data.customer.email.toLowerCase();
-      
-      // 1. Try to list users to see if they already exist
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      let matchedUser = existingUsers?.users.find(u => u.email?.toLowerCase() === customerEmail);
+      let matchedUser = null;
 
-      if (!matchedUser) {
-        // 2. Create standard confirmed user account if they don't exist
-        const customerName = data.customer.name || data.customer.first_name || "Guest Buyer";
-        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-          email: customerEmail,
-          email_confirm: true,
-          user_metadata: {
-            full_name: customerName,
-            role: "user",
-            otp_verified: true
-          }
-        });
-
-        if (!createError && newUser?.user) {
-          matchedUser = newUser.user;
-          // Also create profile record
-          await supabase.from("profiles").insert({
-            id: matchedUser.id,
-            full_name: customerName,
-            email: customerEmail,
-            role: "user"
-          });
+      try {
+        // 1. Try to list users to see if they already exist via Admin client
+        const { data: existingUsers } = await supabase.auth.admin.listUsers();
+        if (existingUsers) {
+          matchedUser = existingUsers.users.find(u => u.email?.toLowerCase() === customerEmail);
         }
+
+        if (!matchedUser) {
+          // 2. Create standard confirmed user account if they don't exist via Admin client
+          const customerName = data.customer.name || data.customer.first_name || "Guest Buyer";
+          const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+            email: customerEmail,
+            email_confirm: true,
+            user_metadata: {
+              full_name: customerName,
+              role: "user",
+              otp_verified: true
+            }
+          });
+
+          if (!createError && newUser?.user) {
+            matchedUser = newUser.user;
+            // Also create profile record
+            await supabase.from("profiles").insert({
+              id: matchedUser.id,
+              full_name: customerName,
+              email: customerEmail,
+              role: "user"
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Webhook admin user creation failed, falling back to public signup:", err);
       }
 
-      if (matchedUser) {
+      // Fallback: If admin list/create was rejected (e.g. invalid service role key)
+      if (!matchedUser) {
+        try {
+          // Check if a profile with this email already exists in DB
+          const { data: existingProfile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("email", customerEmail)
+            .maybeSingle();
+
+          if (existingProfile) {
+            buyerId = existingProfile.id;
+          } else {
+            // Sign up statelessly using public auth.signUp
+            const customerName = data.customer.name || data.customer.first_name || "Guest Buyer";
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: customerEmail,
+              password: `guest_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`,
+              options: {
+                data: {
+                  full_name: customerName,
+                  role: "user"
+                }
+              }
+            });
+
+            if (!signUpError && signUpData?.user) {
+              buyerId = signUpData.user.id;
+              // Ensure profile is inserted
+              await supabase.from("profiles").insert({
+                id: buyerId,
+                full_name: customerName,
+                email: customerEmail,
+                role: "user"
+              });
+            } else {
+              console.warn("Public signup fallback inside webhook failed:", signUpError);
+              // Try secondary lookup by email in case of signup error
+              const { data: secondaryProfile } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("email", customerEmail)
+                .maybeSingle();
+              if (secondaryProfile) {
+                buyerId = secondaryProfile.id;
+              } else {
+                // If everything fails, set buyerId to null so the purchase transaction is recorded under a Guest session
+                buyerId = null;
+              }
+            }
+          }
+        } catch (fallbackErr) {
+          console.error("Critical fallback failure:", fallbackErr);
+          buyerId = null;
+        }
+      } else {
         buyerId = matchedUser.id;
       }
     }
