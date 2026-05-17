@@ -70,9 +70,25 @@ function VerifyOTPForm() {
     setError(null);
 
     try {
+      // 1. Try native Supabase OTP verification first (if they use native Supabase OTP template)
+      const { error: nativeError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "signup",
+      });
+
+      if (!nativeError) {
+        setSuccess(true);
+        // Refresh session to make sure client is logged in
+        await supabase.auth.refreshSession();
+        setTimeout(() => router.push("/dashboard"), 1500);
+        return;
+      }
+
+      // 2. Fall back to custom Resend-backed OTP API (if native verification failed or wasn't set up yet)
       const signature = sessionStorage.getItem(`otp_sig_${email}`);
       if (!signature) {
-        setError("Session expired. Please request a new code.");
+        setError("Invalid or expired code. Please check and try again.");
         setLoading(false);
         return;
       }
@@ -96,7 +112,6 @@ function VerifyOTPForm() {
       sessionStorage.removeItem(`otp_sig_${email}`);
 
       if (!signInData.session) {
-        // If no active session yet, just redirect to login with success message
         setSuccess(true);
         setTimeout(() => router.push("/login?message=Email verified! Please log in."), 1500);
       } else {
