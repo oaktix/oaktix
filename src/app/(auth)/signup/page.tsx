@@ -50,7 +50,17 @@ export default function SignupPage() {
     }
 
     if (data.user) {
-      router.push(`/verify?email=${encodeURIComponent(email)}`);
+      // Send OTP via our custom Resend-backed API
+      const otpRes = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const otpData = await otpRes.json();
+      if (otpData.signature) {
+        sessionStorage.setItem(`otp_sig_${email}`, otpData.signature);
+      }
+      router.push(`/verify?email=${encodeURIComponent(email)}&userId=${data.user.id}`);
     }
   }
 
