@@ -1,4 +1,4 @@
-import { Search, MapPin, Calendar, ArrowRight, Ticket, CheckCircle2, ShieldCheck, Zap } from "lucide-react";
+import { Search, Calendar, ArrowRight, Ticket, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/layout/Navbar";
@@ -86,7 +86,7 @@ export default async function Home() {
           <div className="relative z-10 w-full max-w-4xl flex flex-col items-center text-center mt-4">
             {/* Badge */}
             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-bold text-amber-300 mb-6 uppercase tracking-wider">
-              ✨ Nigeria's #1 ticketing marketplace
+              ✨ Nigeria&apos;s #1 ticketing marketplace
             </span>
 
             {/* Heading */}
