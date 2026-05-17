@@ -109,8 +109,8 @@ export default async function OrganizerFinances() {
 
             <form className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-600">Select Bank</label>
-                <select className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 text-sm outline-none bg-white">
+                <label htmlFor="bank" className="text-xs font-bold text-zinc-600">Select Bank</label>
+                <select id="bank" className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 text-sm outline-none bg-white">
                   <option>GTBank (Guaranty Trust)</option>
                   <option>Access Bank</option>
                   <option>Zenith Bank</option>
@@ -121,8 +121,9 @@ export default async function OrganizerFinances() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-600">Account Number</label>
+                <label htmlFor="accountNumber" className="text-xs font-bold text-zinc-600">Account Number</label>
                 <input
+                  id="accountNumber"
                   type="text"
                   maxLength={10}
                   placeholder="0123456789"
@@ -131,8 +132,9 @@ export default async function OrganizerFinances() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-600">Account Holder Name</label>
+                <label htmlFor="accountHolder" className="text-xs font-bold text-zinc-600">Account Holder Name</label>
                 <input
+                  id="accountHolder"
                   type="text"
                   placeholder="e.g. John Doe Limited"
                   className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 text-sm outline-none"

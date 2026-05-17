@@ -14,6 +14,11 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     redirect("/login");
   }
 
+  const otpVerified = user.user_metadata?.otp_verified === true;
+  if (!otpVerified) {
+    redirect(`/verify?email=${encodeURIComponent(user.email || "")}&userId=${user.id}`);
+  }
+
   const role = user.user_metadata?.role || 'user';
 
   return (

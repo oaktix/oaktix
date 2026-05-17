@@ -52,8 +52,9 @@ export default async function UserSettings() {
             <form className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-zinc-700">Full Name</label>
+                  <label htmlFor="fullName" className="block text-sm font-bold text-zinc-700">Full Name</label>
                   <input
+                    id="fullName"
                     type="text"
                     defaultValue={profile?.full_name || ""}
                     placeholder="e.g. Adewale Chiroma"
@@ -61,8 +62,9 @@ export default async function UserSettings() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-zinc-700">Account Email</label>
+                  <label htmlFor="email" className="block text-sm font-bold text-zinc-700">Account Email</label>
                   <input
+                    id="email"
                     type="email"
                     disabled
                     value={user.email || ""}
@@ -73,16 +75,18 @@ export default async function UserSettings() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-zinc-700">Phone Number</label>
+                  <label htmlFor="phone" className="block text-sm font-bold text-zinc-700">Phone Number</label>
                   <input
+                    id="phone"
                     type="tel"
                     placeholder="e.g. +234 80 1234 5678"
                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:border-indigo-500 outline-none transition-all text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-zinc-700">Country / Region</label>
+                  <label htmlFor="country" className="block text-sm font-bold text-zinc-700">Country / Region</label>
                   <input
+                    id="country"
                     type="text"
                     defaultValue="Nigeria"
                     disabled

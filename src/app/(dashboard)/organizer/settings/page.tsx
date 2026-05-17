@@ -56,8 +56,9 @@ export default async function OrganizerSettings() {
             <form className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-zinc-700">Organizer Name</label>
+                  <label htmlFor="orgName" className="block text-sm font-bold text-zinc-700">Organizer Name</label>
                   <input
+                    id="orgName"
                     type="text"
                     defaultValue={profile?.full_name || ""}
                     placeholder="e.g. Rhythm & Blues Nigeria"
@@ -65,8 +66,9 @@ export default async function OrganizerSettings() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-zinc-700">Contact Email</label>
+                  <label htmlFor="orgEmail" className="block text-sm font-bold text-zinc-700">Contact Email</label>
                   <input
+                    id="orgEmail"
                     type="email"
                     disabled
                     value={user.email || ""}
@@ -76,8 +78,9 @@ export default async function OrganizerSettings() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-bold text-zinc-700">Organizer Biography / Description</label>
+                <label htmlFor="orgBio" className="block text-sm font-bold text-zinc-700">Organizer Biography / Description</label>
                 <textarea
+                  id="orgBio"
                   rows={4}
                   placeholder="Tell ticket buyers who you are, what kind of events you organize..."
                   className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:border-indigo-500 outline-none transition-all text-sm resize-none"
@@ -86,16 +89,18 @@ export default async function OrganizerSettings() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-zinc-700">Website URL</label>
+                  <label htmlFor="orgWebsite" className="block text-sm font-bold text-zinc-700">Website URL</label>
                   <input
+                    id="orgWebsite"
                     type="url"
                     placeholder="https://oaktix.com.ng"
                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:border-indigo-500 outline-none transition-all text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-zinc-700">Instagram Handle</label>
+                  <label htmlFor="orgInstagram" className="block text-sm font-bold text-zinc-700">Instagram Handle</label>
                   <input
+                    id="orgInstagram"
                     type="text"
                     placeholder="@oaktix_ng"
                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:border-indigo-500 outline-none transition-all text-sm"

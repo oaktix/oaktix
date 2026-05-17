@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 
 export async function POST(req: Request) {
   try {
@@ -80,8 +81,41 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Failed to log email communication" }, { status: 500 });
     }
 
-    // Note: In real production, we would loop and trigger Resend API calls or use Resend batching here:
-    // await resend.emails.send({ ... })
+    // 5. Dispatch broadcast updates using Resend
+    const resend = new Resend(process.env.RESEND_API_KEY!);
+    
+    if (uniqueRecipients && uniqueRecipients.length > 0) {
+      await Promise.all(
+        uniqueRecipients.map(async (recipient) => {
+          if (recipient?.email) {
+            try {
+              await resend.emails.send({
+                from: "OakTix <hello@oaktix.com.ng>",
+                to: recipient.email,
+                subject: `${event.title}: ${subject}`,
+                html: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 12px; background-color: #ffffff;">
+                  <div style="background: linear-gradient(135deg, #0E4B31 0%, #1a6b47 100%); padding: 24px; text-align: center; border-radius: 8px 8px 0 0; color: #ffffff;">
+                    <span style="font-size: 24px;">🎟️</span>
+                    <h2 style="margin: 8px 0 0 0; font-size: 20px; color: #ffffff;">${event.title}</h2>
+                  </div>
+                  <div style="padding: 24px; color: #333333;">
+                    <p style="font-size: 15px; font-weight: bold; margin-top: 0; color: #1A1A1A;">Hello ${recipient.full_name || "Valued Guest"},</p>
+                    <p style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #4A5568; margin-bottom: 0;">${message}</p>
+                  </div>
+                  <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 24px 0;" />
+                  <p style="font-size: 11px; color: #718096; text-align: center; margin: 0;">
+                    You received this broadcast update because you purchased tickets to <strong>${event.title}</strong>.<br/>
+                    Need support? Reply to <a href="mailto:hello@oaktix.com.ng" style="color: #0E4B31; text-decoration: underline;">hello@oaktix.com.ng</a>
+                  </p>
+                </div>`,
+              });
+            } catch (err) {
+              console.error(`Failed to send broadcast email to ${recipient.email}:`, err);
+            }
+          }
+        })
+      );
+    }
 
     return NextResponse.json({
       success: true,

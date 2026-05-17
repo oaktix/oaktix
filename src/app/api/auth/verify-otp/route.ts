@@ -12,7 +12,11 @@ function verifySignature(email: string, otp: string, signature: string): boolean
       .createHmac("sha256", OTP_SECRET)
       .update(`${email}:${otp}:${bucket}`)
       .digest("hex");
-    if (crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))) {
+    
+    const expectedBuf = Buffer.from(expected);
+    const signatureBuf = Buffer.from(signature);
+
+    if (expectedBuf.length === signatureBuf.length && crypto.timingSafeEqual(expectedBuf, signatureBuf)) {
       return true;
     }
   }
@@ -41,6 +45,7 @@ export async function POST(req: Request) {
     if (userId) {
       const { error: confirmError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         email_confirm: true,
+        user_metadata: { otp_verified: true }
       });
 
       if (confirmError) {

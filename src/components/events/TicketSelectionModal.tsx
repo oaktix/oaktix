@@ -59,27 +59,10 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
       if (res.ok && data.user) {
         setGuestUser({ id: data.user.id, email: data.user.email });
       } else {
-        // 2. Fallback to client-side anonymous authentication if the API is restricted/local
-        const supabase = createClient();
-        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously({
-          options: {
-            data: {
-              full_name: guestName,
-              email: guestEmail,
-              role: "user"
-            }
-          }
-        });
-
-        if (anonError) {
-          throw anonError;
-        }
-
-        if (anonData?.user) {
-          setGuestUser({ id: anonData.user.id, email: guestEmail });
-        } else {
-          throw new Error("Failed to initialize guest checkout");
-        }
+        // Fallback: If guest registration API fails or has a network issue,
+        // let the guest proceed to payment using their email statelessly.
+        // The backend webhook will securely handle/create their account upon successful verification.
+        setGuestUser({ id: "guest_pending", email: guestEmail });
       }
     } catch (err: unknown) {
       console.error(err);
