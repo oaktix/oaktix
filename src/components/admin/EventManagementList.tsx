@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Calendar, MapPin, Trash2, ShieldAlert, CheckCircle2, AlertCircle, RefreshCw, Eye } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 interface EventItem {
   id: string;
@@ -31,6 +32,37 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
   const [search, setSearch] = useState("");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("events-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "events" },
+        async () => {
+          const { data } = await supabase
+            .from("events")
+            .select(`
+              *,
+              organizer:profiles (
+                full_name,
+                email,
+                vendor_details
+              )
+            `)
+            .order("created_at", { ascending: false });
+          if (data) {
+            setEvents(data as unknown as EventItem[]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
   const filteredEvents = events.filter((e) => {
     const title = e.title?.toLowerCase() || "";

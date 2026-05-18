@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, DollarSign, Wallet, TrendingUp, Receipt, Calendar, ArrowUpRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface TransactionItem {
   id: string;
@@ -28,8 +29,42 @@ interface TransactionManagementProps {
 }
 
 export default function TransactionManagementList({ initialTransactions }: TransactionManagementProps) {
-  const [transactions] = useState<TransactionItem[]>(initialTransactions);
+  const [transactions, setTransactions] = useState<TransactionItem[]>(initialTransactions);
   const [search, setSearch] = useState("");
+  const supabase = createClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("transactions-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "transactions" },
+        async () => {
+          const { data } = await supabase
+            .from("transactions")
+            .select(`
+              *,
+              buyer:profiles (
+                full_name,
+                email
+              ),
+              event:events (
+                title,
+                slug
+              )
+            `)
+            .order("created_at", { ascending: false });
+          if (data) {
+            setTransactions(data as unknown as TransactionItem[]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
   const filteredTransactions = transactions.filter((t) => {
     const ref = t.reference?.toLowerCase() || "";

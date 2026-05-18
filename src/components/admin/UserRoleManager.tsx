@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Search, 
   ShieldAlert, 
@@ -39,6 +39,29 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [searchTargetEmail, setSearchTargetEmail] = useState("");
   const supabase = createClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("profiles-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        async () => {
+          const { data } = await supabase
+            .from("profiles")
+            .select("*")
+            .order("full_name", { ascending: true });
+          if (data) {
+            setUsers(data);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
   const filteredUsers = users.filter((u) => {
     const searchString = `${u.full_name || ""} ${u.role || ""} ${u.phone || ""}`.toLowerCase();

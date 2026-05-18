@@ -1,14 +1,35 @@
 "use client";
 import { useEffect, useState } from "react";
 import WithdrawalManagementList, { Withdrawal } from "@/components/admin/WithdrawalManagementList";
-
+import { createClient } from "@/lib/supabase/client";
 
 export default function AdminWithdrawalsPage() {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("withdrawals-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "withdrawals" },
+        async () => {
+          try {
+            const res = await fetch("/api/admin/withdrawals");
+            const data = await res.json();
+            setWithdrawals(data.withdrawals || []);
+          } catch (e) {
+            console.error("Failed to load withdrawals", e);
+          }
+        }
+      )
+      .subscribe();
 
-
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
   useEffect(() => {
     (async () => {

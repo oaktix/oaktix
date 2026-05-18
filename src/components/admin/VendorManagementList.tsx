@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ShieldCheck, ShieldAlert, CheckCircle, Clock, User, Phone, Mail, Award } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 interface VendorProfile {
   id: string;
@@ -26,6 +27,31 @@ export default function VendorManagementList({ initialVendors }: VendorManagemen
   const [search, setSearch] = useState("");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("vendors-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        async () => {
+          const { data } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("role", "vendor")
+            .order("created_at", { ascending: false });
+          if (data) {
+            setVendors(data as unknown as VendorProfile[]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
   // Filter vendors based on search input
   const filteredVendors = vendors.filter((v) => {
