@@ -75,14 +75,13 @@ export default function SignupPage() {
     <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 flex flex-col items-center justify-center p-6 relative">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none -z-10" />
 
-      <Link href="/" className="flex items-center gap-2 mb-8 relative z-10 group">
-        <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-          <Ticket className="w-5 h-5" />
-        </div>
-        <span className="text-2xl font-bold font-heading tracking-tight flex items-center">
-          <span className="text-indigo-500">Oak</span>
-          <span className="text-amber-500">Tix</span>
-        </span>
+      <Link href="/" className="flex items-center mb-8 relative z-10 group">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo-header.png"
+          alt="OakTix"
+          className="h-10 w-auto object-contain"
+        />
       </Link>
 
       <div className="glass-card w-full max-w-md p-8 relative z-10 bg-white border border-[#E8EBE7] shadow-sm">

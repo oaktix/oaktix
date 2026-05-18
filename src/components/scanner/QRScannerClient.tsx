@@ -83,7 +83,7 @@ export default function QRScannerClient({ eventId, eventTitle }: QRScannerClient
         osc.start();
         osc.stop(audioCtx.currentTime + 0.4);
       }
-    } catch (_e) {
+    } catch {
       // Audio errors are safely caught
     }
   };
@@ -157,7 +157,7 @@ export default function QRScannerClient({ eventId, eventTitle }: QRScannerClient
             try {
               const parsed = JSON.parse(decodedText);
               if (parsed.code) ticketCode = parsed.code;
-            } catch (_e) {
+            } catch {
               // Not JSON, use direct text
             }
             
@@ -165,7 +165,7 @@ export default function QRScannerClient({ eventId, eventTitle }: QRScannerClient
             html5Qrcode.pause();
             handleVerifyTicket(ticketCode);
           },
-          (_errorMessage) => {
+          () => {
             // Skip noisy scanner errors
           }
         );
@@ -187,6 +187,7 @@ export default function QRScannerClient({ eventId, eventTitle }: QRScannerClient
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     startScanner();
     return () => {
       stopScanner();

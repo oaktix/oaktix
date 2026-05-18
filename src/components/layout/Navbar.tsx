@@ -37,13 +37,12 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
         } px-6 py-4 flex items-center justify-between`}
       >
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:scale-105 transition-transform">
-            <Ticket className="w-5 h-5" />
-          </div>
-          <span className="text-2xl font-bold font-heading tracking-tight flex items-center">
-            <span className="text-indigo-500">Oak</span>
-            <span className="text-amber-500">Tix</span>
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-header.png"
+            alt="OakTix"
+            className="h-8 w-auto group-hover:scale-[1.02] transition-transform object-contain"
+          />
         </Link>
 
         {/* Desktop Links */}
@@ -151,13 +150,12 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
         >
           <div className="space-y-8 mt-12">
             <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-                <Ticket className="w-4.5 h-4.5" />
-              </div>
-              <span className="text-xl font-bold font-heading tracking-tight flex items-center">
-                <span className="text-indigo-500">Oak</span>
-                <span className="text-amber-500">Tix</span>
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-header.png"
+                alt="OakTix"
+                className="h-7 w-auto object-contain"
+              />
             </Link>
 
             {/* Navigation links */}

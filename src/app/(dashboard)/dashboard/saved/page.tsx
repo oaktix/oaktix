@@ -3,6 +3,16 @@ import { redirect } from "next/navigation";
 import { Heart, Calendar, MapPin, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
+interface SavedEvent {
+  id: string;
+  title: string;
+  description: string;
+  start_date: string;
+  location: string;
+  image_url: string | null;
+  price: number;
+}
+
 export default async function SavedEventsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -27,7 +37,7 @@ export default async function SavedEventsPage() {
     `)
     .eq("user_id", user.id);
 
-  const events = savedEvents?.map(s => s.events).filter(Boolean) || [];
+  const events = (savedEvents?.map(s => s.events).filter(Boolean) || []) as unknown as SavedEvent[];
 
   return (
     <div className="space-y-8 pb-12">
@@ -57,7 +67,7 @@ export default async function SavedEventsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event: any) => (
+          {events.map((event) => (
             <div key={event.id} className="glass-card overflow-hidden bg-white border border-[#E8EBE7] shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col h-full rounded-2xl">
               {/* Event Image */}
               <div className="h-48 w-full bg-zinc-100 relative overflow-hidden">

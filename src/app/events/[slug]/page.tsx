@@ -30,6 +30,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
       featured_image: null,
       image_url: null,
       gradient: "from-[#0E4B31] to-[#2E7D32]",
+      absorb_fees: false,
       ticket_types: [
         { name: "Regular Delegate Pass", price: 8000, description: "Full access to keynotes, workshops, and panels.", perks: ["General Seating", "Certificate"] },
         { name: "VIP Executive Ticket", price: 25000, description: "Front-row seats, lounge access, and exclusive network dinners.", perks: ["Networking Lounge", "VIP Dinner", "Premium Swag"] }
@@ -58,6 +59,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
       featured_image: null,
       image_url: null,
       gradient: "from-[#F19E23] to-[#E65100]",
+      absorb_fees: false,
       ticket_types: [
         { name: "General Admission", price: 10000, description: "Standard single seat access.", perks: ["Standard Row Seating"] },
         { name: "VIP Table Reservation", price: 50000, description: "Premium table seating with complimentary refreshments.", perks: ["Front Row Table", "Complimentary Drinks", "Photo Session"] }
@@ -86,6 +88,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
       featured_image: null,
       image_url: null,
       gradient: "from-[#0E4B31] to-[#F19E23]",
+      absorb_fees: false,
       ticket_types: [
         { name: "Standard Carnival Pass", price: 5000, description: "Access to the main festival grounds, food courts, and parades.", perks: ["General Entry"] },
         { name: "Super VIP Weekend Package", price: 30000, description: "Exclusive elevated stage viewing, security, and standard bar access.", perks: ["VIP Stage", "Dedicated Security", "VIP Bar Pass"] }
@@ -201,7 +204,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
                     id: event.id,
                     title: event.title,
                     slug: event.slug,
-                    ticket_types: ticketTypes
+                    ticket_types: ticketTypes,
+                    absorb_fees: event.absorb_fees
                   }} 
                   user={user ? { id: user.id, email: user.email || "" } : null} 
                 />

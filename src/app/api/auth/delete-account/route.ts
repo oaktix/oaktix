@@ -2,7 +2,7 @@ import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const supabase = await createServerSupabase();
     const { data: { user } } = await supabase.auth.getUser();
@@ -34,8 +34,9 @@ export async function POST(request: Request) {
     await supabase.auth.signOut();
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("Delete account failed:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Delete account failed:", errMessage);
+    return NextResponse.json({ error: errMessage }, { status: 500 });
   }
 }

@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/client";
 
 interface Profile {
   id: string;
+  email: string | null;
   full_name: string | null;
   phone: string | null;
   role: string | null;
@@ -36,7 +37,7 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [roleToPromote, setRoleToPromote] = useState("admin");
   const [showPromoteModal, setShowPromoteModal] = useState(false);
-  const [searchTargetId, setSearchTargetId] = useState("");
+  const [searchTargetEmail, setSearchTargetEmail] = useState("");
   const supabase = createClient();
 
   const filteredUsers = users.filter((u) => {
@@ -44,7 +45,65 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
     return searchString.includes(searchTerm.toLowerCase());
   });
 
-  async function handleRoleUpdate(userId: string, newRole: string) {
+  async function handleEmailRoleUpdate(email: string, newRole: string) {
+    setUpdatingId(email);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+    setOpenDropdownId(null);
+
+    // Check if profile with this email already exists
+    const { data: existing, error: fetchError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (fetchError) {
+      setErrorMsg(`Database check failed: ${fetchError.message}`);
+      setUpdatingId(null);
+      return;
+    }
+
+    if (existing) {
+      // Update existing profile's role
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ role: newRole })
+        .eq("id", existing.id);
+
+      if (updateError) {
+        setErrorMsg(`Failed to update user role: ${updateError.message}`);
+      } else {
+        const { data: refreshed } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("full_name", { ascending: true });
+        setUsers(refreshed || []);
+        setSuccessMsg("User role updated successfully!");
+        setTimeout(() => setSuccessMsg(null), 3000);
+      }
+    } else {
+      // Insert new profile with this email and role
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert({ email, role: newRole });
+
+      if (insertError) {
+        setErrorMsg(`Failed to assign role to new user: ${insertError.message}`);
+      } else {
+        const { data: refreshed } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("full_name", { ascending: true });
+        setUsers(refreshed || []);
+        setSuccessMsg("New profile created and role assigned successfully!");
+        setTimeout(() => setSuccessMsg(null), 3000);
+      }
+    }
+    setUpdatingId(null);
+  }
+
+    async function handleRoleUpdate(userId: string, newRole: string) {
     setUpdatingId(userId);
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -58,16 +117,17 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
     if (error) {
       setErrorMsg(`Failed to update role: ${error.message}`);
     } else {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
-      );
-      setSuccessMsg("User role updated and synchronized successfully!");
+      const { data: refreshed } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("full_name", { ascending: true });
+      setUsers(refreshed || []);
+      setSuccessMsg("User role updated successfully!");
       setTimeout(() => setSuccessMsg(null), 3000);
     }
     setUpdatingId(null);
   }
-
-  function getRoleBadge(role: string | null) {
+function getRoleBadge(role: string | null) {
     switch (role) {
       case "super_admin":
         return (
@@ -133,7 +193,7 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
           className="w-full md:w-auto px-5 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm shadow-md shadow-indigo-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <PlusCircle className="w-4.5 h-4.5" />
-          Promote Super Admin by ID
+          Promote User by Email
         </button>
       </div>
 
@@ -143,7 +203,7 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
           <div className="p-16 text-center text-zinc-500 space-y-2">
             <User className="w-12 h-12 text-zinc-300 mx-auto" />
             <p className="font-bold text-zinc-700">No matching platform users found</p>
-            <p className="text-zinc-500 text-sm">Refine your search parameters or promote a user manually by ID.</p>
+            <p className="text-zinc-500 text-sm">Refine your search parameters or promote a user manually by email.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -152,6 +212,7 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
                 <tr className="border-b border-[#E8EBE7] bg-zinc-50/50">
                   <th className="p-4 font-bold text-zinc-650">User Profile Name</th>
                   <th className="p-4 font-bold text-zinc-650">Database Reference ID</th>
+<th className="p-4 font-bold text-zinc-650">Email</th>
                   <th className="p-4 font-bold text-zinc-650">Telephone Number</th>
                   <th className="p-4 font-bold text-zinc-650">Platform Role</th>
                   <th className="p-4 font-bold text-zinc-650 text-right">Actions</th>
@@ -165,6 +226,9 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
                     </td>
                     <td className="p-4 text-xs font-mono text-zinc-400 select-all font-semibold">
                       {profile.id}
+                    </td>
+                    <td className="p-4 text-xs text-zinc-500 font-medium">
+                      {profile.email || "—"}
                     </td>
                     <td className="p-4 text-zinc-500 font-medium">
                       {profile.phone || "Not provided"}
@@ -194,34 +258,34 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
 
                           {openDropdownId === profile.id && (
                             <div className="absolute right-4 mt-2 w-48 rounded-xl bg-white border border-zinc-200 shadow-xl z-20 overflow-hidden py-1 animate-in fade-in duration-100">
-                              <button
-                                onClick={() => handleRoleUpdate(profile.id, "user")}
-                                className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-zinc-50 text-zinc-700 flex items-center justify-between"
-                              >
-                                <span>Regular User</span>
-                                {profile.role === "user" && <Check className="w-3.5 h-3.5 text-indigo-500" />}
-                              </button>
-                              <button
-                                onClick={() => handleRoleUpdate(profile.id, "vendor")}
-                                className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-zinc-50 text-zinc-700 flex items-center justify-between"
-                              >
-                                <span>Vendor / Organizer</span>
-                                {profile.role === "vendor" && <Check className="w-3.5 h-3.5 text-indigo-500" />}
-                              </button>
-                              <button
-                                onClick={() => handleRoleUpdate(profile.id, "admin")}
-                                className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-zinc-50 text-zinc-700 flex items-center justify-between"
-                              >
-                                <span>System Admin</span>
-                                {profile.role === "admin" && <Check className="w-3.5 h-3.5 text-indigo-500" />}
-                              </button>
-                              <button
-                                onClick={() => handleRoleUpdate(profile.id, "super_admin")}
-                                className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-zinc-50 text-zinc-700 flex items-center justify-between"
-                              >
-                                <span>Super Admin</span>
-                                {profile.role === "super_admin" && <Check className="w-3.5 h-3.5 text-indigo-500" />}
-                              </button>
+                                <button
+                                  onClick={() => handleRoleUpdate(profile.id, "user")}
+                                  className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-zinc-50 text-zinc-700 flex items-center justify-between"
+                                >
+                                  <span>Regular User</span>
+                                  {profile.role === "user" && <Check className="w-3.5 h-3.5 text-indigo-500" />}
+                                </button>
+                                <button
+                                  onClick={() => handleRoleUpdate(profile.id, "vendor")}
+                                  className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-zinc-50 text-zinc-700 flex items-center justify-between"
+                                >
+                                  <span>Vendor / Organizer</span>
+                                  {profile.role === "vendor" && <Check className="w-3.5 h-3.5 text-indigo-500" />}
+                                </button>
+                                <button
+                                  onClick={() => handleRoleUpdate(profile.id, "admin")}
+                                  className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-zinc-50 text-zinc-700 flex items-center justify-between"
+                                >
+                                  <span>System Admin</span>
+                                  {profile.role === "admin" && <Check className="w-3.5 h-3.5 text-indigo-500" />}
+                                </button>
+                                <button
+                                  onClick={() => handleRoleUpdate(profile.id, "super_admin")}
+                                  className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-zinc-50 text-zinc-700 flex items-center justify-between"
+                                >
+                                  <span>Super Admin</span>
+                                  {profile.role === "super_admin" && <Check className="w-3.5 h-3.5 text-indigo-500" />}
+                                </button>
                             </div>
                           )}
                         </div>
@@ -241,18 +305,18 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
           <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-zinc-200 shadow-2xl relative animate-in fade-in zoom-in duration-200">
             <h3 className="text-xl font-bold text-zinc-800 mb-2">Promote User Manually</h3>
             <p className="text-zinc-500 text-sm mb-4">
-              Directly assign administrative authority to a user using their exact database reference ID.
+              Directly assign administrative authority to a user using their registered account email.
             </p>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Target User Reference ID (UUID)</label>
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Target User Email Address</label>
                 <input
-                  type="text"
-                  value={searchTargetId}
-                  onChange={(e) => setSearchTargetId(e.target.value)}
-                  placeholder="e.g. 6fd4bb59-7e67-4873-a252-17f919b2d795"
-                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-indigo-500 text-sm font-semibold font-mono"
+                  type="email"
+                  value={searchTargetEmail}
+                  onChange={(e) => setSearchTargetEmail(e.target.value)}
+                  placeholder="e.g. user@example.com"
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none focus:border-indigo-500 text-sm font-semibold"
                 />
               </div>
 
@@ -278,7 +342,7 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
                 type="button"
                 onClick={() => {
                   setShowPromoteModal(false);
-                  setSearchTargetId("");
+                  setSearchTargetEmail("");
                 }}
                 className="flex-1 py-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-sm transition-all"
               >
@@ -287,12 +351,12 @@ export default function UserRoleManager({ initialUsers, currentUserId }: UserRol
               <button
                 type="button"
                 onClick={async () => {
-                  if (!searchTargetId.trim()) return;
-                  await handleRoleUpdate(searchTargetId.trim(), roleToPromote);
+                  if (!searchTargetEmail.trim()) return;
+                  await handleEmailRoleUpdate(searchTargetEmail.trim(), roleToPromote);
                   setShowPromoteModal(false);
-                  setSearchTargetId("");
+                  setSearchTargetEmail("");
                 }}
-                disabled={!searchTargetId.trim()}
+                disabled={!searchTargetEmail.trim()}
                 className="flex-1 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-all flex items-center justify-center gap-1.5"
               >
                 Promote User

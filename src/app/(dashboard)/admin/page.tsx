@@ -1,4 +1,4 @@
-import { ShieldCheck, AlertTriangle, ShieldAlert } from "lucide-react";
+import { ShieldCheck, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -55,22 +55,22 @@ export default async function AdminDashboard() {
 
       {/* Platform Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="glass-card p-6 bg-white border border-[#E8EBE7] shadow-sm">
-          <p className="text-sm text-zinc-500 mb-1">Total Platform GMV</p>
-          <p className="text-2xl font-bold font-heading text-indigo-600">₦0.00</p>
-          <div className="mt-2 text-xs text-indigo-500 font-bold">Platform Fee (4%): ₦0.00</div>
+        <div className="glass-card p-6 bg-gray-900/40 border border-gray-800 shadow-sm">
+           <p className="text-sm text-zinc-400 mb-1">Total Platform GMV</p>
+           <p className="text-2xl font-bold font-heading text-indigo-300">₦0.00</p>
+           <div className="mt-2 text-xs text-indigo-300 font-bold">Platform Fee (4%): ₦0.00</div>
         </div>
-        <div className="glass-card p-6 bg-white border border-[#E8EBE7] shadow-sm">
-          <p className="text-sm text-zinc-500 mb-1">Total Users</p>
-          <p className="text-2xl font-bold font-heading">1</p>
-          <div className="mt-2 text-xs text-zinc-500">Active now: 1</div>
+        <div className="glass-card p-6 bg-gray-900/40 border border-gray-800 shadow-sm">
+           <p className="text-sm text-zinc-400 mb-1">Total Users</p>
+           <p className="text-2xl font-bold font-heading text-white">1</p>
+           <div className="mt-2 text-xs text-zinc-400">Active now: 1</div>
         </div>
-        <div className="glass-card p-6 bg-white border border-[#E8EBE7] shadow-sm">
-          <p className="text-sm text-zinc-500 mb-1">Active Vendors</p>
+        <div className="glass-card p-6 bg-gray-900/40 border border-gray-800 shadow-sm">
+           <p className="text-sm text-zinc-400 mb-1">Active Vendors</p>
           <p className="text-2xl font-bold font-heading">0</p>
-          <div className="mt-2 text-xs text-amber-500 font-bold">0 Pending verification</div>
+           <div className="mt-2 text-xs text-amber-400 font-bold">0 Pending verification</div>
         </div>
-        <div className="glass-card p-6 bg-white border border-[#E8EBE7] shadow-sm">
+        <div className="glass-card p-6 bg-gray-900/40 border border-gray-800 shadow-sm">
           <p className="text-sm text-zinc-500 mb-1">Live Events</p>
           <p className="text-2xl font-bold font-heading">0</p>
           <div className="mt-2 text-xs text-zinc-500">Tickets sold today: 0</div>
@@ -88,7 +88,7 @@ export default async function AdminDashboard() {
               Manage Queue
             </Link>
           </div>
-          <div className="glass-card p-8 text-center text-zinc-500 bg-white border border-[#E8EBE7] shadow-sm">
+          <div className="glass-card p-8 text-center text-zinc-400 bg-gray-900/40 border border-gray-800 shadow-sm">
             <p className="text-sm">No pending verification requests.</p>
           </div>
         </div>
@@ -100,7 +100,7 @@ export default async function AdminDashboard() {
               <AlertTriangle className="w-5 h-5 text-rose-500" /> Moderation Alerts
             </h2>
           </div>
-          <div className="glass-card p-8 text-center text-zinc-500 border border-[#E8EBE7] shadow-sm">
+          <div className="glass-card p-8 text-center text-zinc-400 border border-gray-800 shadow-sm">
             <p className="text-sm">No flagged events or reviews.</p>
           </div>
         </div>

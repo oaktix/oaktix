@@ -34,7 +34,7 @@ export default function AdminLoginPortal() {
 
     if (data.user) {
       // Query their role from profiles table to ensure they are administrative
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)

@@ -31,6 +31,7 @@ export default function EventCreationWizard() {
     venue_address: "",
     max_attendees: "",
     isVirtual: false,
+    absorb_fees: false,
     ticketTypes: [
       { name: "General Admission", price: 0, description: "Basic entry to the event.", perks: [] as string[] }
     ] as TicketType[],
@@ -106,6 +107,7 @@ export default function EventCreationWizard() {
         ticket_types: formData.ticketTypes,
         featured_image: featured_image_url,
         organizer_id: user.id,
+        absorb_fees: formData.absorb_fees,
         status: "published",
       });
 
@@ -373,6 +375,23 @@ export default function EventCreationWizard() {
                   className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
                 />
               </div>
+
+              <div className="pt-4 border-t border-white/10">
+                <label className="flex items-start gap-3 text-sm font-bold text-zinc-300 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.absorb_fees} 
+                    onChange={(e) => updateForm("absorb_fees", e.target.checked)}
+                    className="w-4 h-4 mt-0.5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <div>
+                    <span className="block">Absorb Platform Fees</span>
+                    <span className="text-xs text-zinc-400 font-normal block mt-0.5">
+                      If checked, platform fees will be deducted from your ticket payout (buyer pays only the ticket price). Otherwise, platform fees are added to the ticket price paid by the buyer.
+                    </span>
+                  </div>
+                </label>
+              </div>
             </div>
           )}
 
@@ -408,6 +427,15 @@ export default function EventCreationWizard() {
                         </span>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 text-xs">
+                    <span className="font-bold block mb-1">Fee Handling</span>
+                    {formData.absorb_fees ? (
+                      <span className="text-emerald-400">Absorbing platform fees. Buyers will pay only the face ticket price.</span>
+                    ) : (
+                      <span className="text-indigo-400">Buyers pay platform fees in addition to the ticket price.</span>
+                    )}
                   </div>
                 </div>
               </div>

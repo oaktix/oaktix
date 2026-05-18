@@ -48,13 +48,21 @@ export async function middleware(request: NextRequest) {
 
   // Role-based protection
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
+    // Prefer user_metadata.role (set at account creation / admin script) as the primary source.
+    // This avoids RLS blocking the profile lookup in middleware context for super_admin accounts
+    // whose profiles row may not be readable through the anon key.
+    const metaRole = user.user_metadata?.role as string | undefined
 
-    const userRole = profile?.role || user.user_metadata?.role
+    // Only hit the DB if the JWT metadata doesn't already contain a recognised admin role
+    let userRole = metaRole
+    if (!metaRole || (metaRole !== 'admin' && metaRole !== 'super_admin' && metaRole !== 'vendor')) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      userRole = profile?.role || metaRole
+    }
 
     if (isOrganizerRoute && userRole !== 'vendor' && userRole !== 'admin' && userRole !== 'super_admin') {
       return NextResponse.redirect(new URL('/dashboard', request.url))

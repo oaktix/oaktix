@@ -27,12 +27,7 @@ export async function POST(req: Request) {
     const otp = generateOtp();
     const signature = signOtp(email, otp);
 
-    // Send branded email via Resend
-    const { error: emailError } = await resend.emails.send({
-      from: "OakTix <hello@oaktix.com.ng>",
-      to: email,
-      subject: `${otp} is your OakTix verification code`,
-      html: `<!DOCTYPE html>
+    const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -113,12 +108,48 @@ export async function POST(req: Request) {
     </tr>
   </table>
 </body>
-</html>`,
-    });
+</html>`;
+
+    let emailError = null;
+    try {
+      const { error } = await resend.emails.send({
+        from: "OakTix <hello@oaktix.com.ng>",
+        to: email,
+        subject: `${otp} is your OakTix verification code`,
+        html: htmlContent,
+      });
+      emailError = error;
+
+      if (emailError) {
+        console.warn("Primary custom domain dispatch failed inside send-otp, retrying with sandbox onboarding@resend.dev...");
+        const { error: fallbackError } = await resend.emails.send({
+          from: "OakTix <onboarding@resend.dev>",
+          to: email,
+          subject: `[Sandbox] ${otp} is your OakTix verification code`,
+          html: htmlContent,
+        });
+        emailError = fallbackError;
+      }
+    } catch (err) {
+      console.error("send-otp primary send crashed, attempting sandbox fallback:", err);
+      try {
+        const { error: fallbackError } = await resend.emails.send({
+          from: "OakTix <onboarding@resend.dev>",
+          to: email,
+          subject: `[Sandbox] ${otp} is your OakTix verification code`,
+          html: htmlContent,
+        });
+        emailError = fallbackError;
+      } catch (fallbackErr) {
+        const fallbackMsg = fallbackErr instanceof Error ? fallbackErr.message : "Unknown sandbox fallback error";
+        console.error("Sandbox fallback inside send-otp failed:", fallbackMsg);
+        emailError = fallbackErr;
+      }
+    }
 
     if (emailError) {
-      console.error("Resend error:", emailError);
-      return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+      console.error("Resend send-otp delivery failed after fallback:", emailError);
+      return NextResponse.json({ error: "Failed to send email after fallback attempts" }, { status: 500 });
     }
 
     // Return signature so client can verify later (stateless - no DB needed)

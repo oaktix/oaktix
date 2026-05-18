@@ -54,14 +54,13 @@ export default function ResponsiveLayout({ role, children }: ResponsiveLayoutPro
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Mobile Header Bar (hidden on desktop) */}
         <header className="lg:hidden w-full h-16 bg-white border-b border-[#E8EBE7] flex items-center justify-between px-6 shrink-0 z-30">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-              <Ticket className="w-4.5 h-4.5" />
-            </div>
-            <span className="text-lg font-bold font-heading tracking-tight flex items-center">
-              <span className="text-indigo-500">Oak</span>
-              <span className="text-amber-500">Tix</span>
-            </span>
+          <Link href="/" className="flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-header.png"
+              alt="OakTix"
+              className="h-7 w-auto object-contain"
+            />
           </Link>
 
           <button

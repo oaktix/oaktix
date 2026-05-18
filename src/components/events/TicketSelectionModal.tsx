@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { X, Minus, Plus, Loader2, ArrowLeft, Mail, User as UserIcon } from "lucide-react";
 import PaystackButton from "../checkout/PaystackButton";
 import Link from "next/link";
@@ -11,6 +11,7 @@ interface TicketSelectionModalProps {
     id: string;
     title: string;
     slug: string;
+    absorb_fees?: boolean;
   };
   ticketType: {
     name: string;
@@ -31,8 +32,36 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   const [guestUser, setGuestUser] = useState<{ id: string; email: string } | null>(null);
   const [loadingGuest, setLoadingGuest] = useState(false);
   const [guestError, setGuestError] = useState<string | null>(null);
+  const [platformFeePercent, setPlatformFeePercent] = useState(4.0);
 
-  const totalAmount = ticketType.price * quantity;
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("system_configurations")
+          .select("value")
+          .eq("key", "platform_markup")
+          .maybeSingle();
+        if (data?.value) {
+          const val = data.value as { zero_fee_mode?: boolean; percentage?: number };
+          if (val.zero_fee_mode) {
+            setPlatformFeePercent(0);
+          } else if (typeof val.percentage === 'number') {
+            setPlatformFeePercent(val.percentage);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading platform markup:", err);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  const baseAmount = ticketType.price * quantity;
+  const isAbsorbed = event.absorb_fees === true;
+  const serviceFee = isAbsorbed ? 0 : baseAmount * (platformFeePercent / 100);
+  const totalAmount = baseAmount + serviceFee;
 
   const handleSuccess = async (reference: string) => {
     // Redirect to tickets page with reference verification
@@ -118,15 +147,21 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
           <div className="space-y-3">
             <div className="flex justify-between text-sm text-zinc-500">
               <span>Subtotal</span>
-              <span className="text-zinc-800 font-semibold">₦{totalAmount.toLocaleString()}</span>
+              <span className="text-zinc-800 font-semibold">₦{baseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-sm text-zinc-500">
               <span>Service Fee</span>
-              <span className="text-zinc-800 font-semibold">₦0.00</span>
+              {isAbsorbed ? (
+                <span className="text-emerald-600 font-bold text-xs bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100 flex items-center">
+                  Absorbed by Organizer
+                </span>
+              ) : (
+                <span className="text-zinc-800 font-semibold">₦{serviceFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              )}
             </div>
             <div className="flex justify-between text-xl font-bold font-heading pt-3 border-t border-zinc-200/60">
               <span className="text-zinc-900">Total</span>
-              <span className="text-indigo-600">₦{totalAmount.toLocaleString()}</span>
+              <span className="text-indigo-600">₦{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
 

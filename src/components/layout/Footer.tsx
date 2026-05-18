@@ -21,13 +21,12 @@ export default function Footer({ theme = "light" }: FooterProps) {
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-5 gap-10">
         <div className="md:col-span-2 space-y-6">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-              <Ticket className="w-4.5 h-4.5" />
-            </div>
-            <span className="text-xl font-bold font-heading tracking-tight flex items-center">
-              <span className="text-indigo-500">Oak</span>
-              <span className="text-amber-500">Tix</span>
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-footer.png"
+              alt="OakTix"
+              className="h-16 w-auto object-contain"
+            />
           </Link>
           <p className={`text-xs leading-relaxed max-w-sm ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
             Nigeria&apos;s home for unforgettable events. Discover concerts, conferences, festivals and more — buy tickets in seconds, walk in with a QR code.

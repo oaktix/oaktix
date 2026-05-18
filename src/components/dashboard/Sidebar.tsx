@@ -15,7 +15,8 @@ import {
   Wallet,
   ShieldCheck,
   Ticket as TicketIcon,
-  Mail
+  Mail,
+  Banknote
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -56,6 +57,7 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
       { name: "Events", href: "/admin/events", icon: Calendar },
       { name: "Transactions", href: "/admin/transactions", icon: Wallet },
+      { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote }, // new entry
       { name: "System", href: "/admin/system", icon: Settings },
     ],
     super_admin: [
@@ -64,6 +66,7 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
       { name: "Events", href: "/admin/events", icon: Calendar },
       { name: "Transactions", href: "/admin/transactions", icon: Wallet },
+      { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote }, // new entry for super admin
       { name: "System", href: "/admin/system", icon: Settings },
     ],
     staff: [
@@ -75,12 +78,13 @@ export function Sidebar({ role }: SidebarProps) {
 
   return (
     <div className="w-full lg:w-64 h-full flex flex-col p-6 bg-white border-r border-[#E8EBE7]">
-      <div className="flex items-center gap-2 mb-10 px-2">
-        <TicketIcon className="w-8 h-8 text-indigo-500" />
-        <span className="text-xl font-bold font-heading tracking-tight flex items-center">
-          <span className="text-indigo-500">Oak</span>
-          <span className="text-amber-500">Tix</span>
-        </span>
+      <div className="flex items-center mb-10 px-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo-header.png"
+          alt="OakTix"
+          className="h-8 w-auto object-contain"
+        />
       </div>
 
       <nav className="flex-1 space-y-1">

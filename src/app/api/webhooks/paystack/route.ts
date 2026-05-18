@@ -134,14 +134,98 @@ export async function POST(req: Request) {
       }
     }
 
-    // 1. Create Transaction record
+    // Fetch event details early to resolve fee preferences and reuse for email confirmation
+    let eventTitle = "Your OakTix Event";
+    let eventDateText = "Date is listed on your dashboard";
+    let eventLocationText = "Venue is listed on your dashboard";
+    let eventBannerUrl = "";
+    let dbEvent: {
+      title?: string | null;
+      absorb_fees?: boolean | null;
+      start_date?: string | null;
+      venue_details?: { name?: string } | null;
+      location?: string | null;
+      featured_image?: string | null;
+      image_url?: string | null;
+      organizer_id?: string | null;
+    } | null = null;
+    let absorbFees = false;
+
+    try {
+      const { data: eventData } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", event_id)
+        .single();
+      
+      dbEvent = eventData;
+      if (dbEvent) {
+        eventTitle = dbEvent.title || eventTitle;
+        absorbFees = dbEvent.absorb_fees || false;
+        if (dbEvent.start_date) {
+          eventDateText = new Date(dbEvent.start_date).toLocaleString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+        }
+        eventLocationText = dbEvent.venue_details?.name || dbEvent.location || eventLocationText;
+        eventBannerUrl = dbEvent.featured_image || dbEvent.image_url || "";
+      }
+    } catch (err) {
+      console.error("Error fetching event details:", err);
+    }
+
+    // Fetch dynamic platform fee configuration from database system_configurations
+    let platformFeePercent = 4.0;
+    let zeroFeeMode = false;
+    try {
+      const { data: configData } = await supabase
+        .from("system_configurations")
+        .select("value")
+        .eq("key", "platform_markup")
+        .maybeSingle();
+      if (configData?.value) {
+        const val = configData.value as { percentage?: number; zero_fee_mode?: boolean };
+        platformFeePercent = val.percentage ?? 4.0;
+        zeroFeeMode = val.zero_fee_mode ?? false;
+      }
+    } catch (err) {
+      console.error("Error fetching platform fee config:", err);
+    }
+
+    if (zeroFeeMode) {
+      platformFeePercent = 0.0;
+    }
+
+    const totalPaid = amount / 100;
+    const F = platformFeePercent / 100;
+    let platform_fee = 0;
+    let vendor_net = totalPaid;
+
+    if (F > 0) {
+      if (absorbFees) {
+        platform_fee = totalPaid * F;
+        vendor_net = totalPaid - platform_fee;
+      } else {
+        vendor_net = totalPaid / (1 + F);
+        platform_fee = totalPaid - vendor_net;
+      }
+    }
+
+    // 1. Create Transaction record with platform fee breakdown
     const { error: txError } = await supabase
       .from("transactions")
       .insert({
         reference,
         buyer_id: buyerId,
         event_id,
-        amount: amount / 100,
+        amount: totalPaid,
+        platform_fee: Number(platform_fee.toFixed(2)),
+        vendor_net: Number(vendor_net.toFixed(2)),
         status: "success",
         payment_channel: data.channel,
         paid_at: data.paid_at
@@ -190,39 +274,7 @@ export async function POST(req: Request) {
       generatedTickets.push({ uniqueCode, qrCodeUrl });
     }
 
-    // 3. Dispatch branded HTML email confirmation via Resend
-    let eventTitle = "Your OakTix Event";
-    let eventDateText = "Date is listed on your dashboard";
-    let eventLocationText = "Venue is listed on your dashboard";
-    let eventBannerUrl = "";
-    let dbEvent: any = null;
-
-    try {
-      const { data } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", event_id)
-        .single();
-      
-      dbEvent = data;
-      if (dbEvent) {
-        eventTitle = dbEvent.title || eventTitle;
-        if (dbEvent.start_date) {
-          eventDateText = new Date(dbEvent.start_date).toLocaleString("en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-          });
-        }
-        eventLocationText = dbEvent.venue_details?.name || dbEvent.location || eventLocationText;
-        eventBannerUrl = dbEvent.featured_image || dbEvent.image_url || "";
-      }
-    } catch (err) {
-      console.error("Error fetching event details for email:", err);
-    }
+    // 3. Dispatch branded HTML email confirmation via Resend (reusing loaded event details)
 
     const resend = new Resend(process.env.RESEND_API_KEY!);
     const buyerEmail = data.customer?.email || "hello@oaktix.com.ng";
@@ -329,18 +381,34 @@ export async function POST(req: Request) {
 </html>`;
 
     try {
-      const { error: emailSendError } = await resend.emails.send({
+      const emailSendResult = await resend.emails.send({
         from: "OakTix <hello@oaktix.com.ng>",
         to: buyerEmail,
         subject: `Your OakTix Tickets: ${eventTitle}`,
         html: emailHtml,
       });
 
-      if (emailSendError) {
-        console.error("Resend delivery failed:", emailSendError);
+      if (emailSendResult.error) {
+        console.warn("Primary domain dispatch failed, retrying with sandbox onboarding@resend.dev...", emailSendResult.error);
+        await resend.emails.send({
+          from: "OakTix <onboarding@resend.dev>",
+          to: buyerEmail,
+          subject: `[Sandbox] Your OakTix Tickets: ${eventTitle}`,
+          html: emailHtml,
+        });
       }
     } catch (err) {
-      console.error("Resend API call crashed:", err);
+      console.error("Resend delivery crashed, retrying with sandbox email from address:", err);
+      try {
+        await resend.emails.send({
+          from: "OakTix <onboarding@resend.dev>",
+          to: buyerEmail,
+          subject: `[Sandbox] Your OakTix Tickets: ${eventTitle}`,
+          html: emailHtml,
+        });
+      } catch (fallbackErr) {
+        console.error("Sandbox fallback dispatch failed:", fallbackErr);
+      }
     }
 
     // 4. Dispatch notification to the event organizer/vendor

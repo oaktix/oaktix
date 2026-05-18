@@ -16,6 +16,7 @@ interface EventDetailsClientProps {
     title: string;
     slug: string;
     ticket_types: TicketType[];
+    absorb_fees?: boolean;
   };
   user: {
     id: string;
