@@ -14,113 +14,18 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 1. Check for high-fidelity predefined fallback dummy events
-  const dummyEvents = {
-    "techcon-nigeria-2026": {
-      id: "dummy-techcon-2026",
-      title: "TechCon Nigeria 2026",
-      start_date: "2026-07-02T09:00:00Z",
-      location: "Landmark Centre, Lagos",
-      price_naira: 8000,
-      category: "Conferences",
-      max_attendees: 1500,
-      description: "Nigeria's premier technology summit connecting founders, developers, and global investors. Join industry pioneers as we discuss artificial intelligence, blockchain engineering, capital financing, and fintech infrastructure within the African continent.",
-      slug: "techcon-nigeria-2026",
-      venue_details: { name: "Landmark Centre", address: "Plot 2 & 3, Water Corporation Dr, Victoria Island, Lagos" },
-      featured_image: null,
-      image_url: null,
-      gradient: "from-[#0E4B31] to-[#2E7D32]",
-      absorb_fees: false,
-      ticket_types: [
-        { name: "Regular Delegate Pass", price: 8000, description: "Full access to keynotes, workshops, and panels.", perks: ["General Seating", "Certificate"] },
-        { name: "VIP Executive Ticket", price: 25000, description: "Front-row seats, lounge access, and exclusive network dinners.", perks: ["Networking Lounge", "VIP Dinner", "Premium Swag"] }
-      ],
-      organizer: {
-        id: "oaktix-live",
-        full_name: "OakTix Live",
-        avatar_url: null,
-        vendor_details: {
-          business_name: "OakTix Live",
-          bio: "Official OakTix curator of top-tier concerts and festivals."
-        }
-      }
-    },
-    "abuja-comedy-festival": {
-      id: "dummy-abuja-comedy-2026",
-      title: "Abuja Comedy Festival",
-      start_date: "2026-08-16T20:00:00Z",
-      location: "Transcorp Hilton, Abuja",
-      price_naira: 10000,
-      category: "Comedy",
-      max_attendees: 800,
-      description: "An unforgettable evening of stand-up comedy featuring Nigeria's finest entertainers. Brace yourself for premium laughter, musical performances, and special guest appearances by award-winning acts.",
-      slug: "abuja-comedy-festival",
-      venue_details: { name: "Transcorp Hilton", address: "1 Aguiyi Ironsi St, Maitama, Abuja" },
-      featured_image: null,
-      image_url: null,
-      gradient: "from-[#F19E23] to-[#E65100]",
-      absorb_fees: false,
-      ticket_types: [
-        { name: "General Admission", price: 10000, description: "Standard single seat access.", perks: ["Standard Row Seating"] },
-        { name: "VIP Table Reservation", price: 50000, description: "Premium table seating with complimentary refreshments.", perks: ["Front Row Table", "Complimentary Drinks", "Photo Session"] }
-      ],
-      organizer: {
-        id: "triad-party",
-        full_name: "Triad Party",
-        avatar_url: null,
-        vendor_details: {
-          business_name: "Triad Party",
-          bio: "Making Ibadan nightlife memorable."
-        }
-      }
-    },
-    "calabar-carnival-weekend": {
-      id: "dummy-calabar-carnival-2026",
-      title: "Calabar Carnival Weekend",
-      start_date: "2026-12-26T10:00:00Z",
-      location: "Calabar City Centre, Calabar",
-      price_naira: 5000,
-      category: "Festivals",
-      max_attendees: 5000,
-      description: "Experience Africa's biggest street party—vibrant culture, spectacular music, costumed parades, and authentic culinary journeys from the heart of Cross River State. A celebration you don't want to miss.",
-      slug: "calabar-carnival-weekend",
-      venue_details: { name: "Calabar City Centre", address: "Eleven-Eleven Roundabout, Calabar" },
-      featured_image: null,
-      image_url: null,
-      gradient: "from-[#0E4B31] to-[#F19E23]",
-      absorb_fees: false,
-      ticket_types: [
-        { name: "Standard Carnival Pass", price: 5000, description: "Access to the main festival grounds, food courts, and parades.", perks: ["General Entry"] },
-        { name: "Super VIP Weekend Package", price: 30000, description: "Exclusive elevated stage viewing, security, and standard bar access.", perks: ["VIP Stage", "Dedicated Security", "VIP Bar Pass"] }
-      ],
-      organizer: {
-        id: "oaktix-live",
-        full_name: "OakTix Live",
-        avatar_url: null,
-        vendor_details: {
-          business_name: "OakTix Live",
-          bio: "Official OakTix curator of top-tier concerts and festivals."
-        }
-      }
-    }
-  };
+  // Query dynamic DB event
+  const { data: dbEvent } = await supabase
+    .from("events")
+    .select("*, organizer:profiles(*)")
+    .eq("slug", slug)
+    .maybeSingle();
 
-  let event = dummyEvents[slug as keyof typeof dummyEvents] || null;
-
-  // 2. Query dynamic DB event if slug is not matched in dummy list
-  if (!event) {
-    const { data: dbEvent } = await supabase
-      .from("events")
-      .select("*, organizer:profiles(*)")
-      .eq("slug", slug)
-      .single();
-
-    event = dbEvent;
-  }
-
-  if (!event) {
+  if (!dbEvent) {
     notFound();
   }
+
+  const event = dbEvent;
 
   const startDate = new Date(event.start_date);
   const ticketTypes = event.ticket_types || [];

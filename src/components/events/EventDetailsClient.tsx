@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle2 } from "lucide-react";
 import TicketSelectionModal from "./TicketSelectionModal";
 
 interface TicketType {
@@ -26,11 +28,33 @@ interface EventDetailsClientProps {
 
 export default function EventDetailsClient({ event, user }: EventDetailsClientProps) {
   const [selectedTicket, setSelectedTicket] = useState<TicketType | null>(null);
+  const searchParams = useSearchParams();
 
+  const isSuccess = searchParams.get("checkout") === "success";
+  const ref = searchParams.get("reference");
   const ticketTypes = event.ticket_types || [];
 
   return (
     <>
+      {isSuccess && (
+        <div className="mb-6 p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-start gap-4 shadow-lg shadow-emerald-500/5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 animate-bounce" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="font-bold text-white text-base">Booking Confirmed! 🎉</h4>
+            <p className="text-zinc-400 text-sm leading-relaxed">
+              Your tickets and secure QR codes have been successfully generated and sent to your email address. 
+            </p>
+            {ref && (
+              <p className="text-zinc-500 text-xs font-mono pt-1">
+                Booking Reference: <span className="text-zinc-350">{ref}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4">
         {ticketTypes.map((ticket: TicketType, idx: number) => (
           <div key={idx} className="glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-indigo-500/10 hover:border-indigo-500/30 transition-colors group">

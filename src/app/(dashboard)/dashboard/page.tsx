@@ -1,7 +1,38 @@
 import { Calendar, Ticket, Heart, Search, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import TicketCard from "@/components/dashboard/TicketCard";
 
-export default function UserDashboard() {
+export default async function UserDashboard() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Fetch tickets for the current user
+  const { data: tickets } = await supabase
+    .from("tickets")
+    .select(`
+      *,
+      events:event_id (
+        id,
+        title,
+        start_date,
+        venue_details,
+        slug,
+        featured_image
+      )
+    `)
+    .eq("buyer_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const activeTickets = tickets || [];
+  const upcomingCount = activeTickets.filter(t => t.status === "active").length;
+  const attendedCount = activeTickets.filter(t => t.status === "used" || t.status === "checked_in").length;
+
   return (
     <div className="space-y-8 pb-12">
       {/* Welcome Banner */}
@@ -26,7 +57,7 @@ export default function UserDashboard() {
           </div>
           <div>
             <p className="text-sm text-zinc-500">Upcoming Tickets</p>
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{upcomingCount}</p>
           </div>
         </div>
         <div className="glass-card p-6 flex items-center gap-4">
@@ -44,12 +75,12 @@ export default function UserDashboard() {
           </div>
           <div>
             <p className="text-sm text-zinc-500">Events Attended</p>
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{attendedCount}</p>
           </div>
         </div>
       </div>
 
-      {/* Next Event Countdown (Empty State) */}
+      {/* Next Event Countdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <div className="flex items-center justify-between">
@@ -59,18 +90,26 @@ export default function UserDashboard() {
             </Link>
           </div>
           
-          <div className="glass-card p-12 flex flex-col items-center text-center space-y-4 border-dashed border-white/5 bg-transparent">
-            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-              <Calendar className="w-8 h-8 text-zinc-600" />
+          {activeTickets.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4">
+              {activeTickets.slice(0, 2).map((ticket) => (
+                <TicketCard key={ticket.id || ticket.unique_code} ticket={ticket} />
+              ))}
             </div>
-            <div>
-              <p className="text-lg font-bold">No upcoming events</p>
-              <p className="text-zinc-500 text-sm max-w-xs mx-auto mt-1">Start exploring and book your first ticket today!</p>
+          ) : (
+            <div className="glass-card p-12 flex flex-col items-center text-center space-y-4 border-dashed border-white/5 bg-transparent">
+              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                <Calendar className="w-8 h-8 text-zinc-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">No upcoming events</p>
+                <p className="text-zinc-500 text-sm max-w-xs mx-auto mt-1">Start exploring and book your first ticket today!</p>
+              </div>
+              <Link href="/events" className="text-indigo-400 font-bold hover:underline">
+                Browse the catalog
+              </Link>
             </div>
-            <Link href="/events" className="text-indigo-400 font-bold hover:underline">
-              Browse the catalog
-            </Link>
-          </div>
+          )}
         </div>
 
         <div className="space-y-8">

@@ -24,51 +24,8 @@ export default async function DiscoverEvents({
     .eq("status", "published")
     .order("start_date", { ascending: true });
 
-  // High-fidelity fallback dummy events as specified
-  const dummyEvents = [
-    {
-      id: "dummy-techcon-2026",
-      title: "TechCon Nigeria 2026",
-      start_date: "2026-07-02T09:00:00Z",
-      location: "Landmark Centre, Lagos",
-      price_naira: 8000,
-      category: "Conferences",
-      description: "Nigeria's premier technology summit connecting founders, developers, and global investors.",
-      slug: "techcon-nigeria-2026",
-      venue_details: { name: "Landmark Centre", address: "Plot 2 & 3, Water Corporation Dr, Victoria Island, Lagos" },
-      featured_image: null,
-      gradient: "from-[#0E4B31] to-[#2E7D32]"
-    },
-    {
-      id: "dummy-abuja-comedy-2026",
-      title: "Abuja Comedy Festival",
-      start_date: "2026-08-16T20:00:00Z",
-      location: "Transcorp Hilton, Abuja",
-      price_naira: 10000,
-      category: "Comedy",
-      description: "An unforgettable evening of stand-up comedy featuring Nigeria's finest entertainers.",
-      slug: "abuja-comedy-festival",
-      venue_details: { name: "Transcorp Hilton", address: "1 Aguiyi Ironsi St, Maitama, Abuja" },
-      featured_image: null,
-      gradient: "from-[#F19E23] to-[#E65100]"
-    },
-    {
-      id: "dummy-calabar-carnival-2026",
-      title: "Calabar Carnival Weekend",
-      start_date: "2026-12-26T10:00:00Z",
-      location: "Calabar City Centre, Calabar",
-      price_naira: 5000,
-      category: "Festivals",
-      description: "Experience Africa's biggest street party—vibrant culture, spectacular music, and parades.",
-      slug: "calabar-carnival-weekend",
-      venue_details: { name: "Calabar City Centre", address: "Eleven-Eleven Roundabout, Calabar" },
-      featured_image: null,
-      gradient: "from-[#0E4B31] to-[#F19E23]"
-    }
-  ];
-
-  // Combine database events and high-fidelity fallback dummy events
-  const allEventsCombined = [...(dbEvents || []), ...dummyEvents];
+  // Use live database events only
+  const allEventsCombined = dbEvents || [];
 
   // Apply filters
   const filteredEvents = allEventsCombined.filter(event => {

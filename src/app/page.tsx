@@ -27,39 +27,8 @@ export default async function Home() {
     .select("id, title, description, location, start_date, price_naira, slug, category, image_url")
     .limit(3);
 
-  // High-fidelity fallback events exactly matching the reference copy
-  const featuredEvents = dbEvents && dbEvents.length > 0 ? dbEvents : [
-    {
-      title: "TechCon Nigeria 2026",
-      start_date: "2026-07-02T09:00:00Z",
-      location: "Landmark Centre, Lagos",
-      price_naira: 8000,
-      category: "Conferences",
-      description: "Nigeria's premier technology summit connecting founders, developers, and global investors.",
-      slug: "techcon-nigeria-2026",
-      gradient: "from-[#0E4B31] to-[#2E7D32]"
-    },
-    {
-      title: "Abuja Comedy Festival",
-      start_date: "2026-08-16T20:00:00Z",
-      location: "Transcorp Hilton, Abuja",
-      price_naira: 10000,
-      category: "Comedy",
-      description: "An unforgettable evening of stand-up comedy featuring Nigeria's finest entertainers.",
-      slug: "abuja-comedy-festival",
-      gradient: "from-[#F19E23] to-[#E65100]"
-    },
-    {
-      title: "Calabar Carnival Weekend",
-      start_date: "2026-12-26T10:00:00Z",
-      location: "Calabar City Centre, Calabar",
-      price_naira: 5000,
-      category: "Festivals",
-      description: "Experience Africa's biggest street party—vibrant culture, spectacular music, and parades.",
-      slug: "calabar-carnival-weekend",
-      gradient: "from-[#0E4B31] to-[#F19E23]"
-    }
-  ];
+  // Use live database events only
+  const featuredEvents = dbEvents || [];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FAF9F6] text-zinc-900 overflow-hidden">
@@ -181,58 +150,66 @@ export default async function Home() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredEvents.map((event: FeaturedEvent, i: number) => {
-                const date = event.start_date ? new Date(event.start_date) : null;
-                const formattedDate = date ? date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Coming Soon";
-                
-                return (
-                  <Link 
-                    href={`/events/${event.slug}`} 
-                    key={event.id || i}
-                    className="glass-card overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 flex flex-col hover:shadow-md hover:shadow-indigo-500/5"
-                  >
-                    <div className="h-48 relative overflow-hidden bg-zinc-100 border-b border-[#E8EBE7]">
-                      {event.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img 
-                          src={event.image_url} 
-                          alt={event.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className={`w-full h-full bg-gradient-to-br ${event.gradient || "from-indigo-500/20 to-amber-500/20"} flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-500`}>
-                          <Ticket className="w-12 h-12 text-indigo-500/40" />
-                        </div>
-                      )}
-                      <span className="absolute top-4 left-4 bg-indigo-500 text-white text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full">
-                        {event.category}
-                      </span>
-                    </div>
-                    <div className="p-6 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-1.5 text-indigo-500 text-xs font-bold mb-2">
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>{formattedDate}</span>
-                        </div>
-                        <h3 className="text-lg font-bold mb-2 font-heading text-zinc-900 group-hover:text-indigo-500 transition-colors line-clamp-1">{event.title}</h3>
-                        <p className="text-zinc-500 text-xs mb-4 line-clamp-2 leading-relaxed">{event.description}</p>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#E8EBE7]">
-                        <div>
-                          <span className="text-[10px] text-zinc-400 font-bold block uppercase">Tickets from</span>
-                          <span className="text-base font-bold text-zinc-900">₦{event.price_naira?.toLocaleString()}</span>
-                        </div>
-                        <span className="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-500 font-bold text-xs group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                          Book Tickets
+            {featuredEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {featuredEvents.map((event: FeaturedEvent, i: number) => {
+                  const date = event.start_date ? new Date(event.start_date) : null;
+                  const formattedDate = date ? date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Coming Soon";
+                  
+                  return (
+                    <Link 
+                      href={`/events/${event.slug}`} 
+                      key={event.id || i}
+                      className="glass-card overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 flex flex-col hover:shadow-md hover:shadow-indigo-500/5"
+                    >
+                      <div className="h-48 relative overflow-hidden bg-zinc-100 border-b border-[#E8EBE7]">
+                        {event.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img 
+                            src={event.image_url} 
+                            alt={event.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className={`w-full h-full bg-gradient-to-br ${event.gradient || "from-indigo-500/20 to-amber-500/20"} flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-500`}>
+                            <Ticket className="w-12 h-12 text-indigo-500/40" />
+                          </div>
+                        )}
+                        <span className="absolute top-4 left-4 bg-indigo-500 text-white text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full">
+                          {event.category}
                         </span>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+                      <div className="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5 text-indigo-500 text-xs font-bold mb-2">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>{formattedDate}</span>
+                          </div>
+                          <h3 className="text-lg font-bold mb-2 font-heading text-zinc-900 group-hover:text-indigo-500 transition-colors line-clamp-1">{event.title}</h3>
+                          <p className="text-zinc-500 text-xs mb-4 line-clamp-2 leading-relaxed">{event.description}</p>
+                        </div>
+                        
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#E8EBE7]">
+                          <div>
+                            <span className="text-[10px] text-zinc-400 font-bold block uppercase">Tickets from</span>
+                            <span className="text-base font-bold text-zinc-900">₦{event.price_naira?.toLocaleString()}</span>
+                          </div>
+                          <span className="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-500 font-bold text-xs group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                            Book Tickets
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="w-full text-center py-16 px-6 bg-white border border-[#E8EBE7] rounded-3xl shadow-sm">
+                <Ticket className="w-12 h-12 text-indigo-500/30 mx-auto mb-3 animate-pulse" />
+                <h3 className="text-lg font-bold text-zinc-800">No Events Scheduled Yet</h3>
+                <p className="text-zinc-500 text-sm mt-1 max-w-sm mx-auto">Check back later or register as an organizer to list your own events!</p>
+              </div>
+            )}
           </div>
 
           {/* 5. For Event Organisers Section */}

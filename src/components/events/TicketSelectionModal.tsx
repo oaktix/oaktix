@@ -64,8 +64,13 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   const totalAmount = baseAmount + serviceFee;
 
   const handleSuccess = async (reference: string) => {
-    // Redirect to tickets page with reference verification
-    window.location.href = `/dashboard/tickets?reference=${reference}`;
+    if (!user) {
+      // Guest checkout: redirect back to event description page with success parameters
+      window.location.href = `/events/${event.slug}?checkout=success&reference=${reference}`;
+    } else {
+      // Authenticated checkout: redirect to dashboard tickets page
+      window.location.href = `/dashboard/tickets?reference=${reference}`;
+    }
   };
 
   const handleGuestCheckoutSubmit = useCallback(async (e: React.FormEvent) => {
