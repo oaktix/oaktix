@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Calendar, Plus, MapPin, MoreVertical } from "lucide-react";
+import { Calendar, Plus, MapPin, Eye } from "lucide-react";
 import Image from "next/image";
+import ShareButton from "@/components/organizer/ShareButton";
 
 export default async function VendorEventsPage() {
   const supabase = await createClient();
@@ -92,12 +93,25 @@ export default async function VendorEventsPage() {
                     <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider mb-1">Tickets Sold</p>
                     <p className="text-xl font-bold font-heading">{ticketsSold}</p>
                   </div>
-                  <Link 
-                    href={`/organizer/events/${event.id}/edit`}
-                    className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-600 hover:text-white transition-all text-sm font-bold text-zinc-300 flex items-center justify-center"
-                  >
-                    Edit
-                  </Link>
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+                    <Link 
+                      href={`/events/${event.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-emerald-600/10 border border-white/10 hover:border-emerald-500/30 hover:text-emerald-400 transition-all text-sm font-bold text-zinc-300 flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                    >
+                      <Eye className="w-4 h-4" /> Preview
+                    </Link>
+                    <div className="w-full sm:w-auto">
+                      <ShareButton slug={event.slug} />
+                    </div>
+                    <Link 
+                      href={`/organizer/events/${event.id}/edit`}
+                      className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all text-sm font-bold flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                    >
+                      Edit
+                    </Link>
+                  </div>
                 </div>
               </div>
             );

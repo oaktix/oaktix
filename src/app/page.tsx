@@ -30,6 +30,38 @@ export default async function Home() {
   // Use live database events only
   const featuredEvents = dbEvents || [];
 
+  // Fetch actual categories to get accurate dynamic event counts
+  const { data: allCategoriesData } = await supabase
+    .from("events")
+    .select("category");
+
+  const categoryCounts: Record<string, number> = {};
+  if (allCategoriesData) {
+    allCategoriesData.forEach((event) => {
+      const cat = event.category || "Other";
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    });
+  }
+
+  const defaultCategories = [
+    { label: "Concerts", emoji: "🎤" },
+    { label: "Conferences", emoji: "🎯" },
+    { label: "Festivals", emoji: "🎉" },
+    { label: "Sports", emoji: "⚽" },
+    { label: "Theatre", emoji: "🎭" },
+    { label: "Comedy", emoji: "😂" },
+    { label: "Workshops", emoji: "🛠️" },
+    { label: "Parties", emoji: "🥳" },
+  ];
+
+  const homepageCategories = defaultCategories.map(cat => {
+    const count = categoryCounts[cat.label] || 0;
+    return {
+      ...cat,
+      count: `${count} ${count === 1 ? 'event' : 'events'}`
+    };
+  });
+
   return (
     <div className="flex flex-col min-h-screen bg-[#FAF9F6] text-zinc-900 overflow-hidden">
       
@@ -115,16 +147,7 @@ export default async function Home() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { label: "Concerts", emoji: "🎤", count: "0 events" },
-                { label: "Conferences", emoji: "🎯", count: "1 event" },
-                { label: "Festivals", emoji: "🎉", count: "1 event" },
-                { label: "Sports", emoji: "⚽", count: "1 event" },
-                { label: "Theatre", emoji: "🎭", count: "0 events" },
-                { label: "Comedy", emoji: "😂", count: "1 event" },
-                { label: "Workshops", emoji: "🛠️", count: "1 event" },
-                { label: "Parties", emoji: "🥳", count: "0 events" },
-              ].map((cat, i) => (
+              {homepageCategories.map((cat, i) => (
                 <Link 
                   href={`/events?category=${cat.label}`} 
                   key={i} 

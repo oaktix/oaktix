@@ -7,16 +7,37 @@ export default async function CategoriesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const categories = [
-    { label: "Concerts", emoji: "🎤", count: "0 events" },
-    { label: "Conferences", emoji: "🎯", count: "1 event" },
-    { label: "Festivals", emoji: "🎉", count: "1 event" },
-    { label: "Sports", emoji: "⚽", count: "1 event" },
-    { label: "Theatre", emoji: "🎭", count: "0 events" },
-    { label: "Comedy", emoji: "😂", count: "1 event" },
-    { label: "Workshops", emoji: "🛠️", count: "1 event" },
-    { label: "Parties", emoji: "🥳", count: "0 events" },
+  // Fetch actual events from the database to count them by category
+  const { data: dbEvents } = await supabase
+    .from("events")
+    .select("category");
+
+  const categoryCounts: Record<string, number> = {};
+  if (dbEvents) {
+    dbEvents.forEach((event) => {
+      const cat = event.category || "Other";
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    });
+  }
+
+  const defaultCategories = [
+    { label: "Concerts", emoji: "🎤" },
+    { label: "Conferences", emoji: "🎯" },
+    { label: "Festivals", emoji: "🎉" },
+    { label: "Sports", emoji: "⚽" },
+    { label: "Theatre", emoji: "🎭" },
+    { label: "Comedy", emoji: "😂" },
+    { label: "Workshops", emoji: "🛠️" },
+    { label: "Parties", emoji: "🥳" },
   ];
+
+  const categories = defaultCategories.map(cat => {
+    const count = categoryCounts[cat.label] || 0;
+    return {
+      ...cat,
+      count: `${count} ${count === 1 ? 'event' : 'events'}`
+    };
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FAF9F6] text-zinc-900 overflow-hidden">

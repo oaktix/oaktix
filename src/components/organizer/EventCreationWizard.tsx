@@ -5,6 +5,23 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Loader2, Plus, Trash2, MapPin, Calendar, Image as ImageIcon, Ticket } from "lucide-react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+
+const LocationPickerMap = dynamic(
+  () => import("./LocationPickerMap"),
+  { ssr: false }
+);
+
+const DEFAULT_CATEGORIES = [
+  "Concerts",
+  "Conferences",
+  "Festivals",
+  "Sports",
+  "Theatre",
+  "Comedy",
+  "Workshops",
+  "Parties"
+];
 
 interface TicketType {
   name: string;
@@ -18,11 +35,14 @@ interface EventData {
   title: string;
   slug: string;
   description: string;
+  category?: string | null;
   start_date: string;
   end_date: string;
   venue_details?: {
     name?: string;
     address?: string;
+    latitude?: number | null;
+    longitude?: number | null;
   } | null;
   max_attendees?: number | null;
   ticket_types?: TicketType[] | null;
@@ -47,10 +67,14 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
     title: event?.title || "",
     slug: event?.slug || "",
     description: event?.description || "",
+    category: event?.category ? (DEFAULT_CATEGORIES.includes(event.category) ? event.category : "custom") : "Concerts",
+    customCategory: event?.category && !DEFAULT_CATEGORIES.includes(event.category) ? event.category : "",
     start_date: event?.start_date ? new Date(event.start_date).toISOString().slice(0, 16) : "",
     end_date: event?.end_date ? new Date(event.end_date).toISOString().slice(0, 16) : "",
     venue_name: event?.venue_details?.name && event.venue_details.name !== "Virtual" ? event.venue_details.name : "",
     venue_address: event?.venue_details?.address && event.venue_details.address !== "Online" ? event.venue_details.address : "",
+    latitude: event?.venue_details?.latitude || null as number | null,
+    longitude: event?.venue_details?.longitude || null as number | null,
     max_attendees: event?.max_attendees ? String(event.max_attendees) : "",
     isVirtual: event?.venue_details?.name === "Virtual" || event?.venue_details?.address === "Online",
     absorb_fees: event?.absorb_fees || false,
@@ -119,11 +143,14 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
         title: formData.title,
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         description: formData.description,
+        category: formData.category === "custom" ? formData.customCategory : formData.category,
         start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
         end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
         venue_details: {
           name: formData.isVirtual ? "Virtual" : formData.venue_name,
           address: formData.isVirtual ? "Online" : formData.venue_address,
+          latitude: formData.isVirtual ? null : formData.latitude,
+          longitude: formData.isVirtual ? null : formData.longitude,
         },
         max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
         ticket_types: formData.ticketTypes,
@@ -217,6 +244,33 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                     className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none min-h-[120px]"
                   />
                 </div>
+                <div>
+                  <label className="text-sm font-bold text-zinc-300">Event Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => updateForm("category", e.target.value)}
+                    title="Event Category"
+                    aria-label="Event Category"
+                    className="w-full mt-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none text-white cursor-pointer font-medium"
+                  >
+                    {DEFAULT_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat} className="bg-zinc-900 text-white font-medium">{cat}</option>
+                    ))}
+                    <option value="custom" className="bg-zinc-900 text-white font-bold">+ Create Custom Category...</option>
+                  </select>
+                </div>
+                {formData.category === "custom" && (
+                  <div className="animate-in fade-in slide-in-from-top-2">
+                    <label className="text-sm font-bold text-zinc-300">Custom Category Name</label>
+                    <input 
+                      type="text" 
+                      value={formData.customCategory} 
+                      onChange={(e) => updateForm("customCategory", e.target.value)}
+                      placeholder="E.g., Art Exhibition, Gaming Tournament, Tech Meetup"
+                      className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -286,6 +340,17 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                         onChange={(e) => updateForm("venue_address", e.target.value)}
                         placeholder="Full address"
                         className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                      />
+                    </div>
+                    <div className="pt-2">
+                      <LocationPickerMap
+                        lat={formData.latitude}
+                        lng={formData.longitude}
+                        onChange={(lat, lng, address) => {
+                          updateForm("latitude", lat);
+                          updateForm("longitude", lng);
+                          updateForm("venue_address", address);
+                        }}
                       />
                     </div>
                   </div>
@@ -443,12 +508,17 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
               <div className="rounded-2xl border border-white/10 bg-black/20 p-6 space-y-6">
                 <div>
                   <h3 className="text-xl font-bold">{formData.title || "Untitled Event"}</h3>
-                  <p className="text-sm text-zinc-400 mt-1 flex items-center gap-2">
-                    <Calendar className="w-4 h-4"/> 
+                  <p className="text-sm text-indigo-400 mt-2 flex items-center gap-2">
+                    <span className="font-bold text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                      Category: {formData.category === "custom" ? formData.customCategory || "Custom Category" : formData.category}
+                    </span>
+                  </p>
+                  <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-indigo-500"/> 
                     {formData.start_date ? new Date(formData.start_date).toLocaleString() : "No date set"}
                   </p>
-                  <p className="text-sm text-zinc-400 mt-1 flex items-center gap-2">
-                    <MapPin className="w-4 h-4"/> 
+                  <p className="text-sm text-zinc-400 mt-1.5 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-indigo-500"/> 
                     {formData.isVirtual ? "Virtual Event" : formData.venue_name || "No venue set"}
                   </p>
                 </div>
