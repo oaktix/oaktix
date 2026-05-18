@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     } = data;
 
     let buyerId = user_id;
+    let generatedPassword: string | null = null;
 
     // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -47,10 +48,15 @@ export async function POST(req: Request) {
         }
 
         if (!matchedUser) {
+          // Generate a secure temporary password
+          const tempPassword = "OakTix_" + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 6).toUpperCase() + "!";
+          generatedPassword = tempPassword;
+
           // 2. Create standard confirmed user account if they don't exist via Admin client
           const customerName = data.customer.name || data.customer.first_name || "Guest Buyer";
           const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
             email: customerEmail,
+            password: tempPassword,
             email_confirm: true,
             user_metadata: {
               full_name: customerName,
@@ -89,9 +95,12 @@ export async function POST(req: Request) {
           } else {
             // Sign up statelessly using public auth.signUp
             const customerName = data.customer.name || data.customer.first_name || "Guest Buyer";
+            const tempPassword = "OakTix_" + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 6).toUpperCase() + "!";
+            generatedPassword = tempPassword;
+
             const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
               email: customerEmail,
-              password: `guest_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`,
+              password: tempPassword,
               options: {
                 data: {
                   full_name: customerName,
@@ -328,6 +337,30 @@ export async function POST(req: Request) {
               <p style="font-size:14px; color:#64786B; line-height:1.6; margin:0 0 28px 0;">
                 Thank you for choosing OakTix. Below are your dynamic tickets and QR codes for entry. Please keep this email safe and present the QR codes at the gate.
               </p>
+
+              <!-- Account Created Notice (Only for new guest signups) -->
+              ${generatedPassword ? `
+              <div style="background:#F0FDF4; border:1px solid #DCFCE7; border-radius:16px; padding:20px; margin-bottom:32px;">
+                <h4 style="margin:0 0 6px 0; font-size:14px; font-weight:700; color:#15803D;">Your OakTix Account Is Ready! 🔑</h4>
+                <p style="margin:0 0 12px 0; font-size:13px; color:#166534; line-height:1.5;">
+                  We have automatically set up a customer account for you to track this ticket and any future event bookings.
+                </p>
+                <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; border:1px solid #E8EBE7; padding:12px; margin-top:8px;">
+                  <tr>
+                    <td style="font-size:12px; color:#64786B; padding:4px 0;"><strong>Sign In URL:</strong> <a href="https://oaktix.com.ng/login" style="color:#0E4B31; font-weight:bold; text-decoration:underline;">oaktix.com.ng/login</a></td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:12px; color:#64786B; padding:4px 0;"><strong>Username:</strong> ${buyerEmail}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:12px; color:#64786B; padding:4px 0;"><strong>Password:</strong> <span style="font-family:monospace; background:#FAF9F6; border:1px solid #E8EBE7; padding:2px 8px; border-radius:6px; font-weight:bold; color:#0E4B31; font-size:13px;">${generatedPassword}</span></td>
+                  </tr>
+                </table>
+                <p style="margin:12px 0 0 0; font-size:11px; color:#889C8F; font-style:italic;">
+                  We recommend logging in and changing your password in your settings profile as soon as possible.
+                </p>
+              </div>
+              ` : ""}
 
               <!-- Event Details Card -->
               <div style="background:#FAF9F6; border:1px solid #E8EBE7; border-radius:16px; padding:20px; margin-bottom:32px;">

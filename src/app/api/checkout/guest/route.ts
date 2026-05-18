@@ -16,96 +16,22 @@ export async function POST(req: Request) {
 
     let user = null;
 
-    try {
-      // 1. Try to list users to find if one with this email already exists
-      const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-      
-      if (!listError && existingUsers) {
-        user = existingUsers.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    // Check if profile already exists in DB
+    const { data: existingProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("id, email")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
 
-        if (!user) {
-          // Create user
-          const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-            email,
-            email_confirm: true,
-            user_metadata: {
-              full_name: fullName,
-              role: "user"
-            }
-          });
-
-          if (!createError && newUser?.user) {
-            user = newUser.user;
-          }
-        }
-      }
-    } catch (err) {
-      console.warn("Admin list/create failed, falling back to public client signup:", err);
+    if (existingProfile) {
+      user = { id: existingProfile.id, email: existingProfile.email };
+    } else {
+      // It's a new guest! Return a pending status so the Paystack payment webhook
+      // securely handles account creation, secure temporary password generation, and auto-email delivery.
+      user = { id: "guest_pending", email: email.toLowerCase() };
     }
 
-    // 2. Fallback: If admin flow failed (due to invalid service key), use public signup
-    if (!user) {
-      // Check if profile already exists in DB
-      const { data: existingProfile } = await supabaseAdmin
-        .from("profiles")
-        .select("id, email")
-        .eq("email", email.toLowerCase())
-        .maybeSingle();
-
-      if (existingProfile) {
-        user = { id: existingProfile.id, email: existingProfile.email };
-      } else {
-        // Sign up public client-side statelessly
-        const { data: signUpData, error: signUpError } = await supabaseAdmin.auth.signUp({
-          email,
-          password: `guest_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`,
-          options: {
-            data: {
-              full_name: fullName,
-              role: "user"
-            }
-          }
-        });
-
-        if (signUpError) {
-          console.error("Public guest signup failed:", signUpError);
-          // If signup fails because user already exists, try to get their profile by email
-          const { data: retryProfile } = await supabaseAdmin
-            .from("profiles")
-            .select("id, email")
-            .eq("email", email.toLowerCase())
-            .maybeSingle();
-          
-          if (retryProfile) {
-            user = { id: retryProfile.id, email: retryProfile.email };
-          } else {
-            throw signUpError;
-          }
-        } else if (signUpData?.user) {
-          user = signUpData.user;
-        }
-      }
-    }
-
-    // 3. Double check if profile exists, if not, create it
-    if (user) {
-      const { data: profile } = await supabaseAdmin
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        await supabaseAdmin.from("profiles").insert({
-          id: user.id,
-          full_name: fullName,
-          email: email, // If email column exists
-          role: "user"
-        });
-      }
-    }
-
-    return NextResponse.json({ user: { id: user?.id, email: user?.email } });
+    return NextResponse.json({ user });
   } catch (err: unknown) {
     console.error("Guest checkout API error:", err);
     return NextResponse.json({ error: (err as Error).message || "Internal Server Error" }, { status: 500 });

@@ -1,12 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Wallet, ArrowDownCircle, CheckCircle2, Clock, Landmark, Plus } from "lucide-react";
+import { Wallet, ArrowDownCircle, CheckCircle2, Clock } from "lucide-react";
+import SettlementForm from "@/components/dashboard/SettlementForm";
 
 export default async function OrganizerFinances() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  // Fetch current user details or profile metadata
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   // Fetch organizer's events to filter finances
   const { data: events } = await supabase
@@ -96,76 +104,7 @@ export default async function OrganizerFinances() {
         <div className="lg:col-span-1 space-y-6">
           <h2 className="text-xl font-bold font-heading">Payout Bank Method</h2>
           
-          <div className="glass-card p-6 bg-white border border-[#E8EBE7] shadow-sm space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 border border-indigo-100">
-                <Landmark className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="font-bold text-sm">Settlement Account</p>
-                <p className="text-xs text-zinc-500">Requires a Nigerian bank account</p>
-              </div>
-            </div>
-
-            <form className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="bank" className="text-xs font-bold text-zinc-600">Select Bank</label>
-                <select id="bank" className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 text-sm outline-none bg-white font-medium text-zinc-700">
-                  <option>GTBank (Guaranty Trust Bank)</option>
-                  <option>Access Bank</option>
-                  <option>Zenith Bank</option>
-                  <option>United Bank for Africa (UBA)</option>
-                  <option>First Bank of Nigeria (FirstBank)</option>
-                  <option>Fidelity Bank</option>
-                  <option>Sterling Bank</option>
-                  <option>Stanbic IBTC Bank</option>
-                  <option>Union Bank of Nigeria</option>
-                  <option>Wema Bank</option>
-                  <option>Ecobank Nigeria</option>
-                  <option>FCMB (First City Monument Bank)</option>
-                  <option>Polaris Bank</option>
-                  <option>Keystone Bank</option>
-                  <option>Standard Chartered Bank</option>
-                  <option>Providus Bank</option>
-                  <option>OPay (Digital/MFB)</option>
-                  <option>Moniepoint MFB</option>
-                  <option>Kuda Microfinance Bank</option>
-                  <option>Palmpay (Digital/MFB)</option>
-                  <option>VFD Microfinance Bank (Vbank)</option>
-                  <option>Rubies Bank</option>
-                  <option>Carbon</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label htmlFor="accountNumber" className="text-xs font-bold text-zinc-600">Account Number</label>
-                <input
-                  id="accountNumber"
-                  type="text"
-                  maxLength={10}
-                  placeholder="0123456789"
-                  className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 text-sm outline-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label htmlFor="accountHolder" className="text-xs font-bold text-zinc-600">Account Holder Name</label>
-                <input
-                  id="accountHolder"
-                  type="text"
-                  placeholder="e.g. John Doe Limited"
-                  className="w-full px-3 py-2.5 rounded-lg border border-zinc-200 text-sm outline-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Save Settlement Details
-              </button>
-            </form>
-          </div>
+          <SettlementForm profile={profile} />
         </div>
 
         {/* Transactions Panel */}

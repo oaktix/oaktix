@@ -154,18 +154,18 @@ export default async function VendorDashboard() {
         <div className="space-y-6">
           <h2 className="text-xl font-bold font-heading">Quick Actions</h2>
           <div className="space-y-3">
-            <button className="w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
+            <Link href="/organizer/finances" className="block w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
               <p className="font-bold text-sm group-hover:text-indigo-400 transition-colors">Setup Payouts</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Link your bank account via Paystack.</p>
-            </button>
-            <button className="w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
+              <p className="text-xs text-zinc-500 mt-0.5">Link your payout bank account.</p>
+            </Link>
+            <Link href="/organizer/communications" className="block w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
               <p className="font-bold text-sm group-hover:text-indigo-400 transition-colors">Team Access</p>
               <p className="text-xs text-zinc-500 mt-0.5">Add staff members to scan tickets.</p>
-            </button>
-            <button className="w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
+            </Link>
+            <Link href="/organizer/communications" className="block w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
               <p className="font-bold text-sm group-hover:text-indigo-400 transition-colors">Marketing Tools</p>
               <p className="text-xs text-zinc-500 mt-0.5">Promote your events to your audience.</p>
-            </button>
+            </Link>
           </div>
         </div>
       </div>

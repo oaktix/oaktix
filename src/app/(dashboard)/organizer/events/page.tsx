@@ -92,9 +92,12 @@ export default async function VendorEventsPage() {
                     <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider mb-1">Tickets Sold</p>
                     <p className="text-xl font-bold font-heading">{ticketsSold}</p>
                   </div>
-                  <button title="Event options" aria-label="Event options" className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-                    <MoreVertical className="w-5 h-5 text-zinc-400" />
-                  </button>
+                  <Link 
+                    href={`/organizer/events/${event.id}/edit`}
+                    className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-600 hover:text-white transition-all text-sm font-bold text-zinc-300 flex items-center justify-center"
+                  >
+                    Edit
+                  </Link>
                 </div>
               </div>
             );

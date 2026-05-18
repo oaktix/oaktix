@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
-import { Menu, X, Ticket } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 
 interface ResponsiveLayoutProps {

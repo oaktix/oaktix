@@ -12,6 +12,13 @@ interface OrganizerSettingsFormProps {
     website?: string | null;
     instagram?: string | null;
     role?: string | null;
+    vendor_details?: {
+      business_name?: string | null;
+      bio?: string | null;
+      website?: string | null;
+      instagram?: string | null;
+      [key: string]: unknown;
+    } | null;
   } | null;
   user: {
     id: string;
@@ -48,9 +55,13 @@ export default function OrganizerSettingsForm({ profile, user }: OrganizerSettin
       .upsert({
         id: user.id,
         full_name: fullName,
-        bio: orgBio,
-        website: orgWebsite,
-        instagram: orgInstagram,
+        vendor_details: {
+          ...(profile?.vendor_details || {}),
+          business_name: profile?.vendor_details?.business_name || fullName,
+          bio: orgBio,
+          website: orgWebsite,
+          instagram: orgInstagram
+        },
         role: profile?.role || "vendor"
       });
 
@@ -207,7 +218,7 @@ export default function OrganizerSettingsForm({ profile, user }: OrganizerSettin
                   id="orgBio"
                   name="orgBio"
                   rows={4}
-                  defaultValue={profile?.bio || ""}
+                  defaultValue={profile?.vendor_details?.bio || profile?.bio || ""}
                   placeholder="Tell ticket buyers who you are, what kind of events you organize..."
                   className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:border-indigo-500 outline-none transition-all text-sm resize-none font-medium"
                 />
@@ -220,7 +231,7 @@ export default function OrganizerSettingsForm({ profile, user }: OrganizerSettin
                     id="orgWebsite"
                     name="orgWebsite"
                     type="url"
-                    defaultValue={profile?.website || ""}
+                    defaultValue={profile?.vendor_details?.website || profile?.website || ""}
                     placeholder="https://oaktix.com.ng"
                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:border-indigo-500 outline-none transition-all text-sm font-medium"
                   />
@@ -231,7 +242,7 @@ export default function OrganizerSettingsForm({ profile, user }: OrganizerSettin
                     id="orgInstagram"
                     name="orgInstagram"
                     type="text"
-                    defaultValue={profile?.instagram || ""}
+                    defaultValue={profile?.vendor_details?.instagram || profile?.instagram || ""}
                     placeholder="@oaktix_ng"
                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 focus:border-indigo-500 outline-none transition-all text-sm font-medium"
                   />

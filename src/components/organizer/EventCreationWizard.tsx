@@ -13,7 +13,29 @@ interface TicketType {
   perks: string[];
 }
 
-export default function EventCreationWizard() {
+interface EventData {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  venue_details?: {
+    name?: string;
+    address?: string;
+  } | null;
+  max_attendees?: number | null;
+  ticket_types?: TicketType[] | null;
+  featured_image?: string | null;
+  absorb_fees?: boolean;
+  status?: string;
+}
+
+interface EventCreationWizardProps {
+  event?: EventData | null;
+}
+
+export default function EventCreationWizard({ event }: EventCreationWizardProps) {
   const router = useRouter();
   const supabase = createClient();
   const [step, setStep] = useState(1);
@@ -22,21 +44,21 @@ export default function EventCreationWizard() {
 
   // Form State
   const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    description: "",
-    start_date: "",
-    end_date: "",
-    venue_name: "",
-    venue_address: "",
-    max_attendees: "",
-    isVirtual: false,
-    absorb_fees: false,
-    ticketTypes: [
+    title: event?.title || "",
+    slug: event?.slug || "",
+    description: event?.description || "",
+    start_date: event?.start_date ? new Date(event.start_date).toISOString().slice(0, 16) : "",
+    end_date: event?.end_date ? new Date(event.end_date).toISOString().slice(0, 16) : "",
+    venue_name: event?.venue_details?.name && event.venue_details.name !== "Virtual" ? event.venue_details.name : "",
+    venue_address: event?.venue_details?.address && event.venue_details.address !== "Online" ? event.venue_details.address : "",
+    max_attendees: event?.max_attendees ? String(event.max_attendees) : "",
+    isVirtual: event?.venue_details?.name === "Virtual" || event?.venue_details?.address === "Online",
+    absorb_fees: event?.absorb_fees || false,
+    ticketTypes: (event?.ticket_types as TicketType[]) || [
       { name: "General Admission", price: 0, description: "Basic entry to the event.", perks: [] as string[] }
     ] as TicketType[],
     imageFile: null as File | null,
-    imagePreview: null as string | null,
+    imagePreview: event?.featured_image || null as string | null,
   });
 
   const updateForm = <K extends keyof typeof formData>(key: K, value: (typeof formData)[K]) => {
@@ -77,9 +99,9 @@ export default function EventCreationWizard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      let featured_image_url = null;
+      let featured_image_url = event?.featured_image || null;
 
-      // 1. Upload Image
+      // 1. Upload Image (only if a new one is selected)
       if (formData.imageFile) {
         const fileExt = formData.imageFile.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -92,8 +114,8 @@ export default function EventCreationWizard() {
         featured_image_url = supabase.storage.from("event-banners").getPublicUrl(fileName).data.publicUrl;
       }
 
-      // 2. Insert Event
-      const { error: insertError } = await supabase.from("events").insert({
+      // 2. Insert or Update Event
+      const eventPayload = {
         title: formData.title,
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         description: formData.description,
@@ -106,12 +128,27 @@ export default function EventCreationWizard() {
         max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
         ticket_types: formData.ticketTypes,
         featured_image: featured_image_url,
-        organizer_id: user.id,
         absorb_fees: formData.absorb_fees,
-        status: "published",
-      });
+        status: event?.status || "published",
+      };
 
-      if (insertError) throw new Error(insertError.message);
+      if (event?.id) {
+        // Update
+        const { error: updateError } = await supabase
+          .from("events")
+          .update(eventPayload)
+          .eq("id", event.id);
+
+        if (updateError) throw new Error(updateError.message);
+      } else {
+        // Insert
+        const { error: insertError } = await supabase.from("events").insert({
+          ...eventPayload,
+          organizer_id: user.id,
+        });
+
+        if (insertError) throw new Error(insertError.message);
+      }
 
       router.push(`/organizer/events`);
       router.refresh();

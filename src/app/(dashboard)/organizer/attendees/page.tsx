@@ -19,26 +19,33 @@ export default async function AttendeesPage() {
     console.error("Error fetching events:", eventsError);
   }
 
-  // Fetch tickets for all events owned by organizer
-  const { data: tickets, error: ticketsError } = await supabase
-    .from("tickets")
-    .select(`
-      *,
-      events:event_id (
-        id,
-        title,
-        organizer_id
-      ),
-      profiles:buyer_id (
-        id,
-        full_name,
-        email
-      )
-    `)
-    .eq("events.organizer_id", user.id);
+  const eventIds = events?.map(e => e.id) || [];
 
-  if (ticketsError) {
-    console.error("Error fetching tickets:", ticketsError);
+  // Fetch tickets for all events owned by organizer
+  let tickets: any[] = [];
+  if (eventIds.length > 0) {
+    const { data: tk, error: ticketsError } = await supabase
+      .from("tickets")
+      .select(`
+        *,
+        events:event_id (
+          id,
+          title,
+          organizer_id
+        ),
+        profiles:buyer_id (
+          id,
+          full_name,
+          email
+        )
+      `)
+      .in("event_id", eventIds);
+
+    if (ticketsError) {
+      console.error("Error fetching tickets:", ticketsError);
+    } else {
+      tickets = tk || [];
+    }
   }
 
   return (
