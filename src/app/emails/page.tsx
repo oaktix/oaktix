@@ -10,6 +10,8 @@ export default async function SuperAdminEmailsPage() {
 
   // 1. Force authentication
   if (!user) {
+    // Render the login component directly instead of redirecting
+    return <LoginPage />;
     redirect("/login");
   }
 
