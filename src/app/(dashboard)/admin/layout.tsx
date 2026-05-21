@@ -11,7 +11,7 @@ export default async function Layout({ children }: LayoutProps) {
 
   // If there is no active user, render clean without the dashboard shell (sidebar, drawers)
   if (!user) {
-    return <div className="min-h-screen bg-zinc-950">{children}</div>;
+    return <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">{children}</div>;
   }
 
   // Fetch their profile to verify role
@@ -25,7 +25,7 @@ export default async function Layout({ children }: LayoutProps) {
 
   // Protect against non-admin sessions trying to load dashboard layout
   if (userRole !== "admin" && userRole !== "super_admin") {
-    return <div className="min-h-screen bg-zinc-950">{children}</div>;
+    return <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">{children}</div>;
   }
 
   return <DashboardLayout>{children}</DashboardLayout>;

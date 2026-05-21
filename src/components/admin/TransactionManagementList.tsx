@@ -84,7 +84,7 @@ export default function TransactionManagementList({ initialTransactions }: Trans
     <div className="space-y-6">
       {/* Financial Analytics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="glass-card p-5 bg-zinc-900/40 border border-zinc-800 rounded-2xl flex items-center justify-between">
+        <div className="glass-card p-5 border border-[var(--color-muted)] rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs text-zinc-400 uppercase font-bold tracking-wider">Gross Sales (GMV)</p>
             <p className="text-2xl font-bold font-heading text-white">₦{gmv.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
@@ -94,30 +94,30 @@ export default function TransactionManagementList({ initialTransactions }: Trans
           </div>
         </div>
 
-        <div className="glass-card p-5 bg-zinc-900/40 border border-zinc-800 rounded-2xl flex items-center justify-between">
+        <div className="glass-card p-5 border border-[var(--color-muted)] rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs text-zinc-400 uppercase font-bold tracking-wider">Platform Revenue</p>
-            <p className="text-2xl font-bold font-heading text-emerald-400">₦{platformRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-2xl font-bold font-heading text-[var(--color-primary)]">₦{platformRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
             <DollarSign className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="glass-card p-5 bg-zinc-900/40 border border-zinc-800 rounded-2xl flex items-center justify-between">
+        <div className="glass-card p-5 border border-[var(--color-muted)] rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs text-zinc-400 uppercase font-bold tracking-wider">Vendor Share</p>
-            <p className="text-2xl font-bold font-heading text-amber-500">₦{vendorPayouts.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-2xl font-bold font-heading text-[var(--color-accent)]">₦{vendorPayouts.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
             <Wallet className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="glass-card p-5 bg-zinc-900/40 border border-zinc-800 rounded-2xl flex items-center justify-between">
+        <div className="glass-card p-5 border border-[var(--color-muted)] rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs text-zinc-400 uppercase font-bold tracking-wider">Paid Bookings</p>
-            <p className="text-2xl font-bold font-heading text-zinc-200">{successfulTransactions.length} orders</p>
+            <p className="text-2xl font-bold font-heading text-[var(--color-text)]">{successfulTransactions.length} orders</p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-350">
             <Receipt className="w-5 h-5" />
@@ -210,11 +210,11 @@ export default function TransactionManagementList({ initialTransactions }: Trans
                     </td>
                     <td className="px-6 py-4 text-center">
                       {tx.status === "success" ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)]">
                           Paid
                         </span>
                       ) : tx.status === "pending" ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-500">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 text-[var(--color-accent)]">
                           Pending
                         </span>
                       ) : (
