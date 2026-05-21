@@ -124,7 +124,7 @@ export default function TransactpayButton({
         country: "NG",
         email: email,
         currency: "NGN",
-        amount: amount * 100, // Transactpay works in kobo/cents
+        amount: amount, // Transactpay works in major units (Naira)
         reference: reference,
         merchantReference: reference,
         description: `${metadata.quantity}x ${metadata.ticket_type_name} for OakTix Event`,

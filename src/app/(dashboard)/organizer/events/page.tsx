@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Calendar, Plus, MapPin, Eye } from "lucide-react";
 import Image from "next/image";
 import ShareButton from "@/components/organizer/ShareButton";
+import ManageTiersButton from "@/components/organizer/ManageTiersButton";
 
 export default async function VendorEventsPage() {
   const supabase = await createClient();
@@ -105,6 +106,11 @@ export default async function VendorEventsPage() {
                     <div className="w-full sm:w-auto">
                       <ShareButton slug={event.slug} />
                     </div>
+                    <ManageTiersButton 
+                      eventId={event.id}
+                      eventTitle={event.title}
+                      ticketTypes={event.ticket_types || []}
+                    />
                     <Link 
                       href={`/organizer/events/${event.id}/edit`}
                       className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-all text-sm font-bold flex items-center justify-center gap-1.5 w-full sm:w-auto"

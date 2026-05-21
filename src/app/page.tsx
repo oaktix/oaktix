@@ -3,32 +3,40 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import LatestEventsCarousel from "@/components/events/LatestEventsCarousel";
 
-interface FeaturedEvent {
+interface TicketType {
+  name: string;
+  price: number;
+}
+
+interface EventItem {
   id?: string;
   title: string;
   start_date: string;
   location: string;
-  price_naira: number;
+  price_naira: number | null;
   category: string;
   description: string;
   slug: string;
   gradient?: string;
-  image_url?: string;
+  image_url?: string | null;
+  featured_image?: string | null;
+  ticket_types?: TicketType[] | null;
 }
 
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Fetch trending/featured events
+  // Fetch all events for homepage
   const { data: dbEvents } = await supabase
     .from("events")
-    .select("id, title, description, location, start_date, price_naira, slug, category, image_url")
-    .limit(3);
+    .select("id, title, description, location, start_date, price_naira, slug, category, image_url, featured_image, ticket_types")
+    .order("created_at", { ascending: false });
 
-  // Use live database events only
-  const featuredEvents = dbEvents || [];
+  const allEvents = dbEvents || [];
+  const carouselEvents = allEvents.slice(0, 4);
 
   // Fetch actual categories to get accurate dynamic event counts
   const { data: allCategoriesData } = await supabase
@@ -173,12 +181,25 @@ export default async function Home() {
               </Link>
             </div>
 
-            {featuredEvents.length > 0 ? (
+            {carouselEvents.length > 0 && (
+              <div className="mb-16">
+                <LatestEventsCarousel events={carouselEvents} />
+              </div>
+            )}
+
+            {allEvents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {featuredEvents.map((event: FeaturedEvent, i: number) => {
+                {allEvents.map((event: EventItem, i: number) => {
+                  const banner = event.image_url || event.featured_image;
                   const date = event.start_date ? new Date(event.start_date) : null;
                   const formattedDate = date ? date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Coming Soon";
                   
+                  const minPrice = event.price_naira ?? (
+                    event.ticket_types && event.ticket_types.length > 0
+                      ? Math.min(...event.ticket_types.map((t: TicketType) => t.price))
+                      : 0
+                  );
+
                   return (
                     <Link 
                       href={`/events/${event.slug}`} 
@@ -186,15 +207,15 @@ export default async function Home() {
                       className="glass-card overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 flex flex-col hover:shadow-md hover:shadow-indigo-500/5"
                     >
                       <div className="h-48 relative overflow-hidden bg-zinc-100 border-b border-[#E8EBE7]">
-                        {event.image_url ? (
+                        {banner ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img 
-                            src={event.image_url} 
+                            src={banner} 
                             alt={event.title} 
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
-                          <div className={`w-full h-full bg-gradient-to-br ${event.gradient || "from-indigo-500/20 to-amber-500/20"} flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-500`}>
+                          <div className="w-full h-full bg-gradient-to-br from-indigo-500/20 to-amber-500/20 flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-500">
                             <Ticket className="w-12 h-12 text-indigo-500/40" />
                           </div>
                         )}
@@ -215,7 +236,7 @@ export default async function Home() {
                         <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#E8EBE7]">
                           <div>
                             <span className="text-[10px] text-zinc-400 font-bold block uppercase">Tickets from</span>
-                            <span className="text-base font-bold text-zinc-900">₦{event.price_naira?.toLocaleString()}</span>
+                            <span className="text-base font-bold text-zinc-900">₦{minPrice.toLocaleString()}</span>
                           </div>
                           <span className="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-500 font-bold text-xs group-hover:bg-indigo-500 group-hover:text-white transition-all">
                             Book Tickets

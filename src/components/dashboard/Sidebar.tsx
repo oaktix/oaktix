@@ -47,6 +47,7 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Overview", href: "/organizer", icon: LayoutDashboard },
       { name: "My Events", href: "/organizer/events", icon: Calendar },
       { name: "Attendees", href: "/organizer/attendees", icon: Users },
+      { name: "Team Access", href: "/organizer/team", icon: Users },
       { name: "Analytics", href: "/organizer/analytics", icon: BarChart3 },
       { name: "Communications", href: "/organizer/communications", icon: Mail },
       { name: "Financials", href: "/organizer/finances", icon: Wallet },

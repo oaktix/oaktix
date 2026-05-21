@@ -10,6 +10,7 @@ interface TicketType {
   price: number;
   description?: string;
   perks?: string[];
+  is_closed?: boolean;
 }
 
 interface EventDetailsClientProps {
@@ -56,35 +57,65 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
       )}
 
       <div className="grid grid-cols-1 gap-4">
-        {ticketTypes.map((ticket: TicketType, idx: number) => (
-          <div key={idx} className="glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-indigo-500/10 hover:border-indigo-500/30 transition-colors group">
-            <div className="space-y-1">
-              <h3 className="text-xl font-bold font-heading group-hover:text-indigo-400 transition-colors">{ticket.name}</h3>
-              <p className="text-zinc-500 text-sm">{ticket.description || "Access to the event."}</p>
-              {ticket.perks && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {ticket.perks.map((perk: string, pIdx: number) => (
-                    <span key={pIdx} className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/5 text-zinc-400">
-                      {perk}
+        {ticketTypes.map((ticket: TicketType, idx: number) => {
+          const isClosed = ticket.is_closed === true;
+          return (
+            <div 
+              key={idx} 
+              className={`glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors group ${
+                isClosed 
+                  ? "border-red-500/10 opacity-60" 
+                  : "border-indigo-500/10 hover:border-indigo-500/30"
+              }`}
+            >
+              <div className="space-y-1">
+                <h3 className={`text-xl font-bold font-heading transition-colors ${
+                  isClosed ? "text-zinc-400" : "group-hover:text-indigo-400"
+                }`}>
+                  {ticket.name}
+                  {isClosed && (
+                    <span className="ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-500/15 border border-red-500/30 text-red-400">
+                      Sold Out
                     </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Price</p>
-                <p className="text-2xl font-bold font-heading">₦{Number(ticket.price).toLocaleString()}</p>
+                  )}
+                </h3>
+                <p className="text-zinc-500 text-sm">{ticket.description || "Access to the event."}</p>
+                {ticket.perks && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {ticket.perks.map((perk: string, pIdx: number) => (
+                      <span key={pIdx} className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/5 text-zinc-400">
+                        {perk}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-              <button 
-                onClick={() => setSelectedTicket(ticket)}
-                className="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors"
-              >
-                Select
-              </button>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Price</p>
+                  <p className={`text-2xl font-bold font-heading ${isClosed ? "text-zinc-400" : ""}`}>
+                    ₦{Number(ticket.price).toLocaleString()}
+                  </p>
+                </div>
+                {isClosed ? (
+                  <button 
+                    disabled
+                    className="px-8 py-3 rounded-xl bg-zinc-800 border border-zinc-700/50 text-zinc-500 font-bold cursor-not-allowed select-none"
+                  >
+                    Sold Out
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setSelectedTicket(ticket)}
+                    className="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors"
+                  >
+                    Select
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {selectedTicket && (

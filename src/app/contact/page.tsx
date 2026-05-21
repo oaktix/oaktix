@@ -51,7 +51,7 @@ export default async function ContactPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-zinc-800">Office Location</h4>
-                  <p className="text-zinc-500 text-sm font-bold">Lagos, Nigeria</p>
+                  <p className="text-zinc-500 text-sm font-bold">Ibadan, Nigeria</p>
                 </div>
               </div>
             </div>
