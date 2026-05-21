@@ -61,45 +61,10 @@ export default function VendorManagementList({ initialVendors }: VendorManagemen
     const term = search.toLowerCase();
     return name.includes(term) || email.includes(term) || bizName.includes(term);
   });
+const total = vendors.length;
+const verifiedCount = total;
+const pendingCount = 0;
 
-  const handleVerify = async (vendorId: string, currentStatus: boolean) => {
-    setLoadingId(vendorId);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/admin/vendors/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vendorId, verified: !currentStatus }),
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to update vendor status");
-
-      // Update state local list
-      setVendors((prev) =>
-        prev.map((v) =>
-          v.id === vendorId
-            ? {
-                ...v,
-                vendor_details: {
-                  ...(v.vendor_details || {}),
-                  verified: !currentStatus,
-                },
-              }
-            : v
-        )
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error verifying vendor");
-    } finally {
-      setLoadingId(null);
-    }
-  };
-
-  const total = vendors.length;
-  const verifiedCount = vendors.filter((v) => v.vendor_details?.verified).length;
-  const pendingCount = total - verifiedCount;
 
   return (
     <div className="space-y-6">
@@ -167,19 +132,17 @@ export default function VendorManagementList({ initialVendors }: VendorManagemen
               <th className="px-6 py-4">Account Owner</th>
               <th className="px-6 py-4">Contact Info</th>
               <th className="px-6 py-4 text-center">Verification Status</th>
-              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-900 text-sm">
             {filteredVendors.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-zinc-500 font-medium bg-zinc-950/20">
+                <td colSpan={4} className="px-6 py-12 text-center text-zinc-500 font-medium bg-zinc-950/20">
                   No registered vendors found matching search criteria.
                 </td>
               </tr>
             ) : (
               filteredVendors.map((vendor) => {
-                const isVerified = !!vendor.vendor_details?.verified;
                 const bizName = vendor.vendor_details?.business_name || "Unspecified Business";
                 const taxId = vendor.vendor_details?.tax_id || "No Tax ID";
                 const bio = vendor.vendor_details?.bio || "No business biography provided yet.";
@@ -190,7 +153,7 @@ export default function VendorManagementList({ initialVendors }: VendorManagemen
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
                           <span className="font-bold text-zinc-100 text-base">{bizName}</span>
-                          {isVerified && <Award className="w-4.5 h-4.5 text-indigo-400" />}
+                          <Award className="w-4.5 h-4.5 text-indigo-400" />
                         </div>
                         <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">{bio}</p>
                         <span className="inline-block text-[10px] font-mono text-zinc-500 uppercase tracking-widest bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
@@ -224,28 +187,9 @@ export default function VendorManagementList({ initialVendors }: VendorManagemen
                       </div>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      {isVerified ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                          <ShieldCheck className="w-3.5 h-3.5" /> Verified
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-500">
-                          <Clock className="w-3.5 h-3.5 animate-pulse" /> Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-5 text-right">
-                      <button
-                        onClick={() => handleVerify(vendor.id, isVerified)}
-                        disabled={loadingId === vendor.id}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
-                          isVerified
-                            ? "bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20"
-                            : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/10"
-                        } disabled:opacity-50 cursor-pointer`}
-                      >
-                        {loadingId === vendor.id ? "Updating..." : isVerified ? "Revoke Verification" : "Approve Partner"}
-                      </button>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        <ShieldCheck className="w-3.5 h-3.5" /> Verified
+                      </span>
                     </td>
                   </tr>
                 );

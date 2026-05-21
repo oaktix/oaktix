@@ -1,0 +1,15 @@
+/* Admin dashboard design tokens – white base with emerald & amber accents */
+:root {
+  --color-bg: #ffffff;
+  --color-primary: #10b981; /* emerald */
+  --color-accent: #f97316;   /* amber */
+  --color-card-bg: rgba(255,255,255,0.9);
+  --color-card-shadow: rgba(0,0,0,0.08);
+}
+
+.glass-card {
+  backdrop-filter: blur(12px);
+  background: var(--color-card-bg);
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px var(--color-card-shadow);
+}

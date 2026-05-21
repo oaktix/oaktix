@@ -1,11 +1,11 @@
 import { ShieldCheck, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { adminSupabase } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import AdminLoginPortal from "@/components/admin/AdminLoginPortal";
 
 export default async function AdminDashboard() {
-  const supabase = await createClient();
+  const supabase = await adminSupabase();
   const { data: { user } } = await supabase.auth.getUser();
 
   // If not logged in at all, render the dedicated admin login portal
@@ -26,6 +26,8 @@ export default async function AdminDashboard() {
   if (userRole !== "admin" && userRole !== "super_admin") {
     redirect("/dashboard");
   }
+
+  const { data: stats } = await supabase.rpc("dashboard_stats");
 
   return (
     <div className="space-y-8 pb-12">
@@ -55,25 +57,25 @@ export default async function AdminDashboard() {
 
       {/* Platform Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="glass-card p-6 bg-gray-900/40 border border-gray-800 shadow-sm">
+        <div className="glass-card p-6 bg-emerald-900/10 border border-emerald-500/20 shadow-sm">
            <p className="text-sm text-zinc-400 mb-1">Total Platform GMV</p>
-           <p className="text-2xl font-bold font-heading text-indigo-300">₦0.00</p>
-           <div className="mt-2 text-xs text-indigo-300 font-bold">Platform Fee (4%): ₦0.00</div>
+           <p className="text-2xl font-bold font-heading text-emerald-500">₦{(stats?.total_gmv || 0).toLocaleString()}</p>
+           <div className="mt-2 text-xs text-emerald-600 font-bold">Platform Fee: ₦{(stats?.total_fees || 0).toLocaleString()}</div>
         </div>
-        <div className="glass-card p-6 bg-gray-900/40 border border-gray-800 shadow-sm">
+        <div className="glass-card p-6 bg-zinc-900/40 border border-zinc-800 shadow-sm">
            <p className="text-sm text-zinc-400 mb-1">Total Users</p>
-           <p className="text-2xl font-bold font-heading text-white">1</p>
-           <div className="mt-2 text-xs text-zinc-400">Active now: 1</div>
+           <p className="text-2xl font-bold font-heading text-white">{stats?.total_users || 0}</p>
+           <div className="mt-2 text-xs text-zinc-500">Registered accounts</div>
         </div>
-        <div className="glass-card p-6 bg-gray-900/40 border border-gray-800 shadow-sm">
+        <div className="glass-card p-6 bg-amber-900/10 border border-amber-500/20 shadow-sm">
            <p className="text-sm text-zinc-400 mb-1">Active Vendors</p>
-          <p className="text-2xl font-bold font-heading">0</p>
-           <div className="mt-2 text-xs text-amber-400 font-bold">0 Pending verification</div>
+          <p className="text-2xl font-bold font-heading text-amber-500">{stats?.active_vendors || 0}</p>
+           <div className="mt-2 text-xs text-amber-600 font-bold">{stats?.pending_vendors || 0} Pending verification</div>
         </div>
-        <div className="glass-card p-6 bg-gray-900/40 border border-gray-800 shadow-sm">
-          <p className="text-sm text-zinc-500 mb-1">Live Events</p>
-          <p className="text-2xl font-bold font-heading">0</p>
-          <div className="mt-2 text-xs text-zinc-500">Tickets sold today: 0</div>
+        <div className="glass-card p-6 bg-zinc-900/40 border border-zinc-800 shadow-sm">
+          <p className="text-sm text-zinc-400 mb-1">Live Events</p>
+          <p className="text-2xl font-bold font-heading text-white">{stats?.live_events || 0}</p>
+          <div className="mt-2 text-xs text-zinc-500">Active public events</div>
         </div>
       </div>
 
