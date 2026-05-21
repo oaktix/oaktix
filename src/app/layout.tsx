@@ -16,7 +16,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL("https://oaktix.com.ng"),
   title: "OakTix - Complete Event Ticketing Platform",
-  description: "Nigeria's home for unforgettable events. Discover concerts, conferences, festivals, and more — buy tickets in seconds, walk in with a QR code.",
+  description: "Nigeria's home for unforgettable events. Discover concerts, conferences, festivals, and more. Buy tickets in seconds, walk in with a QR code.",
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.ico",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "OakTix - Complete Event Ticketing Platform",
-    description: "Nigeria's home for unforgettable events. Discover concerts, conferences, festivals, and more — buy tickets in seconds, walk in with a QR code.",
+    description: "Nigeria's home for unforgettable events. Discover concerts, conferences, festivals, and more. Buy tickets in seconds, walk in with a QR code.",
     url: "https://oaktix.com.ng",
     siteName: "OakTix",
     images: [
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "OakTix - Complete Event Ticketing Platform",
-    description: "Nigeria's home for unforgettable events. Discover concerts, conferences, festivals, and more — buy tickets in seconds, walk in with a QR code.",
+    description: "Nigeria's home for unforgettable events. Discover concerts, conferences, festivals, and more. Buy tickets in seconds, walk in with a QR code.",
     images: ["/logo-header.png"],
   },
 };

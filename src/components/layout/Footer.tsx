@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Ticket } from "lucide-react";
 
 interface FooterProps {
   theme?: "light" | "dark";
@@ -29,7 +28,7 @@ export default function Footer({ theme = "light" }: FooterProps) {
             />
           </Link>
           <p className={`text-xs leading-relaxed max-w-sm ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
-            Nigeria&apos;s home for unforgettable events. Discover concerts, conferences, festivals and more — buy tickets in seconds, walk in with a QR code.
+            Nigeria&apos;s home for unforgettable events. Discover concerts, conferences, festivals and more. Buy tickets in seconds, walk in with a QR code.
           </p>
           <div className={`text-xs font-bold ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>
             Support:{" "}

@@ -1,29 +1,10 @@
-import { Search, Calendar, ArrowRight, Ticket, ShieldCheck, Zap } from "lucide-react";
+import { Search, ArrowRight, Ticket, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import LatestEventsCarousel from "@/components/events/LatestEventsCarousel";
 
-interface TicketType {
-  name: string;
-  price: number;
-}
-
-interface EventItem {
-  id?: string;
-  title: string;
-  start_date: string;
-  location: string;
-  price_naira: number | null;
-  category: string;
-  description: string;
-  slug: string;
-  gradient?: string;
-  image_url?: string | null;
-  featured_image?: string | null;
-  ticket_types?: TicketType[] | null;
-}
 
 export default async function Home() {
   const supabase = await createClient();
@@ -32,7 +13,8 @@ export default async function Home() {
   // Fetch all events for homepage
   const { data: dbEvents } = await supabase
     .from("events")
-    .select("id, title, description, location, start_date, price_naira, slug, category, image_url, featured_image, ticket_types")
+    .select("*")
+    .eq("status", "published")
     .order("created_at", { ascending: false });
 
   const allEvents = dbEvents || [];
@@ -106,7 +88,7 @@ export default async function Home() {
 
             {/* Description */}
             <p className="text-base sm:text-lg text-zinc-100/90 max-w-2xl mb-10 leading-relaxed font-medium">
-              Concerts, conferences, festivals and more — discover thousands of live events across Nigeria. Book in seconds, walk in with a QR code.
+              Concerts, conferences, festivals and more. Discover thousands of live events across Nigeria. Book in seconds, walk in with a QR code.
             </p>
             
             {/* Hero Search Bar */}
@@ -181,71 +163,18 @@ export default async function Home() {
               </Link>
             </div>
 
-            {carouselEvents.length > 0 && (
-              <div className="mb-16">
-                <LatestEventsCarousel events={carouselEvents} />
-              </div>
-            )}
-
-            {allEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {allEvents.map((event: EventItem, i: number) => {
-                  const banner = event.image_url || event.featured_image;
-                  const date = event.start_date ? new Date(event.start_date) : null;
-                  const formattedDate = date ? date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Coming Soon";
-                  
-                  const minPrice = event.price_naira ?? (
-                    event.ticket_types && event.ticket_types.length > 0
-                      ? Math.min(...event.ticket_types.map((t: TicketType) => t.price))
-                      : 0
-                  );
-
-                  return (
-                    <Link 
-                      href={`/events/${event.slug}`} 
-                      key={event.id || i}
-                      className="glass-card overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 flex flex-col hover:shadow-md hover:shadow-indigo-500/5"
-                    >
-                      <div className="h-48 relative overflow-hidden bg-zinc-100 border-b border-[#E8EBE7]">
-                        {banner ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img 
-                            src={banner} 
-                            alt={event.title} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-indigo-500/20 to-amber-500/20 flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-500">
-                            <Ticket className="w-12 h-12 text-indigo-500/40" />
-                          </div>
-                        )}
-                        <span className="absolute top-4 left-4 bg-indigo-500 text-white text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full">
-                          {event.category}
-                        </span>
-                      </div>
-                      <div className="p-6 flex-1 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center gap-1.5 text-indigo-500 text-xs font-bold mb-2">
-                            <Calendar className="w-3.5 h-3.5" />
-                            <span>{formattedDate}</span>
-                          </div>
-                          <h3 className="text-lg font-bold mb-2 font-heading text-zinc-900 group-hover:text-indigo-500 transition-colors line-clamp-1">{event.title}</h3>
-                          <p className="text-zinc-500 text-xs mb-4 line-clamp-2 leading-relaxed">{event.description}</p>
-                        </div>
-                        
-                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#E8EBE7]">
-                          <div>
-                            <span className="text-[10px] text-zinc-400 font-bold block uppercase">Tickets from</span>
-                            <span className="text-base font-bold text-zinc-900">₦{minPrice.toLocaleString()}</span>
-                          </div>
-                          <span className="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-500 font-bold text-xs group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                            Book Tickets
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
+            {carouselEvents.length > 0 ? (
+              <div className="flex flex-col items-center">
+                <div className="w-full mb-10">
+                  <LatestEventsCarousel events={carouselEvents} />
+                </div>
+                <Link 
+                  href="/events"
+                  className="px-8 py-4 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 group cursor-pointer"
+                >
+                  View More Events
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </div>
             ) : (
               <div className="w-full text-center py-16 px-6 bg-white border border-[#E8EBE7] rounded-3xl shadow-sm">
@@ -268,7 +197,7 @@ export default async function Home() {
                   Sell tickets online in minutes.
                 </h2>
                 <p className="text-zinc-600 text-sm leading-relaxed max-w-lg">
-                  List your event, set ticket types and prices, get paid via Transactpay, and let attendees check in with QR codes — all from one dashboard.
+                  List your event, set ticket types and prices, get paid via Transactpay, and let attendees check in with QR codes. Do it all from one dashboard.
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">

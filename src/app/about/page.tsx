@@ -22,7 +22,7 @@ export default async function AboutPage() {
             Tickets for the moments that matter most.
           </h1>
           <p className="text-zinc-600 text-base md:text-lg leading-relaxed">
-            OakTix is Nigeria&apos;s modern ticketing platform — built so that organizers can sell with confidence and fans can walk into the experiences they love with nothing more than a phone in their pocket.
+            OakTix is Nigeria&apos;s modern ticketing platform, built so that organizers can sell with confidence and fans can walk into the experiences they love with nothing more than a phone in their pocket.
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export default async function AboutPage() {
             <h3 className="text-xs uppercase font-bold text-indigo-500 tracking-wider">Our Story</h3>
             <h2 className="text-2xl font-bold font-heading text-zinc-800">Why we started OakTix</h2>
             <p className="text-zinc-500 text-sm leading-relaxed">
-              Nigerian events are world-class — but for too long, the tools to sell tickets have been clunky, expensive, or imported from markets that don&apos;t understand us. We started OakTix to change that.
+              Nigerian events are world-class. However, for too long, the tools to sell tickets have been clunky, expensive, or imported from markets that don&apos;t understand us. We started OakTix to change that.
             </p>
             <p className="text-zinc-500 text-sm leading-relaxed">
               From a small team in Ibadan, we set out to build a platform that respects both sides of every ticket: the organizer pouring months of work into a single night, and the fan saving up to be there.
@@ -95,7 +95,7 @@ export default async function AboutPage() {
               </div>
               <h4 className="font-bold text-lg text-zinc-800">Made in Nigeria</h4>
               <p className="text-zinc-500 text-sm leading-relaxed">
-                Built for the Nigerian market — Naira pricing, local banks, and support that understands you.
+                Built for the Nigerian market with Naira pricing, local banks, and support that understands you.
               </p>
             </div>
           </div>

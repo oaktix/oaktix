@@ -251,7 +251,7 @@ function getRoleBadge(role: string | null) {
                       {profile.id}
                     </td>
                     <td className="p-4 text-xs text-zinc-500 font-medium">
-                      {profile.email || "—"}
+                      {profile.email || "-"}
                     </td>
                     <td className="p-4 text-zinc-500 font-medium">
                       {profile.phone || "Not provided"}
