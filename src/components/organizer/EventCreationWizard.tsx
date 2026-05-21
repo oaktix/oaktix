@@ -117,74 +117,85 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+  setLoading(true);
+  setError(null);
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
 
-      let featured_image_url = event?.featured_image || null;
+    // Validation: start date cannot be in the past
+    const now = new Date();
+    const startDate = formData.start_date ? new Date(formData.start_date) : null;
+    if (!startDate) throw new Error("Start date is required");
+    if (startDate < now) throw new Error("Start date cannot be in the past");
+    // If end date provided, it must be after start date
+    const endDate = formData.end_date ? new Date(formData.end_date) : null;
+    if (endDate && endDate < startDate) throw new Error("End date must be after start date");
 
-      // 1. Upload Image (only if a new one is selected)
-      if (formData.imageFile) {
-        const fileExt = formData.imageFile.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("event-banners")
-          .upload(fileName, formData.imageFile);
+    let featured_image_url = event?.featured_image || null;
 
-        if (uploadError) throw new Error("Image upload failed: " + uploadError.message);
+    // 1. Upload Image (only if a new one is selected)
+    if (formData.imageFile) {
+      const fileExt = formData.imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("event-banners")
+        .upload(fileName, formData.imageFile);
 
-        featured_image_url = supabase.storage.from("event-banners").getPublicUrl(fileName).data.publicUrl;
-      }
+      if (uploadError) throw new Error("Image upload failed: " + uploadError.message);
 
-      // 2. Insert or Update Event
-      const eventPayload = {
-        title: formData.title,
-        slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        description: formData.description,
-        category: formData.category === "custom" ? formData.customCategory : formData.category,
-        start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
-        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
-        venue_details: {
-          name: formData.isVirtual ? "Virtual" : formData.venue_name,
-          address: formData.isVirtual ? "Online" : formData.venue_address,
-          latitude: formData.isVirtual ? null : formData.latitude,
-          longitude: formData.isVirtual ? null : formData.longitude,
-        },
-        max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
-        ticket_types: formData.ticketTypes,
-        featured_image: featured_image_url,
-        absorb_fees: formData.absorb_fees,
-        status: event?.status || "published",
-      };
-
-      if (event?.id) {
-        // Update
-        const { error: updateError } = await supabase
-          .from("events")
-          .update(eventPayload)
-          .eq("id", event.id);
-
-        if (updateError) throw new Error(updateError.message);
-      } else {
-        // Insert
-        const { error: insertError } = await supabase.from("events").insert({
-          ...eventPayload,
-          organizer_id: user.id,
-        });
-
-        if (insertError) throw new Error(insertError.message);
-      }
-
-      router.push(`/organizer/events`);
-      router.refresh();
-    } catch (err: unknown) {
-      console.error(err);
-      setError((err as Error).message || "An error occurred");
-      setLoading(false);
+      featured_image_url = supabase.storage.from("event-banners").getPublicUrl(fileName).data.publicUrl;
     }
-  };
+
+    // 2. Insert or Update Event
+    const eventPayload = {
+      title: formData.title,
+      slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      description: formData.description,
+      category: formData.category === "custom" ? formData.customCategory : formData.category,
+      start_date: startDate.toISOString(),
+      end_date: endDate ? endDate.toISOString() : null,
+      venue_details: {
+        name: formData.isVirtual ? "Virtual" : formData.venue_name,
+        address: formData.isVirtual ? "Online" : formData.venue_address,
+        latitude: formData.isVirtual ? null : formData.latitude,
+        longitude: formData.isVirtual ? null : formData.longitude,
+      },
+      max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
+      ticket_types: formData.ticketTypes,
+      featured_image: featured_image_url,
+      absorb_fees: formData.absorb_fees,
+      status: event?.status || "published",
+    };
+
+    if (event?.id) {
+      // Update
+      const { error: updateError } = await supabase
+        .from("events")
+        .update(eventPayload)
+        .eq("id", event.id);
+
+      if (updateError) throw new Error(updateError.message);
+    } else {
+      // Insert
+      const { error: insertError } = await supabase.from("events").insert({
+        ...eventPayload,
+        organizer_id: user.id,
+      });
+
+      if (insertError) throw new Error(insertError.message);
+    }
+
+    router.push(`/organizer/events`);
+    router.refresh();
+  } catch (err: unknown) {
+    console.error(err);
+    setError((err as Error).message || "An error occurred");
+    setLoading(false);
+  }
+};
+    
+
 
   return (
     <div className="max-w-3xl mx-auto mt-8">

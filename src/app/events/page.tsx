@@ -33,7 +33,13 @@ export default async function DiscoverEvents({
     if (categoryFilter !== "All" && event.category !== categoryFilter) {
       return false;
     }
-    // 2. Search Text Filter
+    // 2. Exclude past events based on end_date or start_date
+    const now = new Date();
+    const endDate = event.end_date ? new Date(event.end_date) : null;
+    const startDate = event.start_date ? new Date(event.start_date) : null;
+    if (endDate && endDate < now) return false;
+    if (!endDate && startDate && startDate < now) return false;
+    // 3. Search Text Filter
     if (searchFilter) {
       const q = searchFilter.toLowerCase();
       const titleMatches = event.title?.toLowerCase().includes(q);
