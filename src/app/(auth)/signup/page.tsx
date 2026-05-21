@@ -67,7 +67,13 @@ export default function SignupPage() {
       if (data.session) {
         await supabase.auth.setSession(data.session);
       }
-      router.push("/dashboard");
+      if (signUpRole === "vendor") {
+        router.push("/organizer");
+      } else if (signUpRole === "admin" || signUpRole === "super_admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     }
   }
 

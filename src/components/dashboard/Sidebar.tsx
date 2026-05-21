@@ -46,6 +46,7 @@ export function Sidebar({ role }: SidebarProps) {
     vendor: [
       { name: "Overview", href: "/organizer", icon: LayoutDashboard },
       { name: "My Events", href: "/organizer/events", icon: Calendar },
+      { name: "Scan Tickets", href: "/scan", icon: TicketIcon },
       { name: "Attendees", href: "/organizer/attendees", icon: Users },
       { name: "Team Access", href: "/organizer/team", icon: Users },
       { name: "Analytics", href: "/organizer/analytics", icon: BarChart3 },

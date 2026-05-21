@@ -37,7 +37,23 @@ function LoginForm() {
     }
 
     if (data.user) {
-      router.push("/dashboard");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      const role = profile?.role || data.user.user_metadata?.role || "user";
+
+      if (role === "vendor") {
+        router.push("/organizer");
+      } else if (role === "admin" || role === "super_admin") {
+        router.push("/admin");
+      } else if (role === "staff") {
+        router.push("/scan");
+      } else {
+        router.push("/dashboard");
+      }
       router.refresh();
     }
   }
