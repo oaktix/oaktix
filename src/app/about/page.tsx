@@ -75,7 +75,7 @@ export default async function AboutPage() {
               </div>
               <h4 className="font-bold text-lg text-zinc-800">Trust by default</h4>
               <p className="text-zinc-500 text-sm leading-relaxed">
-                Secure Paystack checkout, fraud-resistant QR tickets, and verified vendors keep every transaction safe.
+                Secure Transactpay checkout, fraud-resistant QR tickets, and verified vendors keep every transaction safe.
               </p>
             </div>
 

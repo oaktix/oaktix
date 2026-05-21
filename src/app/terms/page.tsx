@@ -29,7 +29,7 @@ export default async function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-zinc-800 font-heading">2. Ticketing & Payments</h2>
             <p>
-              All payments for event tickets are securely routed through Paystack. Tickets purchased on OakTix contain custom, fraud-resistant QR codes that are scanned by event organizers or authorized staff for event entry. Refund policies are set by individual event organizers.
+              All payments for event tickets are securely routed through Transactpay. Tickets purchased on OakTix contain custom, fraud-resistant QR codes that are scanned by event organizers or authorized staff for event entry. Refund policies are set by individual event organizers.
             </p>
           </section>
 

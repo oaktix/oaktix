@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { X, Minus, Plus, Loader2, ArrowLeft, Mail, User as UserIcon } from "lucide-react";
-import PaystackButton from "../checkout/PaystackButton";
+import TransactpayButton from "../checkout/TransactpayButton";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -33,6 +33,28 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   const [loadingGuest, setLoadingGuest] = useState(false);
   const [guestError, setGuestError] = useState<string | null>(null);
   const [platformFeePercent, setPlatformFeePercent] = useState(4.0);
+  const [userProfile, setUserProfile] = useState<{ full_name: string | null; phone: string | null } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      const fetchProfile = async () => {
+        try {
+          const supabase = createClient();
+          const { data } = await supabase
+            .from("profiles")
+            .select("full_name, phone")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (data) {
+            setUserProfile(data);
+          }
+        } catch (err) {
+          console.error("Error loading user profile:", err);
+        }
+      };
+      fetchProfile();
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -178,14 +200,18 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
                   Checking out as guest: <span className="font-bold">{guestEmail}</span>
                 </div>
               )}
-              <PaystackButton 
+              <TransactpayButton 
                 email={activeUser.email}
                 amount={totalAmount}
+                firstName={userProfile?.full_name?.split(" ")[0] || undefined}
+                lastName={userProfile?.full_name?.split(" ").slice(1).join(" ") || undefined}
+                phone={userProfile?.phone || undefined}
                 metadata={{
                   event_id: event.id,
                   ticket_type_name: ticketType.name,
                   quantity: quantity,
-                  user_id: activeUser.id
+                  user_id: activeUser.id,
+                  guest_name: !user ? guestName : undefined
                 }}
                 onSuccess={handleSuccess}
                 onClose={() => console.log('Payment closed')}

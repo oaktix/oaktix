@@ -127,7 +127,7 @@ export default async function Home() {
                 50,000+ happy fans
               </span>
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-amber-500" /> Secure Paystack checkout
+                <ShieldCheck className="w-4 h-4 text-amber-500" /> Secure Transactpay checkout
               </span>
               <span className="flex items-center gap-1.5">
                 <Zap className="w-4 h-4 text-amber-500" /> Instant QR tickets
@@ -247,7 +247,7 @@ export default async function Home() {
                   Sell tickets online in minutes.
                 </h2>
                 <p className="text-zinc-600 text-sm leading-relaxed max-w-lg">
-                  List your event, set ticket types and prices, get paid via Paystack, and let attendees check in with QR codes — all from one dashboard.
+                  List your event, set ticket types and prices, get paid via Transactpay, and let attendees check in with QR codes — all from one dashboard.
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">

@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     if (existingProfile) {
       user = { id: existingProfile.id, email: existingProfile.email };
     } else {
-      // It's a new guest! Return a pending status so the Paystack payment webhook
+      // It's a new guest! Return a pending status so the Transactpay payment webhook
       // securely handles account creation, secure temporary password generation, and auto-email delivery.
       user = { id: "guest_pending", email: email.toLowerCase() };
     }

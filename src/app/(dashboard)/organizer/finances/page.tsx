@@ -94,7 +94,7 @@ export default async function OrganizerFinances() {
           <p className="text-sm text-zinc-500 mb-1">Total Sales Earnings</p>
           <p className="text-3xl font-bold font-heading text-indigo-600">₦{totalEarnings.toLocaleString()}</p>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
-            <ArrowDownCircle className="w-4 h-4 text-indigo-500" /> Processing via Paystack
+            <ArrowDownCircle className="w-4 h-4 text-indigo-500" /> Processing via Transactpay
           </div>
         </div>
       </div>

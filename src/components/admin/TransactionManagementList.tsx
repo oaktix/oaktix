@@ -167,9 +167,21 @@ export default function TransactionManagementList({ initialTransactions }: Trans
                   dateStyle: "medium",
                   timeStyle: "short",
                 });
-                const buyerEmail = tx.buyer?.email || "Guest Checkout";
+                let buyerEmail = tx.buyer?.email || "Guest Checkout";
                 const eventTitle = tx.event?.title || "Unknown Event";
-                const paymentChan = tx.payment_channel || "Paystack";
+                let paymentChan = tx.payment_channel || "Paystack";
+
+                if (paymentChan.startsWith("{")) {
+                  try {
+                    const meta = JSON.parse(paymentChan);
+                    paymentChan = "Transactpay";
+                    if (buyerEmail === "Guest Checkout" && meta.email) {
+                      buyerEmail = meta.email;
+                    }
+                  } catch (e) {
+                    paymentChan = "Transactpay";
+                  }
+                }
 
                 return (
                   <tr key={tx.id} className="hover:bg-zinc-900/20 transition-all duration-150">

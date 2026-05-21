@@ -63,7 +63,7 @@ export default async function PricingPage() {
               <hr className="border-t border-[#E8EBE7] my-4" />
               <ul className="space-y-3.5 text-xs text-zinc-500 font-bold">
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Up to ₦2,000 max fee per ticket</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Paystack checkout integration</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Transactpay checkout integration</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> 24h automatic payouts</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Advanced sales analytics</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Organizer app & scanner</li>

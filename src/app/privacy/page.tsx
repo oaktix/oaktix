@@ -22,7 +22,7 @@ export default async function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-zinc-800 font-heading">1. Information We Collect</h2>
             <p>
-              We collect basic registration details (name, email address, phone number) when you purchase a ticket or register as an event organizer. Transaction data is safely handled by Paystack.
+              We collect basic registration details (name, email address, phone number) when you purchase a ticket or register as an event organizer. Transaction data is safely handled by Transactpay.
             </p>
           </section>
 
