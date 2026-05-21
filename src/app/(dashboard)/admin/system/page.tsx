@@ -22,10 +22,10 @@ export default async function AdminSystemPage() {
 
   if (userRole !== "super_admin") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white border border-[#E8EBE7] rounded-2xl shadow-sm">
-        <ShieldAlert className="w-16 h-16 text-rose-500 mb-4" />
-        <h1 className="text-2xl font-bold font-heading text-zinc-800">Unauthorized Access</h1>
-        <p className="text-zinc-555 max-w-md mt-2 text-sm">
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-[var(--color-bg)] border border-[var(--color-muted)] rounded-2xl shadow-sm">
+        <ShieldAlert className="w-16 h-16 text-[var(--color-accent)] mb-4" />
+        <h1 className="text-2xl font-bold font-heading text-[var(--color-text)]">Unauthorized Access</h1>
+        <p className="text-[var(--color-muted)] max-w-md mt-2 text-sm">
           System settings and global platform markup fees can only be managed by **Super Admins**.
         </p>
       </div>
@@ -71,7 +71,7 @@ export default async function AdminSystemPage() {
         <h1 className="text-3xl font-bold font-heading mb-1 flex items-center gap-2.5">
           <Settings className="w-8 h-8 text-indigo-500" /> Platform Infrastructure & Settings
         </h1>
-        <p className="text-zinc-550">Configure global transaction fees, toggle operational feature flags, and publish announcements.</p>
+        <p className="text-[var(--color-muted)]">Configure global transaction fees, toggle operational feature flags, and publish announcements.</p>
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 font-semibold flex items-center gap-3">

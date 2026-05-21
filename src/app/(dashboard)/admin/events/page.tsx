@@ -57,10 +57,9 @@ export default async function AdminEventsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold font-heading mb-1 text-zinc-900 flex items-center gap-2">
-          <Calendar className="w-8 h-8 text-indigo-500" /> Platform Events & Moderation
-        </h1>
-        <p className="text-zinc-500">Monitor all physical and virtual listings, enforce safety standards, and handle event statuses.</p>
+        <h1 className="text-3xl font-bold font-heading mb-1 flex items-center gap-2.5">
+          <Calendar className="w-8 h-8 text-indigo-500" /> Platform Events & Moderation</h1>
+        <p className="text-[var(--color-muted)]">Monitor all physical and virtual listings, enforce safety standards, and handle event statuses.</p>
       </div>
 
       <EventManagementList initialEvents={events || []} />

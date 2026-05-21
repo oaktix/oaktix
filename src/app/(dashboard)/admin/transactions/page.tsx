@@ -22,10 +22,10 @@ export default async function AdminTransactionsPage() {
 
   if (userRole !== "admin" && userRole !== "super_admin") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white border border-[#E8EBE7] rounded-2xl shadow-sm">
-        <ShieldAlert className="w-16 h-16 text-rose-500 mb-4" />
-        <h1 className="text-2xl font-bold font-heading text-zinc-800">Unauthorized Access</h1>
-        <p className="text-zinc-500 max-w-md mt-2 text-sm">
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-[var(--color-bg)] border border-[var(--color-muted)] rounded-2xl shadow-sm">
+        <ShieldAlert className="w-16 h-16 text-[var(--color-accent)] mb-4" />
+        <h1 className="text-2xl font-bold font-heading text-[var(--color-text)]">Unauthorized Access</h1>
+        <p className="text-[var(--color-muted)] max-w-md mt-2 text-sm">
           Platform transaction ledger and finances are strictly reserved for administrative accounts.
         </p>
       </div>
@@ -60,10 +60,10 @@ export default async function AdminTransactionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold font-heading mb-1 text-zinc-900 flex items-center gap-2">
-          <Wallet className="w-8 h-8 text-indigo-500" /> Platform Transactions Ledger
+        <h1 className="text-3xl font-bold font-heading mb-1 text-[var(--color-text)] flex items-center gap-2">
+          <Wallet className="w-8 h-8 text-[var(--color-primary)]" /> Platform Transactions Ledger
         </h1>
-        <p className="text-zinc-500">Inspect order references, examine fee allocations, review payout splits, and monitor overall GMV growth.</p>
+        <p className="text-[var(--color-muted)]">Inspect order references, examine fee allocations, review payout splits, and monitor overall GMV growth.</p>
       </div>
 
       <TransactionManagementList initialTransactions={transactions || []} />
