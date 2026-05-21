@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Wallet, ArrowDownCircle, CheckCircle2, Clock } from "lucide-react";
+import { Wallet, ArrowDownCircle, CheckCircle2, Clock, History } from "lucide-react";
 import SettlementForm from "@/components/dashboard/SettlementForm";
+import WithdrawalForm from "@/components/dashboard/WithdrawalForm";
 
 export default async function OrganizerFinances() {
   const supabase = await createClient();
@@ -34,10 +35,22 @@ export default async function OrganizerFinances() {
     tickets = tk || [];
   }
 
+  // Fetch withdrawals history
+  const { data: withdrawals } = await supabase
+    .from("withdrawals")
+    .select("*")
+    .eq("vendor_id", user.id)
+    .order("requested_at", { ascending: false });
+
   // Stats calculation
   const totalEarnings = tickets.reduce((sum, t) => sum + (t.price_paid || 0), 0);
   const pendingPayouts = totalEarnings * 0.15; // Simulated pending payouts
-  const availableBalance = totalEarnings - pendingPayouts;
+  
+  const totalWithdrawnAndPending = (withdrawals || [])
+    .filter(w => w.status === "approved" || w.status === "pending")
+    .reduce((sum, w) => sum + Number(w.amount) + 50, 0);
+
+  const availableBalance = Math.max(0, totalEarnings - pendingPayouts - totalWithdrawnAndPending);
 
   // Recent transactions list
   let recentTransactions: { id?: string; amount?: number; paid_at?: string; profiles?: { full_name?: string; email?: string } | null; events?: { title?: string } | null }[] = [];
@@ -78,7 +91,7 @@ export default async function OrganizerFinances() {
           <p className="text-sm text-zinc-500 mb-1">Available for Payout</p>
           <p className="text-3xl font-bold font-heading text-green-600">₦{availableBalance.toLocaleString()}</p>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
-            <CheckCircle2 className="w-4 h-4 text-green-500" /> Auto-transfers every Thursday
+            <CheckCircle2 className="w-4 h-4 text-green-500" /> Withdraw at any time
           </div>
         </div>
 
@@ -100,56 +113,127 @@ export default async function OrganizerFinances() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Payout Method (Landmark Bank Setup) */}
+        {/* Payout & Withdrawal Methods */}
         <div className="lg:col-span-1 space-y-6">
           <h2 className="text-xl font-bold font-heading">Payout Bank Method</h2>
-          
           <SettlementForm profile={profile} />
+
+          <h2 className="text-xl font-bold font-heading">Request Payout</h2>
+          <WithdrawalForm profile={profile} availableBalance={availableBalance} />
         </div>
 
-        {/* Transactions Panel */}
-        <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-xl font-bold font-heading">Recent Transactions History</h2>
+        {/* Transactions & Withdrawals History Panel */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Transactions History */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold font-heading">Recent Transactions History</h2>
 
-          {recentTransactions.length === 0 ? (
-            <div className="glass-card p-12 text-center bg-white border border-[#E8EBE7] shadow-sm">
-              <Wallet className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-              <p className="font-bold text-zinc-700">No payouts or earnings found</p>
-              <p className="text-zinc-500 text-sm mt-1">Funds will list here once ticket buyers order tickets.</p>
-            </div>
-          ) : (
-            <div className="glass-card overflow-hidden bg-white border border-[#E8EBE7] shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b border-[#E8EBE7] bg-zinc-50/50">
-                      <th className="p-4 font-bold text-zinc-600">Buyer</th>
-                      <th className="p-4 font-bold text-zinc-600">Event</th>
-                      <th className="p-4 font-bold text-zinc-600">Date</th>
-                      <th className="p-4 font-bold text-zinc-600 text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E8EBE7]">
-                    {recentTransactions.map((tx) => (
-                      <tr key={tx.id} className="hover:bg-zinc-50/50 transition-colors">
-                        <td className="p-4">
-                          <p className="font-bold text-zinc-800">{tx.profiles?.full_name || "Anonymous Buyer"}</p>
-                          <p className="text-xs text-zinc-400">{tx.profiles?.email || ""}</p>
-                        </td>
-                        <td className="p-4 text-zinc-700 font-medium">{tx.events?.title || "Unknown Event"}</td>
-                        <td className="p-4 text-zinc-500 text-xs">
-                          {tx.paid_at ? new Date(tx.paid_at).toLocaleDateString("en-NG", { dateStyle: "medium" }) : "--"}
-                        </td>
-                        <td className="p-4 text-right font-bold text-indigo-600">
-                          ₦{Number(tx.amount).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {recentTransactions.length === 0 ? (
+              <div className="glass-card p-12 text-center bg-white border border-[#E8EBE7] shadow-sm">
+                <Wallet className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
+                <p className="font-bold text-zinc-700">No payouts or earnings found</p>
+                <p className="text-zinc-500 text-sm mt-1">Funds will list here once ticket buyers order tickets.</p>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="glass-card overflow-hidden bg-white border border-[#E8EBE7] shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-[#E8EBE7] bg-zinc-50/50">
+                        <th className="p-4 font-bold text-zinc-600">Buyer</th>
+                        <th className="p-4 font-bold text-zinc-600">Event</th>
+                        <th className="p-4 font-bold text-zinc-600">Date</th>
+                        <th className="p-4 font-bold text-zinc-600 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E8EBE7]">
+                      {recentTransactions.map((tx) => (
+                        <tr key={tx.id} className="hover:bg-zinc-50/50 transition-colors">
+                          <td className="p-4">
+                            <p className="font-bold text-zinc-800">{tx.profiles?.full_name || "Anonymous Buyer"}</p>
+                            <p className="text-xs text-zinc-400">{tx.profiles?.email || ""}</p>
+                          </td>
+                          <td className="p-4 text-zinc-700 font-medium">{tx.events?.title || "Unknown Event"}</td>
+                          <td className="p-4 text-zinc-500 text-xs">
+                            {tx.paid_at ? new Date(tx.paid_at).toLocaleDateString("en-NG", { dateStyle: "medium" }) : "--"}
+                          </td>
+                          <td className="p-4 text-right font-bold text-indigo-600">
+                            ₦{Number(tx.amount).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Withdrawals History */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold font-heading flex items-center gap-2">
+              <History className="w-5 h-5 text-indigo-500" /> Payout & Withdrawal Requests
+            </h2>
+
+            {(!withdrawals || withdrawals.length === 0) ? (
+              <div className="glass-card p-12 text-center bg-white border border-[#E8EBE7] shadow-sm">
+                <Wallet className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
+                <p className="font-bold text-zinc-700">No withdrawal requests found</p>
+                <p className="text-zinc-500 text-sm mt-1">Initiated payouts and withdrawals will list here.</p>
+              </div>
+            ) : (
+              <div className="glass-card overflow-hidden bg-white border border-[#E8EBE7] shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-[#E8EBE7] bg-zinc-50/50">
+                        <th className="p-4 font-bold text-zinc-600">Date Requested</th>
+                        <th className="p-4 font-bold text-zinc-600">Amount</th>
+                        <th className="p-4 font-bold text-zinc-600">Fee</th>
+                        <th className="p-4 font-bold text-zinc-600">Total Debit</th>
+                        <th className="p-4 font-bold text-zinc-600">Status</th>
+                        <th className="p-4 font-bold text-zinc-600 text-right">Processed At</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E8EBE7]">
+                      {withdrawals.map((w) => (
+                        <tr key={w.id} className="hover:bg-zinc-50/50 transition-colors">
+                          <td className="p-4 text-zinc-500 text-xs">
+                            {new Date(w.requested_at).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" })}
+                          </td>
+                          <td className="p-4 font-semibold text-zinc-800">
+                            ₦{Number(w.amount).toLocaleString()}
+                          </td>
+                          <td className="p-4 text-zinc-500">
+                            ₦50
+                          </td>
+                          <td className="p-4 font-bold text-indigo-600">
+                            ₦{(Number(w.amount) + 50).toLocaleString()}
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                              w.status === "pending"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                : w.status === "approved"
+                                ? "bg-green-50 text-green-700 border border-green-200"
+                                : "bg-red-50 text-red-700 border border-red-200"
+                            }`}>
+                              {w.status}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right text-zinc-500 text-xs font-medium">
+                            {w.processed_at 
+                              ? new Date(w.processed_at).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" }) 
+                              : "Processed in 24h"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -83,8 +84,12 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    // 5. Mark as scanned
-    const { data: updatedTicket, error: updateError } = await supabase
+    // 5. Mark as scanned using admin client to bypass RLS policies
+    const admin = createAdminSupabase(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { data: updatedTicket, error: updateError } = await admin
       .from("tickets")
       .update({
         status: "used",
