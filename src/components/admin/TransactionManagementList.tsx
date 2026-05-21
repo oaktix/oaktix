@@ -163,10 +163,10 @@ export default function TransactionManagementList({ initialTransactions }: Trans
             ) : (
               filteredTransactions.map((tx) => {
                 const paidAtDate = tx.paid_at || tx.created_at;
-                const paidDateStr = new Date(paidAtDate).toLocaleDateString("en-NG", {
+                const paidDateStr = new Intl.DateTimeFormat("en-NG", {
                   dateStyle: "medium",
                   timeStyle: "short",
-                });
+                }).format(new Date(paidAtDate));
                 let buyerEmail = tx.buyer?.email || "Guest Checkout";
                 const eventTitle = tx.event?.title || "Unknown Event";
                 let paymentChan = tx.payment_channel || "Paystack";

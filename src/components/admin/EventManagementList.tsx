@@ -216,7 +216,7 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
               filteredEvents.map((event) => {
                 const orgName = event.organizer?.vendor_details?.business_name || event.organizer?.full_name || "OakTix Organizer";
                 const orgEmail = event.organizer?.email || "Unknown Email";
-                const dateStr = new Date(event.start_date).toLocaleDateString("en-NG", { dateStyle: "medium", timeStyle: "short" });
+                const dateStr = new Intl.DateTimeFormat("en-NG", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.start_date));
                 const venueName = event.venue_details?.name || "Virtual Location";
 
                 return (
