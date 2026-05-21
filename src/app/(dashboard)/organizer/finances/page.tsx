@@ -25,14 +25,15 @@ export default async function OrganizerFinances() {
 
   const eventIds = events?.map(e => e.id) || [];
 
-  // Fetch tickets sold for organizer's events
-  let tickets: { price_paid?: number; status?: string }[] = [];
+  // Fetch successful transactions for organizer's events
+  let transactions: { vendor_net: number }[] = [];
   if (eventIds.length > 0) {
-    const { data: tk } = await supabase
-      .from("tickets")
-      .select("price_paid, status")
-      .in("event_id", eventIds);
-    tickets = tk || [];
+    const { data: txs } = await supabase
+      .from("transactions")
+      .select("vendor_net")
+      .in("event_id", eventIds)
+      .eq("status", "success");
+    transactions = txs || [];
   }
 
   // Fetch withdrawals history
@@ -43,14 +44,17 @@ export default async function OrganizerFinances() {
     .order("requested_at", { ascending: false });
 
   // Stats calculation
-  const totalEarnings = tickets.reduce((sum, t) => sum + (t.price_paid || 0), 0);
-  const pendingPayouts = totalEarnings * 0.15; // Simulated pending payouts
+  const totalSales = transactions.reduce((sum, tx) => sum + (Number(tx.vendor_net) || 0), 0);
   
   const totalWithdrawnAndPending = (withdrawals || [])
     .filter(w => w.status === "approved" || w.status === "pending")
     .reduce((sum, w) => sum + Number(w.amount) + 50, 0);
 
-  const availableBalance = Math.max(0, totalEarnings - pendingPayouts - totalWithdrawnAndPending);
+  const totalWithdrawnApproved = (withdrawals || [])
+    .filter(w => w.status === "approved")
+    .reduce((sum, w) => sum + Number(w.amount), 0);
+
+  const availableBalance = Math.max(0, totalSales - totalWithdrawnAndPending);
 
   // Recent transactions list
   let recentTransactions: { id?: string; amount?: number; paid_at?: string; profiles?: { full_name?: string; email?: string } | null; events?: { title?: string } | null }[] = [];
@@ -81,33 +85,33 @@ export default async function OrganizerFinances() {
           <h1 className="text-3xl font-bold font-heading mb-1 flex items-center gap-2">
             <Wallet className="w-8 h-8 text-indigo-500" /> Financial Overview
           </h1>
-          <p className="text-zinc-500">Monitor your ticket sales earnings, pending payouts, and bank payout methods.</p>
+          <p className="text-zinc-500">Monitor your ticket sales earnings, withdrawals, and bank payout methods.</p>
         </div>
       </div>
 
       {/* Financial Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="glass-card p-6 bg-white border border-[#E8EBE7] shadow-sm">
-          <p className="text-sm text-zinc-500 mb-1">Available for Payout</p>
+          <p className="text-sm text-zinc-500 mb-1">Available Balance</p>
           <p className="text-3xl font-bold font-heading text-green-600">₦{availableBalance.toLocaleString()}</p>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
-            <CheckCircle2 className="w-4 h-4 text-green-500" /> Withdraw at any time
+            <CheckCircle2 className="w-4 h-4 text-green-500" /> Unwithdrawn earnings
           </div>
         </div>
 
         <div className="glass-card p-6 bg-white border border-[#E8EBE7] shadow-sm">
-          <p className="text-sm text-zinc-500 mb-1">Pending Clearance</p>
-          <p className="text-3xl font-bold font-heading text-amber-600">₦{pendingPayouts.toLocaleString()}</p>
+          <p className="text-sm text-zinc-500 mb-1">Total Withdrawn</p>
+          <p className="text-3xl font-bold font-heading text-amber-600">₦{totalWithdrawnApproved.toLocaleString()}</p>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
-            <Clock className="w-4 h-4 text-amber-500" /> Escrow window: 24h post-event
+            <Clock className="w-4 h-4 text-amber-500" /> Transferred to your bank
           </div>
         </div>
 
         <div className="glass-card p-6 bg-white border border-[#E8EBE7] shadow-sm">
-          <p className="text-sm text-zinc-500 mb-1">Total Sales Earnings</p>
-          <p className="text-3xl font-bold font-heading text-indigo-600">₦{totalEarnings.toLocaleString()}</p>
+          <p className="text-sm text-zinc-500 mb-1">Total Sales (Net)</p>
+          <p className="text-3xl font-bold font-heading text-indigo-600">₦{totalSales.toLocaleString()}</p>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
-            <ArrowDownCircle className="w-4 h-4 text-indigo-500" /> Processing via Transactpay
+            <ArrowDownCircle className="w-4 h-4 text-indigo-500" /> Excludes platform fees
           </div>
         </div>
       </div>

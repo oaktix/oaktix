@@ -44,17 +44,18 @@ export async function POST(req: Request) {
 
     const eventIds = events?.map(e => e.id) || [];
 
-    let tickets: { price_paid?: number; status?: string }[] = [];
+    // Fetch successful transactions for organizer's events
+    let transactions: { vendor_net: number }[] = [];
     if (eventIds.length > 0) {
-      const { data: tk } = await supabase
-        .from("tickets")
-        .select("price_paid, status")
-        .in("event_id", eventIds);
-      tickets = tk || [];
+      const { data: txs } = await supabase
+        .from("transactions")
+        .select("vendor_net")
+        .in("event_id", eventIds)
+        .eq("status", "success");
+      transactions = txs || [];
     }
 
-    const totalEarnings = tickets.reduce((sum, t) => sum + (t.price_paid || 0), 0);
-    const pendingPayouts = totalEarnings * 0.15; // 15% escrow window simulation
+    const totalSales = transactions.reduce((sum, tx) => sum + (Number(tx.vendor_net) || 0), 0);
 
     // Fetch existing withdrawals
     const { data: withdrawals } = await supabase
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
       .filter(w => w.status === "approved" || w.status === "pending")
       .reduce((sum, w) => sum + Number(w.amount) + 50, 0);
 
-    const availableBalance = totalEarnings - pendingPayouts - totalWithdrawnAndPending;
+    const availableBalance = totalSales - totalWithdrawnAndPending;
 
     // 5. Verify available balance is sufficient
     if (availableBalance < amount + 50) {
