@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import EmailsDashboardClient from "@/components/admin/EmailsDashboardClient";
+import LoginPage from "@/app/(auth)/login/page";
 
 export default async function SuperAdminEmailsPage() {
   const supabase = await createClient();
@@ -12,7 +13,7 @@ export default async function SuperAdminEmailsPage() {
   if (!user) {
     // Render the login component directly instead of redirecting
     return <LoginPage />;
-    redirect("/login");
+    // redirect("/login"); // unreachable after rendering LoginPage
   }
 
   // 2. Validate super admin authorization
@@ -29,7 +30,7 @@ export default async function SuperAdminEmailsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0E151B] text-zinc-100">
+    <div className="flex flex-col min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
       {/* Branded Dark Header */}
       <Navbar user={user} theme="dark" />
 
