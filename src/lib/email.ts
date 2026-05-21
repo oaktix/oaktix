@@ -49,10 +49,11 @@ export async function sendWithdrawalRequestedEmail(
   const html = `<p>Dear Vendor,</p>
 <p>We have received your withdrawal request of <strong>₦${amount.toLocaleString()}</strong>. Our team will process it within 24 hours.</p>
 <p>Thank you for using Oaktix.</p>`;
-
-  const sent = await sendEmail(to, subject, html);
-  if (!sent) {
-    throw new Error('Failed to send withdrawal‑request email');
+  try {
+    await sendEmail(to, subject, html);
+  } catch (error) {
+    console.error('⚠ Withdrawal request email failed:', error);
+    // Continue without interrupting withdrawal flow
   }
 }
 
@@ -66,9 +67,10 @@ export async function sendWithdrawalStatusEmail(
   const html = `<p>Dear Vendor,</p>
 <p>Your withdrawal request of <strong>₦${amount.toLocaleString()}</strong> has been <strong>${status}</strong> by the Oaktix admin team.</p>
 <p>Thank you for using Oaktix.</p>`;
-
-  const sent = await sendEmail(to, subject, html);
-  if (!sent) {
-    throw new Error('Failed to send withdrawal‑status email');
+  try {
+    await sendEmail(to, subject, html);
+  } catch (error) {
+    console.error('⚠ Withdrawal status email failed:', error);
+    // Continue without interrupting withdrawal flow
   }
 }
