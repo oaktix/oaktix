@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Calendar, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, MapPin, Ticket } from "lucide-react";
 
 interface TicketType {
   name: string;
@@ -28,40 +28,114 @@ interface LatestEventsCarouselProps {
 }
 
 export default function LatestEventsCarousel({ events }: LatestEventsCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
 
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (events.length > 0 ? (prev + 1) % events.length : 0));
-  }, [events.length]);
+  // Drag to scroll states (for desktop users who don't have a touch screen)
+  const [isDown, setIsDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
-  const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (events.length > 0 ? (prev - 1 + events.length) % events.length : 0));
-  }, [events.length]);
-
-  const resetAutoplay = useCallback(() => {
-    if (autoplayRef.current) {
-      clearInterval(autoplayRef.current);
-    }
-    autoplayRef.current = setInterval(nextSlide, 5000);
-  }, [nextSlide]);
+  const checkScrollLimits = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setShowLeftArrow(el.scrollLeft > 10);
+    // Allow small tolerance for fractional rendering differences
+    setShowRightArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
+  };
 
   useEffect(() => {
-    resetAutoplay();
+    const el = scrollRef.current;
+    if (!el) return;
+    
+    // Check initial state
+    checkScrollLimits();
+
+    el.addEventListener("scroll", checkScrollLimits);
+    window.addEventListener("resize", checkScrollLimits);
+
     return () => {
-      if (autoplayRef.current) {
-        clearInterval(autoplayRef.current);
-      }
+      el.removeEventListener("scroll", checkScrollLimits);
+      window.removeEventListener("resize", checkScrollLimits);
     };
-  }, [resetAutoplay]);
+  }, [events]);
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    // Scroll by the width of one card plus gap (approx 340px)
+    const scrollAmount = direction === "left" ? -340 : 340;
+    el.scrollBy({
+      left: scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  // Mouse Drag to Scroll handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setIsDown(true);
+    setStartX(e.pageX - el.offsetLeft);
+    setScrollLeft(el.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const el = scrollRef.current;
+    if (!el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startX) * 1.5; // scroll speed multiplier
+    el.scrollLeft = scrollLeft - walk;
+  };
 
   if (!events || events.length === 0) return null;
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden aspect-[16/9] md:aspect-[21/9] bg-zinc-950 border border-white/10 group shadow-2xl">
-      {/* Slides Container */}
-      <div className="w-full h-full relative">
-        {events.map((event, idx) => {
+    <div className="relative w-full group">
+      {/* Navigation Arrows */}
+      {showLeftArrow && (
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-[-16px] top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white text-zinc-900 border border-zinc-200 shadow-lg hover:bg-indigo-500 hover:text-white transition-all duration-200 hover:scale-105 active:scale-95"
+          aria-label="Scroll Left"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+      )}
+
+      {showRightArrow && (
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-[-16px] top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white text-zinc-900 border border-zinc-200 shadow-lg hover:bg-indigo-500 hover:text-white transition-all duration-200 hover:scale-105 active:scale-95"
+          aria-label="Scroll Right"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* Cards Scroll Container */}
+      <div
+        ref={scrollRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        className={`w-full flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-6 select-none cursor-grab active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+        style={{ scrollbarWidth: "none" }}
+      >
+        {events.map((event) => {
           const banner = event.image_url || event.featured_image;
           const date = event.start_date ? new Date(event.start_date) : null;
           const formattedDate = date
@@ -80,74 +154,65 @@ export default function LatestEventsCarousel({ events }: LatestEventsCarouselPro
               ? Math.min(...event.ticket_types.map((t) => t.price))
               : 0);
 
-          const isActive = idx === currentIndex;
-
           return (
             <div
-              key={event.id || idx}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-                isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-              }`}
+              key={event.id}
+              className="w-[300px] sm:w-[340px] flex-shrink-0 snap-start bg-white border border-[#E8EBE7] rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:border-indigo-500/30 transition-all duration-300 flex flex-col group/card"
             >
-              {/* Background Image / Gradient */}
-              {banner ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={banner}
-                  alt={event.title}
-                  className="w-full h-full object-cover transform scale-100 group-hover:scale-[1.02] transition-transform duration-[8000ms]"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-indigo-900 via-[#0E4B31] to-zinc-950" />
-              )}
+              {/* Event Cover Image */}
+              <div className="h-48 relative overflow-hidden bg-zinc-100 border-b border-[#E8EBE7]">
+                {banner ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={banner}
+                    alt={event.title}
+                    className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500 pointer-events-none"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-indigo-500/20 to-amber-500/20 flex items-center justify-center p-6 group-hover/card:scale-105 transition-transform duration-500">
+                    <Ticket className="w-12 h-12 text-indigo-500/40" />
+                  </div>
+                )}
+                <span className="absolute top-4 left-4 bg-indigo-500 text-white text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full z-10 shadow-sm">
+                  {event.category}
+                </span>
+              </div>
 
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
-
-              {/* Slide Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-20 flex flex-col justify-end text-white">
-                <div className="max-w-2xl space-y-4">
-                  <span className="inline-block px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider bg-indigo-500 border border-indigo-400/30 text-white">
-                    {event.category}
-                  </span>
-
-                  <h2 className="text-2xl md:text-4xl font-extrabold font-heading tracking-tight drop-shadow-md line-clamp-2">
+              {/* Card Details */}
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 text-indigo-500 text-xs font-bold mb-2">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>{formattedDate}</span>
+                  </div>
+                  <h3 className="text-lg font-bold mb-2 font-heading text-zinc-900 group-hover/card:text-indigo-500 transition-colors line-clamp-1">
                     {event.title}
-                  </h2>
-
-                  <p className="text-zinc-300 text-xs md:text-sm line-clamp-2 drop-shadow leading-relaxed">
+                  </h3>
+                  <p className="text-zinc-500 text-xs mb-4 line-clamp-2 leading-relaxed">
                     {event.description}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-zinc-200">
-                    <span className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-white/5">
-                      <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-                      {formattedDate}
-                    </span>
-                    {event.location && (
-                      <span className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-white/5">
-                        <MapPin className="w-3.5 h-3.5 text-rose-400" />
-                        {event.location}
-                      </span>
-                    )}
-                  </div>
+                  {event.location && (
+                    <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-medium mb-4">
+                      <MapPin className="w-3.5 h-3.5 text-rose-500/70" />
+                      <span className="line-clamp-1">{event.location}</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Price and CTA */}
-                <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/10 w-full">
+                {/* Price and Action Button */}
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#E8EBE7]">
                   <div>
-                    <span className="text-[10px] text-zinc-400 font-bold block uppercase tracking-wider">
-                      Tickets starting from
-                    </span>
-                    <span className="text-lg md:text-2xl font-black font-heading text-white">
-                      ₦{minPrice.toLocaleString()}
+                    <span className="text-[10px] text-zinc-400 font-bold block uppercase tracking-wider">Tickets from</span>
+                    <span className="text-base font-extrabold text-zinc-900">
+                      {minPrice > 0 ? `₦${minPrice.toLocaleString()}` : "Free"}
                     </span>
                   </div>
                   <Link
                     href={`/events/${event.slug}`}
-                    className="px-6 md:px-8 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs md:text-sm transition-all shadow-lg shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98]"
+                    className="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-500 font-bold text-xs group-hover/card:bg-indigo-500 group-hover/card:text-white transition-all cursor-pointer"
                   >
-                    Get Tickets
+                    Book Tickets
                   </Link>
                 </div>
               </div>
@@ -155,51 +220,6 @@ export default function LatestEventsCarousel({ events }: LatestEventsCarouselPro
           );
         })}
       </div>
-
-      {/* Navigation Arrows */}
-      {events.length > 1 && (
-        <>
-          <button
-            onClick={() => {
-              prevSlide();
-              resetAutoplay();
-            }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2 md:p-3 rounded-xl bg-black/50 hover:bg-indigo-500 text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all hover:scale-105"
-            aria-label="Previous Slide"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => {
-              nextSlide();
-              resetAutoplay();
-            }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2 md:p-3 rounded-xl bg-black/50 hover:bg-indigo-500 text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all hover:scale-105"
-            aria-label="Next Slide"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </>
-      )}
-
-      {/* Slide Indicators */}
-      {events.length > 1 && (
-        <div className="absolute bottom-4 right-6 md:right-12 z-30 flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/5">
-          {events.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                setCurrentIndex(idx);
-                resetAutoplay();
-              }}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === currentIndex ? "w-6 bg-indigo-500" : "w-1.5 bg-white/40 hover:bg-white/60"
-              }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
