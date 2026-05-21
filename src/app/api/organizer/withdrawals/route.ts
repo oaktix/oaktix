@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { sendWithdrawalRequestedEmail } from "@/lib/email";
+import { sendWithdrawalStatusEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -96,6 +98,8 @@ export async function POST(req: Request) {
       console.error("Failed to insert withdrawal request:", insertError);
       return NextResponse.json({ error: "Failed to request withdrawal" }, { status: 500 });
     }
+
+    await sendWithdrawalRequestedEmail(user.email!, amount);
 
     return NextResponse.json({
       success: true,

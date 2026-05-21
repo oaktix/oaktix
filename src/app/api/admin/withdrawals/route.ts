@@ -1,6 +1,7 @@
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { sendWithdrawalStatusEmail } from "@/lib/email";
 
 // GET: list withdrawals, optional status filter
 export async function GET(request: Request) {
@@ -54,5 +55,24 @@ export async function POST(request: Request) {
     .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Fetch withdrawal details for email
+  const { data: wd } = await admin
+    .from("withdrawals")
+    .select("vendor_id, amount")
+    .eq("id", id)
+    .single();
+
+  // Fetch vendor email
+  const { data: vendorProfile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", wd.vendor_id)
+    .single();
+
+  if (vendorProfile?.email) {
+    await sendWithdrawalStatusEmail(vendorProfile.email, wd.amount, newStatus as any);
+  }
+
   return NextResponse.json({ success: true, status: newStatus });
 }
