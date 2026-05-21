@@ -11,6 +11,7 @@ interface SavedEvent {
   location: string;
   image_url: string | null;
   price: number;
+  slug: string;
 }
 
 export default async function SavedEventsPage() {
@@ -32,7 +33,8 @@ export default async function SavedEventsPage() {
         start_date,
         location,
         image_url,
-        price
+        price,
+        slug
       )
     `)
     .eq("user_id", user.id);
@@ -115,7 +117,7 @@ export default async function SavedEventsPage() {
                     {event.price === 0 ? "Free" : `₦${Number(event.price).toLocaleString()}`}
                   </span>
                   <Link
-                    href={`/events/${event.id}`}
+                    href={`/events/${event.slug}`}
                     className="text-xs font-bold text-indigo-500 hover:text-indigo-600 flex items-center gap-1"
                   >
                     View details <ArrowRight className="w-3.5 h-3.5" />

@@ -1,11 +1,57 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { Calendar, MapPin, ShieldCheck, Share2, Heart, Info, Users, ArrowLeft } from "lucide-react";
+import { Calendar, MapPin, ShieldCheck, Info, Users, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import EventDetailsClient from "@/components/events/EventDetailsClient";
+import EventLikeShare from "@/components/events/EventLikeShare";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import type { Metadata } from 'next';
+
+export const generateMetadata = async ({ params }: { params: Promise<{ slug: string }> }) => {
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
+
+  const supabase = await createClient();
+  const { data: dbEvent } = await supabase
+    .from('events')
+    .select('*, organizer:profiles(*)')
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (!dbEvent) {
+    return {
+      title: 'Event not found',
+      description: ''
+    };
+  }
+
+  // Cover image as metadata social image
+  let image = dbEvent.featured_image || dbEvent.image_url || '/logo-header.png';
+  if (image && !image.startsWith('http://') && !image.startsWith('https://')) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://oaktix.com.ng';
+    image = `${siteUrl.replace(/\/$/, '')}/${image.replace(/^\//, '')}`;
+  }
+
+  return {
+    title: dbEvent.title,
+    description: dbEvent.description ?? '',
+    openGraph: {
+      title: dbEvent.title,
+      description: dbEvent.description ?? '',
+      images: [{ url: image, width: 1200, height: 630, alt: dbEvent.title }],
+      type: 'website',
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/events/${slug}`
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: dbEvent.title,
+      description: dbEvent.description ?? '',
+      images: [image]
+    }
+  };
+};
 
 export default async function EventDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
@@ -26,6 +72,18 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
   }
 
   const event = dbEvent;
+
+  // Query initial liked state for the current user
+  let initialLiked = false;
+  if (user) {
+    const { data: savedRecord } = await supabase
+      .from("saved_events")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("event_id", event.id)
+      .maybeSingle();
+    initialLiked = !!savedRecord;
+  }
 
   const startDate = new Date(event.start_date);
   const ticketTypes = event.ticket_types || [];
@@ -77,14 +135,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <button aria-label="Add to favorites" className="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:bg-zinc-850 transition-all text-white cursor-pointer">
-                  <Heart className="w-5 h-5" />
-                </button>
-                <button aria-label="Share event" className="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:bg-zinc-850 transition-all text-white cursor-pointer">
-                  <Share2 className="w-5 h-5" />
-                </button>
-              </div>
+              <EventLikeShare 
+                eventId={event.id}
+                eventTitle={event.title}
+                eventSlug={event.slug}
+                initialLiked={initialLiked}
+                user={user ? { id: user.id } : null}
+              />
             </div>
           </div>
         </div>
