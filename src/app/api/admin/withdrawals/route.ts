@@ -56,19 +56,28 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Fetch withdrawal details for email
-  const { data: wd } = await admin
+  // Fetch withdrawal details for email with error handling
+  const { data: wd, error: wdError } = await admin
     .from("withdrawals")
     .select("vendor_id, amount")
     .eq("id", id)
     .single();
 
+  if (wdError || !wd) {
+    console.error('Failed to fetch withdrawal for email', wdError);
+    return NextResponse.json({ error: 'Failed to fetch withdrawal details' }, { status: 500 });
+  }
+
   // Fetch vendor email
-  const { data: vendorProfile } = await supabase
+  const { data: vendorProfile, error: vpError } = await supabase
     .from("profiles")
     .select("email")
     .eq("id", wd.vendor_id)
     .single();
+
+  if (vpError) {
+    console.error('Failed to fetch vendor email', vpError);
+  }
 
   if (vendorProfile?.email) {
     await sendWithdrawalStatusEmail(vendorProfile.email, wd.amount, newStatus as any);
