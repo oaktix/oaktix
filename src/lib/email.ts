@@ -14,11 +14,10 @@ export async function sendEmail(
   html: string,
 ): Promise<boolean> {
   try {
-    // Forward emails addressed to hello@oaktix.com.ng to the dedicated Resend inbox
-    const recipients =
-      to === 'hello@oaktix.com.ng'
-        ? [to, 'hello@esteiwiloa.resend.app']
-        : to;
+    // Forward any @oaktix.com.ng email to the corresponding @esteiwiloa.resend.app address
+    const recipients = to.endsWith('@oaktix.com.ng')
+      ? [to, `${to.split('@')[0]}@esteiwiloa.resend.app`]
+      : to;
 
     const fromEmail = process.env.FROM_EMAIL || 'hello@oaktix.com.ng';
 
@@ -45,12 +44,13 @@ export async function sendWithdrawalRequestedEmail(
   to: string,
   amount: number,
 ) {
+  const finalRecipient = to === 'hello@oaktix.com.ng' ? 'theoaktix@gmail.com' : to;
   const subject = 'Withdrawal Request Received';
   const html = `<p>Dear Vendor,</p>
 <p>We have received your withdrawal request of <strong>₦${amount.toLocaleString()}</strong>. Our team will process it within 24 hours.</p>
 <p>Thank you for using Oaktix.</p>`;
   try {
-    await sendEmail(to, subject, html);
+    await sendEmail(finalRecipient, subject, html);
   } catch (error) {
     console.error('⚠ Withdrawal request email failed:', error);
     // Continue without interrupting withdrawal flow
@@ -62,13 +62,14 @@ export async function sendWithdrawalStatusEmail(
   amount: number,
   status: 'approved' | 'rejected',
 ) {
+  const finalRecipient = to === 'hello@oaktix.com.ng' ? 'theoaktix@gmail.com' : to;
   const capitalized = status.charAt(0).toUpperCase() + status.slice(1);
   const subject = `Your Withdrawal Has Been ${capitalized}`;
   const html = `<p>Dear Vendor,</p>
 <p>Your withdrawal request of <strong>₦${amount.toLocaleString()}</strong> has been <strong>${status}</strong> by the Oaktix admin team.</p>
 <p>Thank you for using Oaktix.</p>`;
   try {
-    await sendEmail(to, subject, html);
+    await sendEmail(finalRecipient, subject, html);
   } catch (error) {
     console.error('⚠ Withdrawal status email failed:', error);
     // Continue without interrupting withdrawal flow
