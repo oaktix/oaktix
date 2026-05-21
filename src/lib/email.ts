@@ -4,9 +4,9 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function sendEmail(to: string, subject: string, html: string) {
   try {
-    // Forward emails sent to hello@oaktix.com.ng to theoaktix@gmail.com as well
-    const recipients = to === "hello@oaktix.com.ng" ? [to, "theoaktix@gmail.com"] : to;
-    await resend.emails.send({
+    // Forward emails sent to hello@oaktix.com.ng to hello@esteiwiloa.resend.app as well
+const recipients = to === "hello@oaktix.com.ng" ? [to, "hello@esteiwiloa.resend.app"] : to;
+await resend.emails.send({
       from: process.env.FROM_EMAIL!,
       to: recipients,
       subject,
