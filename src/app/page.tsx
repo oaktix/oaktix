@@ -4,7 +4,25 @@ import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import LatestEventsCarousel from "@/components/events/LatestEventsCarousel";
+import type { Metadata } from 'next';
 
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: "OakTix – Ticketing Platform",
+  description: "Buy tickets for events across Nigeria instantly.",
+  openGraph: {
+    title: "OakTix – Ticketing Platform",
+    description: "Buy tickets for events across Nigeria instantly.",
+    images: [{ url: "/logo-header.png", width: 1200, height: 630, alt: "OakTix" }],
+    type: "website",
+    url: process.env.NEXT_PUBLIC_SITE_URL
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OakTix – Ticketing Platform",
+    description: "Buy tickets for events across Nigeria instantly.",
+    images: ["/logo-header.png"]
+  }
+});
 
 export default async function Home() {
   const supabase = await createClient();

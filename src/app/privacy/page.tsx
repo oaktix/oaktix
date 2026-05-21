@@ -1,6 +1,25 @@
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import type { Metadata } from 'next';
+
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: "Privacy Policy – OakTix",
+  description: "OakTix privacy policy detailing data handling and user rights.",
+  openGraph: {
+    title: "Privacy Policy – OakTix",
+    description: "OakTix privacy policy detailing data handling and user rights.",
+    images: [{ url: "/logo-header.png", width: 1200, height: 630, alt: "OakTix" }],
+    type: "website",
+    url: process.env.NEXT_PUBLIC_SITE_URL
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy Policy – OakTix",
+    description: "OakTix privacy policy detailing data handling and user rights.",
+    images: ["/logo-header.png"]
+  }
+});
 
 export default async function PrivacyPage() {
   const supabase = await createClient();

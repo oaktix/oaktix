@@ -2,6 +2,25 @@ import { Users, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import type { Metadata } from 'next';
+
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: "Vendors – OakTix",
+  description: "Explore event vendors and organizers on OakTix.",
+  openGraph: {
+    title: "Vendors – OakTix",
+    description: "Explore event vendors and organizers on OakTix.",
+    images: [{ url: "/logo-header.png", width: 1200, height: 630, alt: "OakTix" }],
+    type: "website",
+    url: process.env.NEXT_PUBLIC_SITE_URL
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vendors – OakTix",
+    description: "Explore event vendors and organizers on OakTix.",
+    images: ["/logo-header.png"]
+  }
+});
 import Link from "next/link";
 
 export default async function VendorsPage() {
