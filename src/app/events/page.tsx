@@ -4,6 +4,26 @@ import { createClient } from "@/lib/supabase/server";
 import { format } from "date-fns";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import type { Metadata } from 'next';
+
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: 'Discover Events – OakTix',
+  description: 'Explore live events, concerts, festivals, and more across Nigeria.',
+  openGraph: {
+    title: 'Discover Events – OakTix',
+    description: 'Explore live events, concerts, festivals, and more across Nigeria.',
+    images: [{ url: '/logo-header.png', width: 1200, height: 630, alt: 'OakTix' }],
+    type: 'website',
+    url: process.env.NEXT_PUBLIC_SITE_URL,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Discover Events – OakTix',
+    description: 'Explore live events, concerts, festivals, and more across Nigeria.',
+    images: ['/logo-header.png'],
+  },
+});
+import Footer from "@/components/layout/Footer";
 
 export default async function DiscoverEvents({
   searchParams,
