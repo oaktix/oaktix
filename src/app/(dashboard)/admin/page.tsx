@@ -90,10 +90,10 @@ export default function AdminDashboard() {
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
           <p className="text-sm text-[var(--color-muted)] mb-1">Total Platform GMV</p>
           <p className="text-2xl font-bold font-heading text-[var(--color-primary)]">
-            ₦{(stats?.total_gmv || 0).toLocaleString()}
+            ₦{(stats?.gmv || 0).toLocaleString()}
           </p>
           <div className="mt-2 text-xs text-[var(--color-primary)] font-bold">
-            Platform Fee: ₦{(stats?.total_fees || 0).toLocaleString()}
+            Platform Fee: ₦{(stats?.platform_fee || 0).toLocaleString()}
           </div>
         </div>
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
@@ -106,13 +106,20 @@ export default function AdminDashboard() {
           </div>
         </div>
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
+          <p className="text-sm text-[var(--color-muted)] mb-1">Total Events</p>
+          <p className="text-2xl font-bold font-heading text-[var(--color-text)]">
+            {stats?.total_events || 0}
+          </p>
+          <div className="mt-2 text-xs text-[var(--color-muted)]">
+            All events created
+          </div>
+        </div>
+        <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
           <p className="text-sm text-[var(--color-muted)] mb-1">Active Vendors</p>
           <p className="text-2xl font-bold font-heading text-[var(--color-accent)]">
             {stats?.total_vendors || 0}
           </p>
-          <div className="mt-2 text-xs text-[var(--color-accent)] font-bold">
-            {stats?.pending_vendors || 0} Pending verification
-          </div>
+          {/* No pending verification data */}
         </div>
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
           <p className="text-sm text-[var(--color-muted)] mb-1">Live Events</p>
