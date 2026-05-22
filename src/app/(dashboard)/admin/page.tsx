@@ -15,30 +15,33 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-      setUser(user);
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, full_name")
-        .eq("id", user.id)
-        .maybeSingle();
-      const userRole = profile?.role || user.user_metadata?.role;
-      if (userRole !== "admin" && userRole !== "super_admin") {
-        router.replace("/dashboard");
-        return;
-      }
-      const { data: stats } = await supabase.rpc("dashboard_stats");
-      setStats(stats);
+  const fetchUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setUser(null);
       setLoading(false);
-    };
-    fetchUser();
-  }, []);
+      return;
+    }
+    setUser(user);
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, full_name')
+      .eq('id', user.id)
+      .maybeSingle();
+    const userRole = profile?.role || user.user_metadata?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      router.replace('/dashboard');
+      return;
+    }
+    // Dashboard stats: ensure we get a single object
+    const { data } = await supabase.rpc('dashboard_stats');
+    const statsObj = Array.isArray(data) ? data[0] : data;
+    setStats(statsObj);
+    setLoading(false);
+  };
+  fetchUser();
+}, []);
+
 
   if (loading) {
     return (
@@ -105,7 +108,7 @@ export default function AdminDashboard() {
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
           <p className="text-sm text-[var(--color-muted)] mb-1">Active Vendors</p>
           <p className="text-2xl font-bold font-heading text-[var(--color-accent)]">
-            {stats?.active_vendors || 0}
+            {stats?.total_vendors || 0}
           </p>
           <div className="mt-2 text-xs text-[var(--color-accent)] font-bold">
             {stats?.pending_vendors || 0} Pending verification
