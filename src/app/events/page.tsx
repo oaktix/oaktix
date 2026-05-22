@@ -23,7 +23,7 @@ export const generateMetadata = async (): Promise<Metadata> => ({
     images: ['/logo-header.png'],
   },
 });
-import Footer from "@/components/layout/Footer";
+
 
 export default async function DiscoverEvents({
   searchParams,
