@@ -63,7 +63,7 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "System", href: "/admin/system", icon: Settings },
     ],
     super_admin: [
-      { name: "Platform Health", href: "/admin", icon: LayoutDashboard },
+// Platform Health entry removed for super_admin
       { name: "Users", href: "/admin/users", icon: Users },
       { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
       { name: "Events", href: "/admin/events", icon: Calendar },
