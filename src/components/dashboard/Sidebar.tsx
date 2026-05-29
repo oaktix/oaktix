@@ -83,7 +83,9 @@ export function Sidebar({ role }: SidebarProps) {
   const items = navItems[role] || navItems.user;
 
   return (
-    <div className="w-full lg:w-64 h-full flex flex-col p-6 bg-white border-r border-[#E8EBE7]">
+    <div className="w-full lg:w-64 h-full flex flex-col p-6 bg-white dark:bg-zinc-950 border-r border-[#E8EBE7] dark:border-white/5 relative">
+      {/* Subtle accent strip on the left for desktop (optional, keeping the dashboard top strip only per previous change, but let's add a small detail) */}
+      <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-black via-orange-500 to-green-500 dark:hidden hidden lg:block" />
       <div className="flex items-center mb-10 px-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -102,11 +104,11 @@ export function Sidebar({ role }: SidebarProps) {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                 isActive 
-                  ? "bg-indigo-500/10 text-indigo-500 font-bold" 
-                  : "text-zinc-500 hover:text-indigo-500 hover:bg-indigo-50/50 font-medium"
+                  ? "bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 font-bold" 
+                  : "text-zinc-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 font-medium"
               }`}
             >
-              <item.icon className={`w-5 h-5 ${isActive ? "text-indigo-500" : "text-zinc-400 group-hover:text-indigo-500"}`} />
+              <item.icon className={`w-5 h-5 ${isActive ? "text-indigo-500 dark:text-indigo-400" : "text-zinc-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-400"}`} />
               <span>{item.name}</span>
             </Link>
           );
@@ -123,7 +125,7 @@ export function Sidebar({ role }: SidebarProps) {
         </Link>
       )}
 
-      <div className="mt-auto border-t border-[#E8EBE7] pt-6">
+      <div className="mt-auto border-t border-[#E8EBE7] dark:border-white/5 pt-6">
         <button 
           onClick={handleSignOut}
           className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-zinc-500 hover:text-red-600 hover:bg-red-500/10 transition-all group font-medium"
