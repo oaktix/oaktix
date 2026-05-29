@@ -119,16 +119,16 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-white/5 border border-white/5 p-6 rounded-2xl">
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-6 rounded-2xl shadow-sm dark:shadow-none">
         <div className="flex-1 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="w-5 h-5 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-5 h-5 text-zinc-400 dark:text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by name, email, or ticket code..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors placeholder:text-zinc-500 text-sm"
+              className="w-full bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors placeholder:text-zinc-500 text-zinc-900 dark:text-white text-sm"
             />
           </div>
           <select
@@ -136,7 +136,7 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
             aria-label="Filter by event"
             value={selectedEvent}
             onChange={(e) => setSelectedEvent(e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-300"
+            className="bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 transition-colors text-sm text-zinc-900 dark:text-zinc-300"
           >
             <option value="all">All Events</option>
             {events.map((e) => (
@@ -146,28 +146,28 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
         </div>
         <button
           onClick={exportCSV}
-          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-colors text-sm"
+          className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-black dark:bg-white text-white dark:text-black font-bold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-sm"
         >
           <Download className="w-4 h-4" /> Export CSV
         </button>
       </div>
 
       {/* Table */}
-      <div className="glass-card overflow-hidden border-transparent bg-white/5">
+      <div className="glass-card overflow-hidden border-zinc-200 dark:border-transparent bg-white dark:bg-white/5">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/10 text-xs uppercase font-bold text-zinc-400">
-                <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort("name")}>
+              <tr className="border-b border-zinc-200 dark:border-white/10 text-xs uppercase font-bold text-zinc-600 dark:text-zinc-400">
+                <th className="p-4 cursor-pointer hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleSort("name")}>
                   <div className="flex items-center gap-1">Attendee <ArrowUpDown className="w-3 h-3" /></div>
                 </th>
-                <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort("email")}>
+                <th className="p-4 cursor-pointer hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleSort("email")}>
                   <div className="flex items-center gap-1">Email <ArrowUpDown className="w-3 h-3" /></div>
                 </th>
-                <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort("event")}>
+                <th className="p-4 cursor-pointer hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleSort("event")}>
                   <div className="flex items-center gap-1">Event <ArrowUpDown className="w-3 h-3" /></div>
                 </th>
-                <th className="p-4 cursor-pointer hover:text-white transition-colors" onClick={() => handleSort("code")}>
+                <th className="p-4 cursor-pointer hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleSort("code")}>
                   <div className="flex items-center gap-1">Ticket Code <ArrowUpDown className="w-3 h-3" /></div>
                 </th>
                 <th className="p-4">Tier</th>
@@ -184,20 +184,20 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
                 </tr>
               ) : (
                 filteredTickets.map((t) => (
-                  <tr key={t.id} className="border-b border-white/5 hover:bg-white/5 transition-colors text-sm">
+                  <tr key={t.id} className="border-b border-zinc-200 dark:border-white/5 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors text-sm text-zinc-900 dark:text-white">
                     <td className="p-4 font-bold">{t.profiles?.full_name || "Anonymous"}</td>
-                    <td className="p-4 text-zinc-400">{t.profiles?.email || "N/A"}</td>
+                    <td className="p-4 text-zinc-600 dark:text-zinc-400">{t.profiles?.email || "N/A"}</td>
                     <td className="p-4 font-medium">{t.events?.title || "N/A"}</td>
-                    <td className="p-4 font-mono text-zinc-400">{t.unique_code}</td>
+                    <td className="p-4 font-mono text-zinc-600 dark:text-zinc-400">{t.unique_code}</td>
                     <td className="p-4">
-                      <span className="px-2 py-0.5 rounded bg-white/5 text-xs text-zinc-300">
+                      <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-white/5 text-xs text-zinc-700 dark:text-zinc-300">
                         {t.ticket_type?.name || "GA"}
                       </span>
                     </td>
                     <td className="p-4 font-bold">₦{Number(t.price_paid || 0).toLocaleString()}</td>
                     <td className="p-4">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold uppercase ${
-                        t.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                        t.status === 'active' ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400'
                       }`}>
                         {t.status || 'active'}
                       </span>

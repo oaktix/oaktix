@@ -69,12 +69,12 @@ export default async function VendorDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-heading mb-1">Organizer Dashboard</h1>
-          <p className="text-zinc-500">Manage your events and track your sales.</p>
+          <h1 className="text-3xl font-bold font-heading mb-1 text-zinc-900 dark:text-white">Organizer Dashboard</h1>
+          <p className="text-zinc-600 dark:text-zinc-500">Manage your events and track your sales.</p>
         </div>
         <Link 
           href="/organizer/events/new"
-          className="px-6 py-3 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-colors flex items-center gap-2"
+          className="px-6 py-3 rounded-xl bg-indigo-600 dark:bg-white text-white dark:text-black font-bold hover:bg-indigo-700 dark:hover:bg-zinc-200 transition-colors flex items-center gap-2"
         >
           <PlusCircle className="w-5 h-5" /> Create New Event
         </Link>
@@ -82,31 +82,31 @@ export default async function VendorDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="glass-card p-6">
-          <p className="text-sm text-zinc-500 mb-1">Total Revenue</p>
-          <p className="text-2xl font-bold font-heading">₦{totalRevenue.toLocaleString()}</p>
-          <div className="mt-2 flex items-center gap-1 text-xs text-zinc-500">
+        <div className="glass-card p-6 border-indigo-100 dark:border-white/10">
+          <p className="text-sm text-zinc-600 dark:text-zinc-500 mb-1">Total Revenue</p>
+          <p className="text-2xl font-bold font-heading text-indigo-700 dark:text-white">₦{totalRevenue.toLocaleString()}</p>
+          <div className="mt-2 flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-500">
             Real-time ticket earnings
           </div>
         </div>
-        <div className="glass-card p-6">
-          <p className="text-sm text-zinc-500 mb-1">Tickets Sold</p>
-          <p className="text-2xl font-bold font-heading">{ticketsSold}</p>
-          <div className="mt-2 flex items-center gap-1 text-xs text-zinc-500">
+        <div className="glass-card p-6 border-indigo-100 dark:border-white/10">
+          <p className="text-sm text-zinc-600 dark:text-zinc-500 mb-1">Tickets Sold</p>
+          <p className="text-2xl font-bold font-heading text-indigo-700 dark:text-white">{ticketsSold}</p>
+          <div className="mt-2 flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-500">
             Across {events?.length || 0} event tiers
           </div>
         </div>
-        <div className="glass-card p-6">
-          <p className="text-sm text-zinc-500 mb-1">Active Events</p>
-          <p className="text-2xl font-bold font-heading">{activeEventsCount}</p>
-          <div className="mt-2 flex items-center gap-1 text-xs text-zinc-500">
+        <div className="glass-card p-6 border-indigo-100 dark:border-white/10">
+          <p className="text-sm text-zinc-600 dark:text-zinc-500 mb-1">Active Events</p>
+          <p className="text-2xl font-bold font-heading text-indigo-700 dark:text-white">{activeEventsCount}</p>
+          <div className="mt-2 flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-500">
             {nextEvent ? `Next: ${new Date(nextEvent.start_date).toLocaleDateString()}` : "No upcoming events"}
           </div>
         </div>
-        <div className="glass-card p-6">
-          <p className="text-sm text-zinc-500 mb-1">Average Attendance</p>
-          <p className="text-2xl font-bold font-heading">--%</p>
-          <div className="mt-2 flex items-center gap-1 text-xs text-zinc-500">
+        <div className="glass-card p-6 border-indigo-100 dark:border-white/10">
+          <p className="text-sm text-zinc-600 dark:text-zinc-500 mb-1">Average Attendance</p>
+          <p className="text-2xl font-bold font-heading text-indigo-700 dark:text-white">--%</p>
+          <div className="mt-2 flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-500">
             Waiting for QR validation integration
           </div>
         </div>
@@ -116,8 +116,8 @@ export default async function VendorDashboard() {
         {/* Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold font-heading">Recent Transactions</h2>
-            <Link href="/organizer/finances" className="text-sm text-indigo-400 font-bold flex items-center gap-1 hover:text-indigo-300">
+            <h2 className="text-xl font-bold font-heading text-zinc-900 dark:text-white">Recent Transactions</h2>
+            <Link href="/organizer/finances" className="text-sm text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1 hover:text-indigo-700 dark:hover:text-indigo-300">
               View All <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -125,22 +125,22 @@ export default async function VendorDashboard() {
           {recentTransactions.length === 0 ? (
             <div className="glass-card overflow-hidden">
               <div className="p-12 text-center">
-                <Wallet className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
-                <p className="font-bold">No transactions yet</p>
-                <p className="text-zinc-500 text-sm mt-1">When you sell tickets, they will appear here.</p>
+                <Wallet className="w-12 h-12 text-zinc-400 dark:text-zinc-800 mx-auto mb-4" />
+                <p className="font-bold text-zinc-900 dark:text-white">No transactions yet</p>
+                <p className="text-zinc-600 dark:text-zinc-500 text-sm mt-1">When you sell tickets, they will appear here.</p>
               </div>
             </div>
           ) : (
             <div className="glass-card overflow-hidden p-4">
               <div className="space-y-4">
                 {recentTransactions.map((tx) => (
-                  <div key={tx.id} className="flex justify-between items-center p-3 rounded-xl hover:bg-white/5 transition-colors">
+                  <div key={tx.id} className="flex justify-between items-center p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors">
                     <div>
-                      <p className="font-bold text-sm">{tx.profiles?.full_name || "Anonymous"}</p>
-                      <p className="text-xs text-zinc-500">{tx.events?.title || "Unknown Event"}</p>
+                      <p className="font-bold text-sm text-zinc-900 dark:text-white">{tx.profiles?.full_name || "Anonymous"}</p>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-500">{tx.events?.title || "Unknown Event"}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-indigo-400">₦{Number(tx.amount).toLocaleString()}</p>
+                      <p className="font-bold text-indigo-600 dark:text-indigo-400">₦{Number(tx.amount).toLocaleString()}</p>
                       <p className="text-[10px] text-zinc-500">{tx.paid_at ? new Date(tx.paid_at).toLocaleDateString() : ""}</p>
                     </div>
                   </div>
@@ -152,19 +152,19 @@ export default async function VendorDashboard() {
 
         {/* Quick Actions / Tips */}
         <div className="space-y-6">
-          <h2 className="text-xl font-bold font-heading">Quick Actions</h2>
+          <h2 className="text-xl font-bold font-heading text-zinc-900 dark:text-white">Quick Actions</h2>
           <div className="space-y-3">
-            <Link href="/organizer/finances" className="block w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
-              <p className="font-bold text-sm group-hover:text-indigo-400 transition-colors">Setup Payouts</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Link your payout bank account.</p>
+            <Link href="/organizer/finances" className="block w-full text-left p-4 rounded-xl border border-zinc-200 dark:border-white/5 hover:border-indigo-300 dark:hover:border-white/10 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition-all group">
+              <p className="font-bold text-sm text-zinc-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Setup Payouts</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-0.5">Link your payout bank account.</p>
             </Link>
-            <Link href="/organizer/team" className="block w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
-              <p className="font-bold text-sm group-hover:text-indigo-400 transition-colors">Team Access</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Add staff members to scan tickets.</p>
+            <Link href="/organizer/team" className="block w-full text-left p-4 rounded-xl border border-zinc-200 dark:border-white/5 hover:border-indigo-300 dark:hover:border-white/10 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition-all group">
+              <p className="font-bold text-sm text-zinc-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Team Access</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-0.5">Add staff members to scan tickets.</p>
             </Link>
-            <Link href="/organizer/communications" className="block w-full text-left p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group">
-              <p className="font-bold text-sm group-hover:text-indigo-400 transition-colors">Marketing Tools</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Promote your events to your audience.</p>
+            <Link href="/organizer/communications" className="block w-full text-left p-4 rounded-xl border border-zinc-200 dark:border-white/5 hover:border-indigo-300 dark:hover:border-white/10 hover:bg-indigo-50/50 dark:hover:bg-white/5 transition-all group">
+              <p className="font-bold text-sm text-zinc-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Marketing Tools</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-0.5">Promote your events to your audience.</p>
             </Link>
           </div>
         </div>

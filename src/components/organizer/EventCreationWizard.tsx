@@ -207,17 +207,17 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
       {/* Progress Bar */}
       <div className="flex items-center gap-2 mb-8">
         {[1, 2, 3, 4, 5].map((s) => (
-          <div key={s} className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
-            <div                className={`h-full bg-indigo-500 transition-all duration-500 ${step >= s ? 'w-full' : 'w-0'}`} 
+          <div key={s} className="flex-1 h-2 rounded-full bg-zinc-200 dark:bg-white/5 overflow-hidden">
+            <div className={`h-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-500 ${step >= s ? 'w-full' : 'w-0'}`} 
             />
           </div>
         ))}
       </div>
 
-      <div className="glass-card p-8 min-h-[400px] flex flex-col justify-between bg-zinc-900/80 text-white">
+      <div className="glass-card p-8 min-h-[400px] flex flex-col justify-between">
         <div className="space-y-6">
           {error && (
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm">
               {error}
             </div>
           )}
@@ -226,63 +226,63 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
               <div>
-                <h2 className="text-2xl font-bold font-heading mb-2 text-white">Basic Details</h2>
-                <p className="text-zinc-300 text-sm">Let&apos;s start with the name and description.</p>
+                <h2 className="text-2xl font-bold font-heading mb-2 text-zinc-900 dark:text-white">Basic Details</h2>
+                <p className="text-zinc-600 dark:text-zinc-300 text-sm">Let&apos;s start with the name and description.</p>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-bold text-zinc-200">Event Title</label>
+                  <label className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Event Title</label>
                   <input 
                     type="text" 
                     value={formData.title} 
                     onChange={(e) => updateForm("title", e.target.value)}
                     placeholder="E.g., Lagos Tech Summit 2026"
-                    className="w-full mt-1 bg-zinc-800 border border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-500 text-white placeholder:text-zinc-400 outline-none"
+                    className="w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-400 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-zinc-200">URL Slug (Optional)</label>
+                  <label className="text-sm font-bold text-zinc-800 dark:text-zinc-200">URL Slug (Optional)</label>
                   <input 
                     type="text" 
                     value={formData.slug} 
                     onChange={(e) => updateForm("slug", e.target.value)}
                     placeholder="lagos-tech-summit-2026"
-                    className="w-full mt-1 bg-zinc-800 border border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-500 font-mono text-sm text-white placeholder:text-zinc-400 outline-none"
+                    className="w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 font-mono text-sm text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-400 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-zinc-200">Description</label>
+                  <label className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Description</label>
                   <textarea 
                     value={formData.description} 
                     onChange={(e) => updateForm("description", e.target.value)}
                     placeholder="Describe your event..."
-                    className="w-full mt-1 bg-zinc-800 border border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-500 text-white placeholder:text-zinc-400 outline-none min-h-[120px]"
+                    className="w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-400 outline-none min-h-[120px]"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-zinc-300">Event Category</label>
+                  <label className="text-sm font-bold text-zinc-800 dark:text-zinc-300">Event Category</label>
                   <select
                     value={formData.category}
                     onChange={(e) => updateForm("category", e.target.value)}
                     title="Event Category"
                     aria-label="Event Category"
-                    className="w-full mt-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none text-white cursor-pointer font-medium"
+                    className="w-full mt-1 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 outline-none text-zinc-900 dark:text-white cursor-pointer font-medium"
                   >
                     {DEFAULT_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat} className="bg-zinc-900 text-white font-medium">{cat}</option>
+                      <option key={cat} value={cat} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white font-medium">{cat}</option>
                     ))}
-                    <option value="custom" className="bg-zinc-900 text-white font-bold">+ Create Custom Category...</option>
+                    <option value="custom" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white font-bold">+ Create Custom Category...</option>
                   </select>
                 </div>
                 {formData.category === "custom" && (
                   <div className="animate-in fade-in slide-in-from-top-2">
-                    <label className="text-sm font-bold text-zinc-300">Custom Category Name</label>
+                    <label className="text-sm font-bold text-zinc-800 dark:text-zinc-300">Custom Category Name</label>
                     <input 
                       type="text" 
                       value={formData.customCategory} 
                       onChange={(e) => updateForm("customCategory", e.target.value)}
                       placeholder="E.g., Art Exhibition, Gaming Tournament, Tech Meetup"
-                      className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                      className="w-full mt-1 bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                     />
                   </div>
                 )}
@@ -294,12 +294,12 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
           {step === 2 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
               <div>
-                <h2 className="text-2xl font-bold font-heading mb-2">Date & Location</h2>
-                <p className="text-zinc-400 text-sm">When and where is it happening?</p>
+                <h2 className="text-2xl font-bold font-heading mb-2 text-zinc-900 dark:text-white">Date & Location</h2>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm">When and where is it happening?</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="start_date" className="text-sm font-bold text-zinc-300 flex items-center gap-2"><Calendar className="w-4 h-4"/> Start Date & Time</label>
+                  <label htmlFor="start_date" className="text-sm font-bold text-zinc-800 dark:text-zinc-300 flex items-center gap-2"><Calendar className="w-4 h-4"/> Start Date & Time</label>
                   <input 
                     id="start_date"
                     title="Start Date & Time"
@@ -307,11 +307,11 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                     type="datetime-local" 
                     value={formData.start_date} 
                     onChange={(e) => updateForm("start_date", e.target.value)}
-                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                    className="w-full mt-1 bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                   />
                 </div>
                 <div>
-                  <label htmlFor="end_date" className="text-sm font-bold text-zinc-300 flex items-center gap-2"><Calendar className="w-4 h-4"/> End Date & Time</label>
+                  <label htmlFor="end_date" className="text-sm font-bold text-zinc-800 dark:text-zinc-300 flex items-center gap-2"><Calendar className="w-4 h-4"/> End Date & Time</label>
                   <input 
                     id="end_date"
                     title="End Date & Time"
@@ -319,18 +319,18 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                     type="datetime-local" 
                     value={formData.end_date} 
                     onChange={(e) => updateForm("end_date", e.target.value)}
-                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                    className="w-full mt-1 bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-white/10">
-                <label className="flex items-center gap-2 text-sm font-bold text-zinc-300 mb-4 cursor-pointer">
+              <div className="pt-4 border-t border-zinc-200 dark:border-white/10">
+                <label className="flex items-center gap-2 text-sm font-bold text-zinc-800 dark:text-zinc-300 mb-4 cursor-pointer">
                   <input 
                     type="checkbox" 
                     checked={formData.isVirtual} 
                     onChange={(e) => updateForm("isVirtual", e.target.checked)}
-                    className="w-4 h-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                    className="w-4 h-4 rounded border-zinc-300 dark:border-white/10 bg-white dark:bg-white/5 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-0"
                   />
                   This is a virtual event
                 </label>
@@ -338,23 +338,23 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                 {!formData.isVirtual && (
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-bold text-zinc-300 flex items-center gap-2"><MapPin className="w-4 h-4"/> Venue Name</label>
+                      <label className="text-sm font-bold text-zinc-800 dark:text-zinc-300 flex items-center gap-2"><MapPin className="w-4 h-4"/> Venue Name</label>
                       <input 
                         type="text" 
                         value={formData.venue_name} 
                         onChange={(e) => updateForm("venue_name", e.target.value)}
                         placeholder="E.g., Eko Convention Center"
-                        className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                        className="w-full mt-1 bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-bold text-zinc-300">Venue Address</label>
+                      <label className="text-sm font-bold text-zinc-800 dark:text-zinc-300">Venue Address</label>
                       <input 
                         type="text" 
                         value={formData.venue_address} 
                         onChange={(e) => updateForm("venue_address", e.target.value)}
                         placeholder="Full address"
-                        className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                        className="w-full mt-1 bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                       />
                     </div>
                     <div className="pt-2">
@@ -378,26 +378,26 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
               <div>
-                <h2 className="text-2xl font-bold font-heading mb-2">Event Image</h2>
-                <p className="text-zinc-400 text-sm">Upload a high-quality banner for your event.</p>
+                <h2 className="text-2xl font-bold font-heading mb-2 text-zinc-900 dark:text-white">Event Image</h2>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm">Upload a high-quality banner for your event.</p>
               </div>
               
-              <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:border-indigo-500/50 transition-colors h-64">
+              <div className="border-2 border-dashed border-zinc-300 dark:border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group hover:border-indigo-500/50 transition-colors h-64 bg-white/50 dark:bg-transparent">
                 {formData.imagePreview ? (
                   <>
                     <Image src={formData.imagePreview} alt="Preview" fill className="object-cover opacity-50" />
                     <div className="relative z-10 bg-black/60 backdrop-blur-sm p-4 rounded-xl">
-                      <p className="font-bold">Image selected</p>
+                      <p className="font-bold text-white">Image selected</p>
                       <p className="text-xs text-zinc-400">Click to change</p>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-colors">
+                    <div className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-white/5 flex items-center justify-center mb-4 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 text-indigo-600 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">
                       <ImageIcon className="w-8 h-8" />
                     </div>
-                    <p className="font-bold">Click to upload image</p>
-                    <p className="text-sm text-zinc-500">PNG, JPG, WEBP up to 5MB</p>
+                    <p className="font-bold text-zinc-900 dark:text-white">Click to upload image</p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-500">PNG, JPG, WEBP up to 5MB</p>
                   </>
                 )}
                 <input 
@@ -419,12 +419,12 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold font-heading mb-2">Tickets</h2>
-                  <p className="text-zinc-400 text-sm">Create your ticket tiers and pricing.</p>
+                  <h2 className="text-2xl font-bold font-heading mb-2 text-zinc-900 dark:text-white">Tickets</h2>
+                  <p className="text-zinc-600 dark:text-zinc-400 text-sm">Create your ticket tiers and pricing.</p>
                 </div>
                 <button 
                   onClick={addTicketType}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-bold transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-white/5 hover:bg-indigo-100 dark:hover:bg-white/10 text-indigo-700 dark:text-white text-sm font-bold transition-colors"
                 >
                   <Plus className="w-4 h-4" /> Add Tier
                 </button>
@@ -432,7 +432,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
 
               <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {formData.ticketTypes.map((ticket, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-white/10 bg-white/5 space-y-4 relative">
+                  <div key={idx} className="p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 space-y-4 relative">
                     {idx > 0 && (
                       <button 
                         title="Remove ticket tier"
@@ -448,62 +448,62 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold text-zinc-400">Tier Name</label>
+                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Tier Name</label>
                         <input 
                           type="text" 
                           value={ticket.name} 
                           onChange={(e) => updateTicketType(idx, "name", e.target.value)}
                           placeholder="VIP"
-                          className="w-full mt-1 bg-transparent border-b border-white/10 py-2 focus:border-indigo-500 outline-none text-lg font-bold"
+                          className="w-full mt-1 bg-transparent border-b border-zinc-300 dark:border-white/10 py-2 focus:border-indigo-600 dark:focus:border-indigo-500 outline-none text-zinc-900 dark:text-white text-lg font-bold"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-zinc-400">Price (₦)</label>
+                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Price (₦)</label>
                         <input 
                           type="number" 
                           value={ticket.price} 
                           onChange={(e) => updateTicketType(idx, "price", parseFloat(e.target.value) || 0)}
                           placeholder="0 for Free"
-                          className="w-full mt-1 bg-transparent border-b border-white/10 py-2 focus:border-indigo-500 outline-none text-lg font-bold"
+                          className="w-full mt-1 bg-transparent border-b border-zinc-300 dark:border-white/10 py-2 focus:border-indigo-600 dark:focus:border-indigo-500 outline-none text-zinc-900 dark:text-white text-lg font-bold"
                         />
-                        <label className="text-xs font-bold text-zinc-400 mt-2">Early Bird Price (₦) (optional)</label>
+                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400 mt-2">Early Bird Price (₦) (optional)</label>
                         <input 
                           type="number" 
                           value={ticket.early_bird_price ?? ''} 
                           onChange={(e) => updateTicketType(idx, "early_bird_price", e.target.value ? parseFloat(e.target.value) : null)}
                           placeholder="Leave blank if none"
-                          className="w-full mt-1 bg-transparent border-b border-white/10 py-2 focus:border-indigo-500 outline-none text-lg font-bold"
+                          className="w-full mt-1 bg-transparent border-b border-zinc-300 dark:border-white/10 py-2 focus:border-indigo-600 dark:focus:border-indigo-500 outline-none text-zinc-900 dark:text-white text-lg font-bold"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-zinc-400">Description</label>
+                      <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Description</label>
                       <input 
                         type="text" 
                         value={ticket.description} 
                         onChange={(e) => updateTicketType(idx, "description", e.target.value)}
                         placeholder="What's included?"
-                        className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                        className="w-full mt-1 bg-white dark:bg-black/20 border border-zinc-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold text-zinc-400">Tier Capacity (Optional)</label>
+                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Tier Capacity (Optional)</label>
                         <input 
                           type="number" 
                           value={ticket.capacity ?? ""} 
                           onChange={(e) => updateTicketType(idx, "capacity", e.target.value ? parseInt(e.target.value) : undefined)}
                           placeholder="Unlimited"
-                          className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                          className="w-full mt-1 bg-white dark:bg-black/20 border border-zinc-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-zinc-400">Early Bird Sales End (Optional)</label>
+                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Early Bird Sales End (Optional)</label>
                         <input 
                           type="datetime-local" 
                           value={ticket.early_bird_until ? new Date(ticket.early_bird_until).toISOString().slice(0, 16) : ""} 
                           onChange={(e) => updateTicketType(idx, "early_bird_until", e.target.value ? new Date(e.target.value).toISOString() : undefined)}
-                          className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none font-medium"
+                          className="w-full mt-1 bg-white dark:bg-black/20 border border-zinc-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none font-medium"
                         />
                       </div>
                     </div>
@@ -512,27 +512,27 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
               </div>
 
               <div>
-                <label className="text-sm font-bold text-zinc-300">Total Event Capacity (Optional)</label>
+                <label className="text-sm font-bold text-zinc-800 dark:text-zinc-300">Total Event Capacity (Optional)</label>
                 <input 
                   type="number" 
                   value={formData.max_attendees} 
                   onChange={(e) => updateForm("max_attendees", e.target.value)}
                   placeholder="Leave blank for unlimited"
-                  className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                  className="w-full mt-1 bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                 />
               </div>
 
-              <div className="pt-4 border-t border-white/10">
-                <label className="flex items-start gap-3 text-sm font-bold text-zinc-300 cursor-pointer">
+              <div className="pt-4 border-t border-zinc-200 dark:border-white/10">
+                <label className="flex items-start gap-3 text-sm font-bold text-zinc-800 dark:text-zinc-300 cursor-pointer">
                   <input 
                     type="checkbox" 
                     checked={formData.absorb_fees} 
                     onChange={(e) => updateForm("absorb_fees", e.target.checked)}
-                    className="w-4 h-4 mt-0.5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                    className="w-4 h-4 mt-0.5 rounded border-zinc-300 dark:border-white/10 bg-white dark:bg-white/5 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
                   />
                   <div>
                     <span className="block">Absorb Platform Fees</span>
-                    <span className="text-xs text-zinc-400 font-normal block mt-0.5">
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-normal block mt-0.5">
                       If checked, platform fees will be deducted from your ticket payout (buyer pays only the ticket price). Otherwise, platform fees are added to the ticket price paid by the buyer.
                     </span>
                   </div>
@@ -545,41 +545,41 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
           {step === 5 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
               <div>
-                <h2 className="text-2xl font-bold font-heading mb-2">Review & Publish</h2>
-                <p className="text-zinc-400 text-sm">Check your details before making it live.</p>
+                <h2 className="text-2xl font-bold font-heading mb-2 text-zinc-900 dark:text-white">Review & Publish</h2>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm">Check your details before making it live.</p>
               </div>
               
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-6 space-y-6">
+              <div className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-black/20 p-6 space-y-6">
                 <div>
-                  <h3 className="text-xl font-bold">{formData.title || "Untitled Event"}</h3>
-                  <p className="text-sm text-indigo-400 mt-2 flex items-center gap-2">
-                    <span className="font-bold text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                  <h3 className="text-xl font-bold text-zinc-900 dark:text-white">{formData.title || "Untitled Event"}</h3>
+                  <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-2 flex items-center gap-2">
+                    <span className="font-bold text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
                       Category: {formData.category === "custom" ? formData.customCategory || "Custom Category" : formData.category}
                     </span>
                   </p>
-                  <p className="text-sm text-zinc-400 mt-3 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-indigo-500"/> 
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-500"/> 
                     {formData.start_date ? new Date(formData.start_date).toLocaleString() : "No date set"}
                   </p>
-                  <p className="text-sm text-zinc-400 mt-1.5 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-indigo-500"/> 
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1.5 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-indigo-600 dark:text-indigo-500"/> 
                     {formData.isVirtual ? "Virtual Event" : formData.venue_name || "No venue set"}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-white/10">
-                  <p className="font-bold mb-3 flex items-center gap-2"><Ticket className="w-4 h-4"/> Ticket Tiers</p>
+                <div className="pt-4 border-t border-zinc-200 dark:border-white/10">
+                  <p className="font-bold text-zinc-900 dark:text-white mb-3 flex items-center gap-2"><Ticket className="w-4 h-4"/> Ticket Tiers</p>
                   <div className="space-y-2">
                     {formData.ticketTypes.map((t, i) => {
                       const capacityText = t.capacity ? ` (Cap: ${t.capacity})` : "";
                       const ebText = t.early_bird_until ? ` (Early Bird Ends: ${new Date(t.early_bird_until).toLocaleDateString()})` : "";
                       return (
-                        <div key={i} className="flex justify-between items-center text-sm p-3 rounded bg-white/5">
+                        <div key={i} className="flex justify-between items-center text-sm p-3 rounded border border-zinc-200 dark:border-transparent bg-white dark:bg-white/5">
                           <div>
-                            <span className="font-medium text-white">{t.name || "Unnamed Tier"}</span>
-                            <span className="text-[10px] text-zinc-400 block mt-0.5">{t.description || "No description"} {capacityText}{ebText}</span>
+                            <span className="font-medium text-zinc-900 dark:text-white">{t.name || "Unnamed Tier"}</span>
+                            <span className="text-[10px] text-zinc-600 dark:text-zinc-400 block mt-0.5">{t.description || "No description"} {capacityText}{ebText}</span>
                           </div>
-                          <span className="font-bold text-indigo-400">
+                          <span className="font-bold text-indigo-600 dark:text-indigo-400">
                             {t.price > 0 ? `₦${t.price.toLocaleString()}` : "Free"}
                           </span>
                         </div>
@@ -587,12 +587,12 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                     })}
                   </div>
 
-                  <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 text-xs">
-                    <span className="font-bold block mb-1">Fee Handling</span>
+                  <div className="mt-4 p-3 rounded-xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-xs">
+                    <span className="font-bold text-zinc-900 dark:text-white block mb-1">Fee Handling</span>
                     {formData.absorb_fees ? (
-                      <span className="text-emerald-400">Absorbing platform fees. Buyers will pay only the face ticket price.</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">Absorbing platform fees. Buyers will pay only the face ticket price.</span>
                     ) : (
-                      <span className="text-indigo-400">Buyers pay platform fees in addition to the ticket price.</span>
+                      <span className="text-indigo-600 dark:text-indigo-400">Buyers pay platform fees in addition to the ticket price.</span>
                     )}
                   </div>
                 </div>
@@ -602,11 +602,11 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
         </div>
 
         {/* Footer Navigation */}
-        <div className="flex items-center justify-between mt-12 pt-6 border-t border-white/10">
+        <div className="flex items-center justify-between mt-12 pt-6 border-t border-zinc-200 dark:border-white/10">
           <button 
             onClick={handlePrev} 
             disabled={step === 1 || loading}
-            className="px-6 py-3 rounded-xl font-bold text-zinc-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+            className="px-6 py-3 rounded-xl font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
           >
             Back
           </button>
@@ -614,7 +614,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
           {step < 5 ? (
             <button 
               onClick={handleNext}
-              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-colors"
+              className="flex items-center gap-2 px-8 py-3 rounded-xl bg-black dark:bg-white text-white dark:text-black font-bold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
             >
               Next <ArrowRight className="w-4 h-4" />
             </button>

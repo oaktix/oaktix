@@ -45,7 +45,7 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/90 backdrop-blur-md border border-[#E8EBE7] rounded-2xl shadow-sm text-zinc-900;
+    @apply bg-white/90 dark:bg-zinc-950/40 backdrop-blur-md border border-[#E8EBE7] dark:border-white/10 rounded-2xl shadow-sm text-zinc-900 dark:text-zinc-100;
   }
 }
 
