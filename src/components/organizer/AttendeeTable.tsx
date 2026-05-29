@@ -14,7 +14,15 @@ interface Event {
 }
 
 interface TicketType {
-  name?: string | null;
+  name: string;
+  price: number;
+  early_bird_price?: number | null;
+  description?: string;
+  perks?: string[];
+  is_closed?: boolean;
+  capacity?: number;
+  sold_count?: number;
+  early_bird_until?: string;
 }
 
 interface Ticket {

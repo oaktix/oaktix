@@ -30,9 +30,9 @@ interface TicketType {
   description?: string;
   perks?: string[];
   is_closed?: boolean;
-  capacity?: number | null;
-  sold_count?: number | null;
-  early_bird_until?: string | null;
+  capacity?: number;
+  sold_count?: number;
+  early_bird_until?: string;
 }
 
 interface EventData {
@@ -83,8 +83,8 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
     max_attendees: event?.max_attendees ? String(event.max_attendees) : "",
     isVirtual: event?.venue_details?.name === "Virtual" || event?.venue_details?.address === "Online",
     absorb_fees: event?.absorb_fees || false,
-    ticketTypes: (event?.ticket_types as TicketType[]) || [
-      { name: "General Admission", price: 0, early_bird_price: null, description: "Basic entry to the event.", perks: [] as string[], capacity: null, early_bird_until: null }
+    ticketTypes: (event?.ticket_types?.map(t => ({ ...t, capacity: t.capacity ?? undefined, early_bird_until: t.early_bird_until ?? undefined })) as TicketType[]) || [
+      { name: "General Admission", price: 0, early_bird_price: undefined, description: "Basic entry to the event.", perks: [] as string[], capacity: undefined, early_bird_until: undefined }
     ] as TicketType[],
     imageFile: null as File | null,
     imagePreview: event?.featured_image || null as string | null,
@@ -100,7 +100,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
   const addTicketType = () => {
     setFormData((prev) => ({
       ...prev,
-      ticketTypes: [...prev.ticketTypes, { name: "", price: 0, early_bird_price: null, description: "", perks: [], capacity: null, early_bird_until: null }]
+      ticketTypes: [...prev.ticketTypes, { name: "", price: 0, early_bird_price: null, description: "", perks: [] }]
     }));
   };
 
@@ -208,14 +208,13 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
       <div className="flex items-center gap-2 mb-8">
         {[1, 2, 3, 4, 5].map((s) => (
           <div key={s} className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
-            <div 
-              className={`h-full bg-indigo-500 transition-all duration-500 ${step >= s ? 'w-full' : 'w-0'}`} 
+            <div                className={`h-full bg-indigo-500 transition-all duration-500 ${step >= s ? 'w-full' : 'w-0'}`} 
             />
           </div>
         ))}
       </div>
 
-      <div className="glass-card p-8 min-h-[400px] flex flex-col justify-between">
+      <div className="glass-card p-8 min-h-[400px] flex flex-col justify-between bg-zinc-900/80 text-white">
         <div className="space-y-6">
           {error && (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
@@ -227,37 +226,37 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
               <div>
-                <h2 className="text-2xl font-bold font-heading mb-2">Basic Details</h2>
-                <p className="text-zinc-400 text-sm">Let&apos;s start with the name and description.</p>
+                <h2 className="text-2xl font-bold font-heading mb-2 text-white">Basic Details</h2>
+                <p className="text-zinc-300 text-sm">Let&apos;s start with the name and description.</p>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-bold text-zinc-300">Event Title</label>
+                  <label className="text-sm font-bold text-zinc-200">Event Title</label>
                   <input 
                     type="text" 
                     value={formData.title} 
                     onChange={(e) => updateForm("title", e.target.value)}
                     placeholder="E.g., Lagos Tech Summit 2026"
-                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none"
+                    className="w-full mt-1 bg-zinc-800 border border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-500 text-white placeholder:text-zinc-400 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-zinc-300">URL Slug (Optional)</label>
+                  <label className="text-sm font-bold text-zinc-200">URL Slug (Optional)</label>
                   <input 
                     type="text" 
                     value={formData.slug} 
                     onChange={(e) => updateForm("slug", e.target.value)}
                     placeholder="lagos-tech-summit-2026"
-                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none font-mono text-sm"
+                    className="w-full mt-1 bg-zinc-800 border border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-500 font-mono text-sm text-white placeholder:text-zinc-400 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-zinc-300">Description</label>
+                  <label className="text-sm font-bold text-zinc-200">Description</label>
                   <textarea 
                     value={formData.description} 
                     onChange={(e) => updateForm("description", e.target.value)}
                     placeholder="Describe your event..."
-                    className="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none min-h-[120px]"
+                    className="w-full mt-1 bg-zinc-800 border border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-500 text-white placeholder:text-zinc-400 outline-none min-h-[120px]"
                   />
                 </div>
                 <div>
@@ -493,7 +492,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                         <input 
                           type="number" 
                           value={ticket.capacity ?? ""} 
-                          onChange={(e) => updateTicketType(idx, "capacity", e.target.value ? parseInt(e.target.value) : null)}
+                          onChange={(e) => updateTicketType(idx, "capacity", e.target.value ? parseInt(e.target.value) : undefined)}
                           placeholder="Unlimited"
                           className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
                         />
@@ -503,7 +502,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                         <input 
                           type="datetime-local" 
                           value={ticket.early_bird_until ? new Date(ticket.early_bird_until).toISOString().slice(0, 16) : ""} 
-                          onChange={(e) => updateTicketType(idx, "early_bird_until", e.target.value ? new Date(e.target.value).toISOString() : null)}
+                          onChange={(e) => updateTicketType(idx, "early_bird_until", e.target.value ? new Date(e.target.value).toISOString() : undefined)}
                           className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none font-medium"
                         />
                       </div>

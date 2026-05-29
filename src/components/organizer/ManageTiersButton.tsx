@@ -7,9 +7,13 @@ import { createClient } from "@/lib/supabase/client";
 interface TicketType {
   name: string;
   price: number;
+  early_bird_price?: number | null;
   description?: string;
   perks?: string[];
   is_closed?: boolean;
+  capacity?: number;
+  sold_count?: number;
+  early_bird_until?: string;
 }
 
 interface ManageTiersButtonProps {
