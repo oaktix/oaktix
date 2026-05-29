@@ -16,6 +16,9 @@ interface TicketSelectionModalProps {
   ticketType: {
     name: string;
     price: number;
+    capacity?: number;
+    sold_count?: number;
+    early_bird_until?: string;
   };
   user: {
     id: string;
@@ -34,6 +37,12 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   const [guestError, setGuestError] = useState<string | null>(null);
   const [platformFeePercent, setPlatformFeePercent] = useState(4.0);
   const [userProfile, setUserProfile] = useState<{ full_name: string | null; phone: string | null } | null>(null);
+
+  // Coupon States
+  const [couponCode, setCouponCode] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_type: string; discount_value: number; discount_amount: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -80,10 +89,71 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
     fetchConfig();
   }, []);
 
-  const baseAmount = ticketType.price * quantity;
+  // Recalculate discount if quantity updates
+  useEffect(() => {
+    if (appliedCoupon) {
+      const subtotal = ticketType.price * quantity;
+      let newDiscount = 0;
+      if (appliedCoupon.discount_type === "percentage") {
+        newDiscount = subtotal * (appliedCoupon.discount_value / 100);
+      } else if (appliedCoupon.discount_type === "fixed") {
+        newDiscount = appliedCoupon.discount_value;
+      }
+      newDiscount = Math.min(newDiscount, subtotal);
+      newDiscount = Number(newDiscount.toFixed(2));
+      setAppliedCoupon(prev => prev ? { ...prev, discount_amount: newDiscount } : null);
+    }
+  }, [quantity, ticketType.price, appliedCoupon?.discount_type, appliedCoupon?.discount_value]);
+
+  const originalSubtotal = ticketType.price * quantity;
+  const discountAmount = appliedCoupon?.discount_amount || 0;
+  const baseAmount = Math.max(0, originalSubtotal - discountAmount);
+
   const isAbsorbed = event.absorb_fees === true;
   const serviceFee = isAbsorbed ? 0 : baseAmount * (platformFeePercent / 100);
   const totalAmount = baseAmount + serviceFee;
+
+  const remainingCapacity = ticketType.capacity !== undefined && ticketType.capacity !== null && Number(ticketType.capacity) > 0
+    ? Math.max(0, Number(ticketType.capacity) - (ticketType.sold_count || 0))
+    : 999;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponError(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponCode,
+          event_id: event.id,
+          subtotal: originalSubtotal
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAppliedCoupon({
+          code: data.coupon.code,
+          discount_type: data.coupon.discount_type,
+          discount_value: data.coupon.discount_value,
+          discount_amount: data.discount
+        });
+      } else {
+        setCouponError(data.error || "Failed to apply coupon");
+      }
+    } catch (err) {
+      setCouponError("Network error. Please try again.");
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError(null);
+  };
 
   const handleSuccess = async (reference: string) => {
     if (!user) {
@@ -138,7 +208,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
         <button aria-label="Close modal" onClick={onClose} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer">
           <X className="w-6 h-6" />
         </button>
-
+ 
         <div className="mb-6">
           <p className="text-xs text-indigo-600 font-bold uppercase tracking-widest mb-1">{event.title}</p>
           <h2 className="text-2xl font-bold font-heading text-zinc-900">Checkout</h2>
@@ -150,6 +220,11 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
             <div>
               <p className="font-bold text-zinc-900">{ticketType.name}</p>
               <p className="text-zinc-500 text-xs mt-0.5">₦{Number(ticketType.price).toLocaleString()} per ticket</p>
+              {ticketType.capacity !== undefined && ticketType.capacity !== null && Number(ticketType.capacity) > 0 && (
+                <p className="text-[10px] text-zinc-500 font-semibold mt-1">
+                  ({remainingCapacity} tickets remaining)
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <button 
@@ -162,8 +237,9 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
               <span className="font-bold w-4 text-center text-zinc-800">{quantity}</span>
               <button 
                 aria-label="Increase quantity"
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-8 h-8 rounded-lg bg-zinc-200/60 hover:bg-zinc-200 flex items-center justify-center text-zinc-700 transition-colors cursor-pointer"
+                onClick={() => setQuantity(Math.min(remainingCapacity, quantity + 1))}
+                disabled={quantity >= remainingCapacity}
+                className="w-8 h-8 rounded-lg bg-zinc-200/60 hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-zinc-700 transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -172,6 +248,18 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
 
           {/* Pricing Details */}
           <div className="space-y-3">
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-sm text-zinc-500">
+                <span>Subtotal (original)</span>
+                <span className="text-zinc-500 font-semibold line-through">₦{originalSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-sm text-emerald-600 font-bold">
+                <span>Discount ({appliedCoupon?.code})</span>
+                <span>-₦{discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm text-zinc-500">
               <span>Subtotal</span>
               <span className="text-zinc-800 font-semibold">₦{baseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -192,6 +280,45 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
             </div>
           </div>
 
+          {/* Coupon Code Section */}
+          <div className="pt-4 border-t border-zinc-200/60 space-y-2">
+            <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider block">Have a Coupon?</label>
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-sm text-emerald-700">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold bg-emerald-650 text-white text-xs px-2 py-0.5 rounded-md">{appliedCoupon.code}</span>
+                  <span>Applied!</span>
+                </div>
+                <button 
+                  onClick={handleRemoveCoupon} 
+                  className="text-emerald-750 hover:text-emerald-950 font-bold text-xs underline cursor-pointer"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="PROMO100" 
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 text-sm font-bold uppercase"
+                />
+                <button 
+                  onClick={handleApplyCoupon}
+                  disabled={applyingCoupon || !couponCode.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {applyingCoupon ? "Applying..." : "Apply"}
+                </button>
+              </div>
+            )}
+            {couponError && (
+              <p className="text-red-500 text-xs font-bold">{couponError}</p>
+            )}
+          </div>
+
           {/* User Auth or Guest Flow */}
           {activeUser ? (
             <div className="space-y-4">
@@ -206,6 +333,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
                 firstName={userProfile?.full_name?.split(" ")[0] || undefined}
                 lastName={userProfile?.full_name?.split(" ").slice(1).join(" ") || undefined}
                 phone={userProfile?.phone || undefined}
+                couponCode={appliedCoupon?.code || undefined}
                 metadata={{
                   event_id: event.id,
                   ticket_type_name: ticketType.name,

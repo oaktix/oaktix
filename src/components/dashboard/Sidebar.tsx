@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   Ticket as TicketIcon,
   Mail,
-  Banknote
+  Banknote,
+  Tag
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -51,6 +52,7 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Team Access", href: "/organizer/team", icon: Users },
       { name: "Analytics", href: "/organizer/analytics", icon: BarChart3 },
       { name: "Communications", href: "/organizer/communications", icon: Mail },
+      { name: "Coupons", href: "/organizer/coupons", icon: Tag },
       { name: "Financials", href: "/organizer/finances", icon: Wallet },
       { name: "Settings", href: "/organizer/settings", icon: Settings },
     ],
@@ -59,7 +61,8 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
       { name: "Events", href: "/admin/events", icon: Calendar },
       { name: "Transactions", href: "/admin/transactions", icon: Wallet },
-      { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote }, // new entry
+      { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote },
+      { name: "Coupons", href: "/admin/coupons", icon: Tag },
       { name: "System", href: "/admin/system", icon: Settings },
     ],
     super_admin: [
@@ -68,7 +71,8 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
       { name: "Events", href: "/admin/events", icon: Calendar },
       { name: "Transactions", href: "/admin/transactions", icon: Wallet },
-      { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote }, // new entry for super admin
+      { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote },
+      { name: "Coupons", href: "/admin/coupons", icon: Tag },
       { name: "System", href: "/admin/system", icon: Settings },
     ],
     staff: [

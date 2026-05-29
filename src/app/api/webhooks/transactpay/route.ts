@@ -246,6 +246,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: txError.message }, { status: 500 });
   }
 
+  // Increment coupon usage if a coupon was used
+  if (dbTx.coupon_code) {
+    try {
+      const { error: rpcError } = await supabase.rpc("increment_coupon_usage", {
+        coupon_code_param: dbTx.coupon_code
+      });
+      if (rpcError) {
+        console.error("Failed to increment coupon usage:", rpcError);
+      }
+    } catch (rpcErr) {
+      console.error("RPC error incrementing coupon usage:", rpcErr);
+    }
+  }
+
   const generatedTickets = [];
 
   // 4. Generate Tickets

@@ -86,7 +86,24 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
   }
 
   const startDate = new Date(event.start_date);
-  const ticketTypes = event.ticket_types || [];
+
+  // Query ticket sales count for each tier of the event
+  const { data: tickets } = await supabase
+    .from("tickets")
+    .select("ticket_type")
+    .eq("event_id", event.id)
+    .in("status", ["active", "used"]);
+
+  const ticketTypes = (event.ticket_types || []).map((ticket: any) => {
+    const soldCount = tickets?.filter((t: any) => {
+      const tType = t.ticket_type as { name?: string } | null;
+      return tType?.name === ticket.name;
+    }).length || 0;
+    return {
+      ...ticket,
+      sold_count: soldCount,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white flex flex-col justify-between overflow-hidden">

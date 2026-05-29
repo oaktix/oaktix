@@ -11,6 +11,9 @@ interface TicketType {
   description?: string;
   perks?: string[];
   is_closed?: boolean;
+  capacity?: number;
+  sold_count?: number;
+  early_bird_until?: string;
 }
 
 interface EventDetailsClientProps {
@@ -59,28 +62,91 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
       <div className="grid grid-cols-1 gap-4">
         {ticketTypes.map((ticket: TicketType, idx: number) => {
           const isClosed = ticket.is_closed === true;
+          const isSoldOut = ticket.capacity !== undefined && ticket.capacity !== null && Number(ticket.capacity) > 0
+            ? (ticket.sold_count || 0) >= Number(ticket.capacity)
+            : false;
+          const isExpired = ticket.early_bird_until
+            ? new Date(ticket.early_bird_until) < new Date()
+            : false;
+
+          const isUnavailable = isClosed || isSoldOut || isExpired;
+
+          let statusBadge = null;
+          let actionButtonText = "Select";
+
+          if (isClosed || isSoldOut) {
+            statusBadge = (
+              <span className="ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-500/15 border border-red-500/30 text-red-400">
+                Sold Out
+              </span>
+            );
+            actionButtonText = "Sold Out";
+          } else if (isExpired) {
+            statusBadge = (
+              <span className="ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/15 border border-amber-500/30 text-amber-400">
+                Closed
+              </span>
+            );
+            actionButtonText = "Expired";
+          }
+
+          // Show remaining tickets count
+          let capacityText = null;
+          if (ticket.capacity && !isUnavailable) {
+            const remaining = Number(ticket.capacity) - (ticket.sold_count || 0);
+            if (remaining <= 5) {
+              capacityText = (
+                <span className="text-rose-500 text-xs font-bold block mt-1">
+                  🔥 Only {remaining} left!
+                </span>
+              );
+            } else {
+              capacityText = (
+                <span className="text-zinc-400 text-xs block mt-1">
+                  {remaining} tickets available
+                </span>
+              );
+            }
+          }
+
+          // Show early bird active indicator
+          let earlyBirdText = null;
+          if (ticket.early_bird_until && !isUnavailable) {
+            const dateStr = new Date(ticket.early_bird_until).toLocaleString("en-US", {
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit"
+            });
+            earlyBirdText = (
+              <span className="text-amber-400 text-xs font-bold block mt-1">
+                ⏳ Early bird ends {dateStr}
+              </span>
+            );
+          }
+
           return (
             <div 
               key={idx} 
               className={`glass-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors group ${
-                isClosed 
+                isUnavailable 
                   ? "border-red-500/10 opacity-60" 
                   : "border-indigo-500/10 hover:border-indigo-500/30"
               }`}
             >
               <div className="space-y-1">
-                <h3 className={`text-xl font-bold font-heading transition-colors ${
-                  isClosed ? "text-zinc-400" : "group-hover:text-indigo-400"
+                <h3 className={`text-xl font-bold font-heading transition-colors flex items-center ${
+                  isUnavailable ? "text-zinc-400" : "group-hover:text-indigo-400"
                 }`}>
                   {ticket.name}
-                  {isClosed && (
-                    <span className="ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-500/15 border border-red-500/30 text-red-400">
-                      Sold Out
-                    </span>
-                  )}
+                  {statusBadge}
                 </h3>
                 <p className="text-zinc-500 text-sm">{ticket.description || "Access to the event."}</p>
-                {ticket.perks && (
+                
+                {capacityText}
+                {earlyBirdText}
+
+                {ticket.perks && ticket.perks.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {ticket.perks.map((perk: string, pIdx: number) => (
                       <span key={pIdx} className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/5 text-zinc-400">
@@ -93,21 +159,21 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Price</p>
-                  <p className={`text-2xl font-bold font-heading ${isClosed ? "text-zinc-400" : ""}`}>
+                  <p className={`text-2xl font-bold font-heading ${isUnavailable ? "text-zinc-400" : ""}`}>
                     ₦{Number(ticket.price).toLocaleString()}
                   </p>
                 </div>
-                {isClosed ? (
+                {isUnavailable ? (
                   <button 
                     disabled
-                    className="px-8 py-3 rounded-xl bg-zinc-800 border border-zinc-700/50 text-zinc-500 font-bold cursor-not-allowed select-none"
+                    className="px-8 py-3 rounded-xl bg-zinc-800 border border-zinc-700/50 text-zinc-500 font-bold cursor-not-allowed select-none min-w-[120px]"
                   >
-                    Sold Out
+                    {actionButtonText}
                   </button>
                 ) : (
                   <button 
                     onClick={() => setSelectedTicket(ticket)}
-                    className="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors"
+                    className="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors min-w-[120px]"
                   >
                     Select
                   </button>

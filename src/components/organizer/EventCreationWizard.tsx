@@ -28,6 +28,8 @@ interface TicketType {
   price: number;
   description: string;
   perks: string[];
+  capacity?: number | null;
+  early_bird_until?: string | null;
 }
 
 interface EventData {
@@ -79,7 +81,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
     isVirtual: event?.venue_details?.name === "Virtual" || event?.venue_details?.address === "Online",
     absorb_fees: event?.absorb_fees || false,
     ticketTypes: (event?.ticket_types as TicketType[]) || [
-      { name: "General Admission", price: 0, description: "Basic entry to the event.", perks: [] as string[] }
+      { name: "General Admission", price: 0, description: "Basic entry to the event.", perks: [] as string[], capacity: null, early_bird_until: null }
     ] as TicketType[],
     imageFile: null as File | null,
     imagePreview: event?.featured_image || null as string | null,
@@ -95,7 +97,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
   const addTicketType = () => {
     setFormData((prev) => ({
       ...prev,
-      ticketTypes: [...prev.ticketTypes, { name: "", price: 0, description: "", perks: [] }]
+      ticketTypes: [...prev.ticketTypes, { name: "", price: 0, description: "", perks: [], capacity: null, early_bird_until: null }]
     }));
   };
 
@@ -474,6 +476,27 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                         className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
                       />
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-zinc-400">Tier Capacity (Optional)</label>
+                        <input 
+                          type="number" 
+                          value={ticket.capacity ?? ""} 
+                          onChange={(e) => updateTicketType(idx, "capacity", e.target.value ? parseInt(e.target.value) : null)}
+                          placeholder="Unlimited"
+                          className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-zinc-400">Early Bird Sales End (Optional)</label>
+                        <input 
+                          type="datetime-local" 
+                          value={ticket.early_bird_until ? new Date(ticket.early_bird_until).toISOString().slice(0, 16) : ""} 
+                          onChange={(e) => updateTicketType(idx, "early_bird_until", e.target.value ? new Date(e.target.value).toISOString() : null)}
+                          className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none font-medium"
+                        />
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -537,14 +560,21 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                 <div className="pt-4 border-t border-white/10">
                   <p className="font-bold mb-3 flex items-center gap-2"><Ticket className="w-4 h-4"/> Ticket Tiers</p>
                   <div className="space-y-2">
-                    {formData.ticketTypes.map((t, i) => (
-                      <div key={i} className="flex justify-between items-center text-sm p-2 rounded bg-white/5">
-                        <span>{t.name || "Unnamed Tier"}</span>
-                        <span className="font-bold text-indigo-400">
-                          {t.price > 0 ? `₦${t.price.toLocaleString()}` : "Free"}
-                        </span>
-                      </div>
-                    ))}
+                    {formData.ticketTypes.map((t, i) => {
+                      const capacityText = t.capacity ? ` (Cap: ${t.capacity})` : "";
+                      const ebText = t.early_bird_until ? ` (Early Bird Ends: ${new Date(t.early_bird_until).toLocaleDateString()})` : "";
+                      return (
+                        <div key={i} className="flex justify-between items-center text-sm p-3 rounded bg-white/5">
+                          <div>
+                            <span className="font-medium text-white">{t.name || "Unnamed Tier"}</span>
+                            <span className="text-[10px] text-zinc-400 block mt-0.5">{t.description || "No description"} {capacityText}{ebText}</span>
+                          </div>
+                          <span className="font-bold text-indigo-400">
+                            {t.price > 0 ? `₦${t.price.toLocaleString()}` : "Free"}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 text-xs">
