@@ -16,6 +16,7 @@ interface TicketSelectionModalProps {
   ticketType: {
     name: string;
     price: number;
+    early_bird_price?: number | null;
     capacity?: number;
     sold_count?: number;
     early_bird_until?: string;
@@ -105,7 +106,10 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
     }
   }, [quantity, ticketType.price, appliedCoupon?.discount_type, appliedCoupon?.discount_value]);
 
-  const originalSubtotal = ticketType.price * quantity;
+  const now = new Date();
+  const isEarlyBirdActive = ticketType.early_bird_until && new Date(ticketType.early_bird_until) > now && ticketType.early_bird_price != null;
+  const effectivePrice = isEarlyBirdActive ? ticketType.early_bird_price! : ticketType.price;
+  const originalSubtotal = effectivePrice * quantity;
   const discountAmount = appliedCoupon?.discount_amount || 0;
   const baseAmount = Math.max(0, originalSubtotal - discountAmount);
 

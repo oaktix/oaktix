@@ -12,9 +12,9 @@ interface TicketType {
   description?: string;
   perks?: string[];
   is_closed?: boolean;
-  capacity?: number;
-  sold_count?: number;
-  early_bird_until?: string;
+  capacity?: number | null;
+  sold_count?: number | null;
+  early_bird_until?: string | null;
 }
 
 interface EventDetailsClientProps {

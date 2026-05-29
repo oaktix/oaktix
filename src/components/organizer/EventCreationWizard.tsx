@@ -84,7 +84,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
     isVirtual: event?.venue_details?.name === "Virtual" || event?.venue_details?.address === "Online",
     absorb_fees: event?.absorb_fees || false,
     ticketTypes: (event?.ticket_types as TicketType[]) || [
-      { name: "General Admission", price: 0, description: "Basic entry to the event.", perks: [] as string[], capacity: null, early_bird_until: null }
+      { name: "General Admission", price: 0, early_bird_price: null, description: "Basic entry to the event.", perks: [] as string[], capacity: null, early_bird_until: null }
     ] as TicketType[],
     imageFile: null as File | null,
     imagePreview: event?.featured_image || null as string | null,
@@ -100,7 +100,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
   const addTicketType = () => {
     setFormData((prev) => ({
       ...prev,
-      ticketTypes: [...prev.ticketTypes, { name: "", price: 0, description: "", perks: [], capacity: null, early_bird_until: null }]
+      ticketTypes: [...prev.ticketTypes, { name: "", price: 0, early_bird_price: null, description: "", perks: [], capacity: null, early_bird_until: null }]
     }));
   };
 
@@ -465,6 +465,14 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                           value={ticket.price} 
                           onChange={(e) => updateTicketType(idx, "price", parseFloat(e.target.value) || 0)}
                           placeholder="0 for Free"
+                          className="w-full mt-1 bg-transparent border-b border-white/10 py-2 focus:border-indigo-500 outline-none text-lg font-bold"
+                        />
+                        <label className="text-xs font-bold text-zinc-400 mt-2">Early Bird Price (₦) (optional)</label>
+                        <input 
+                          type="number" 
+                          value={ticket.early_bird_price ?? ''} 
+                          onChange={(e) => updateTicketType(idx, "early_bird_price", e.target.value ? parseFloat(e.target.value) : null)}
+                          placeholder="Leave blank if none"
                           className="w-full mt-1 bg-transparent border-b border-white/10 py-2 focus:border-indigo-500 outline-none text-lg font-bold"
                         />
                       </div>
