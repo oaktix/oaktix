@@ -8,6 +8,7 @@ import TicketSelectionModal from "./TicketSelectionModal";
 interface TicketType {
   name: string;
   price: number;
+  early_bird_price?: number | null;
   description?: string;
   perks?: string[];
   is_closed?: boolean;
@@ -65,9 +66,9 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
           const isSoldOut = ticket.capacity !== undefined && ticket.capacity !== null && Number(ticket.capacity) > 0
             ? (ticket.sold_count || 0) >= Number(ticket.capacity)
             : false;
-          const isExpired = ticket.early_bird_until
-            ? new Date(ticket.early_bird_until) < new Date()
-            : false;
+          const now = new Date();
+          const isEarlyBirdActive = ticket.early_bird_until && new Date(ticket.early_bird_until) > now && ticket.early_bird_price !== undefined && ticket.early_bird_price !== null;
+          const isExpired = ticket.early_bird_until ? new Date(ticket.early_bird_until) < now : false;
 
           const isUnavailable = isClosed || isSoldOut || isExpired;
 
@@ -159,9 +160,25 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Price</p>
-                  <p className={`text-2xl font-bold font-heading ${isUnavailable ? "text-zinc-400" : ""}`}>
-                    ₦{Number(ticket.price).toLocaleString()}
-                  </p>
+                  {isEarlyBirdActive ? (
+                    <>
+                      <p className="text-xs text-amber-600 font-bold mb-1">
+                        Early‑bird! ✅
+                      </p>
+                      <div className="flex items-baseline gap-2">
+                        {isExpired ? null : (
+                          <> 
+                            <span className="text-amber-500 line-through text-sm">₦{Number(ticket.price).toLocaleString()}</span>
+                            <span className="text-xl font-bold text-amber-600">₦{Number(ticket.early_bird_price ?? ticket.price).toLocaleString()}</span>
+                          </>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <p className={`text-2xl font-bold font-heading ${isUnavailable ? "text-zinc-400" : ""}`}>
+                      ₦{Number(ticket.price).toLocaleString()}
+                    </p>
+                  )}
                 </div>
                 {isUnavailable ? (
                   <button 

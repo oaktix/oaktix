@@ -26,9 +26,12 @@ const DEFAULT_CATEGORIES = [
 interface TicketType {
   name: string;
   price: number;
-  description: string;
-  perks: string[];
+  early_bird_price?: number | null;
+  description?: string;
+  perks?: string[];
+  is_closed?: boolean;
   capacity?: number | null;
+  sold_count?: number | null;
   early_bird_until?: string | null;
 }
 
