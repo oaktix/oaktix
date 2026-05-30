@@ -139,7 +139,7 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
               });
               details.push(`ends ${dateStr}`);
             }
-            if (ticket.early_bird_capacity) {
+            if (ticket.early_bird_capacity && event.show_ticket_volume) {
               details.push(`${ticket.early_bird_capacity - soldCount} left`);
             }
             
