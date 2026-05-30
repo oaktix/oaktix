@@ -50,13 +50,13 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
             <CheckCircle2 className="w-5 h-5 text-emerald-400 animate-bounce" />
           </div>
           <div className="space-y-1">
-            <h4 className="font-bold text-white text-base">Booking Confirmed! 🎉</h4>
-            <p className="text-zinc-400 text-sm leading-relaxed">
+            <h4 className="font-bold text-zinc-900 dark:text-white text-base">Booking Confirmed! 🎉</h4>
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">
               Your tickets and secure QR codes have been successfully generated and sent to your email address. 
             </p>
             {ref && (
               <p className="text-zinc-500 text-xs font-mono pt-1">
-                Booking Reference: <span className="text-zinc-350">{ref}</span>
+                Booking Reference: <span className="text-zinc-600 dark:text-zinc-350">{ref}</span>
               </p>
             )}
           </div>
@@ -155,7 +155,7 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
             >
               <div className="space-y-1">
                 <h3 className={`text-xl font-bold font-heading transition-colors flex items-center ${
-                  isUnavailable ? "text-zinc-400" : "group-hover:text-indigo-400"
+                  isUnavailable ? "text-zinc-400 dark:text-zinc-400" : "text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-500"
                 }`}>
                   {ticket.name}
                   {statusBadge}
@@ -168,7 +168,7 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
                 {ticket.perks && ticket.perks.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {ticket.perks.map((perk: string, pIdx: number) => (
-                      <span key={pIdx} className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/5 text-zinc-400">
+                      <span key={pIdx} className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400">
                         {perk}
                       </span>
                     ))}
@@ -193,7 +193,7 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
                       </div>
                     </>
                   ) : (
-                    <p className={`text-2xl font-bold font-heading ${isUnavailable ? "text-zinc-400" : ""}`}>
+                    <p className={`text-2xl font-bold font-heading ${isUnavailable ? "text-zinc-400" : "text-zinc-900 dark:text-white"}`}>
                       ₦{Number(ticket.price).toLocaleString()}
                     </p>
                   )}
@@ -201,7 +201,7 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
                 {isUnavailable ? (
                   <button 
                     disabled
-                    className="px-8 py-3 rounded-xl bg-zinc-800 border border-zinc-700/50 text-zinc-500 font-bold cursor-not-allowed select-none min-w-[120px]"
+                    className="px-8 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/50 text-zinc-400 dark:text-zinc-500 font-bold cursor-not-allowed select-none min-w-[120px]"
                   >
                     {actionButtonText}
                   </button>
