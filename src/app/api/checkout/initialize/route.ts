@@ -185,10 +185,13 @@ export async function POST(req: Request) {
       }
     }
 
-    // Check for price tampering
+    // Log any discrepancy for monitoring (do not block — backend is source of truth)
     if (Math.abs(expectedTotalAmount - Number(amount)) > 0.05) {
-      return NextResponse.json({ error: "Transaction amount mismatch. Please reload checkout." }, { status: 400 });
+      console.warn(`Amount discrepancy. Client sent: ${amount}, Backend computed: ${expectedTotalAmount}. Using backend value.`);
     }
+
+    // Always use server-computed amount — prevents both tampering AND stale-client issues
+    const finalAmount = expectedTotalAmount;
 
     // Generate a secure unique reference
     const reference = `TX-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -208,7 +211,7 @@ export async function POST(req: Request) {
         reference,
         buyer_id: user_id && user_id !== "guest_pending" ? user_id : null,
         event_id,
-        amount: Number(amount.toFixed(2)),
+        amount: Number(finalAmount.toFixed(2)),
         platform_fee: Number(platform_fee.toFixed(2)),
         vendor_net: Number(vendor_net.toFixed(2)),
         status: "pending",
@@ -222,7 +225,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: txError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, reference });
+    return NextResponse.json({ success: true, reference, amount: Number(finalAmount.toFixed(2)) });
   } catch (err: unknown) {
     console.error("Initialize checkout error:", err);
     return NextResponse.json({ error: (err as Error).message || "Internal Server Error" }, { status: 500 });

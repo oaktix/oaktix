@@ -105,7 +105,7 @@ export default function TransactpayButton({
         throw new Error(errData.error || "Failed to initialize transaction.");
       }
 
-      const { reference } = await res.json();
+      const { reference, amount: confirmedAmount } = await res.json();
 
       // 3. Prepare parameters
       const fullName = (firstName && lastName)
@@ -127,7 +127,7 @@ export default function TransactpayButton({
         country: "NG",
         email: email,
         currency: "NGN",
-        amount: amount, // Transactpay works in major units (Naira)
+        amount: confirmedAmount, // Use server-computed amount (source of truth)
         reference: reference,
         merchantReference: reference,
         description: `${metadata.quantity}x ${metadata.ticket_type_name} for OakTix Event`,
