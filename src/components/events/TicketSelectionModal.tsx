@@ -18,6 +18,7 @@ interface TicketSelectionModalProps {
     name: string;
     price: number;
     early_bird_price?: number | null;
+    early_bird_capacity?: number | null;
     capacity?: number;
     sold_count?: number;
     early_bird_until?: string;
@@ -110,7 +111,14 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   }, [quantity, ticketType.price, ticketType.early_bird_price, ticketType.early_bird_until, appliedCoupon?.discount_type, appliedCoupon?.discount_value]);
 
   const now = new Date();
-  const isEarlyBirdActive = ticketType.early_bird_until && new Date(ticketType.early_bird_until) > now && ticketType.early_bird_price != null;
+  
+  const isEarlyBirdConfigured = ticketType.early_bird_price !== undefined && ticketType.early_bird_price !== null;
+  const isExpiredByDate = ticketType.early_bird_until ? new Date(ticketType.early_bird_until) < now : false;
+  const soldCount = ticketType.sold_count || 0;
+  const hasCapacityLeft = ticketType.early_bird_capacity ? soldCount < ticketType.early_bird_capacity : true;
+  
+  const isEarlyBirdActive = isEarlyBirdConfigured && !isExpiredByDate && hasCapacityLeft;
+  
   const effectivePrice = isEarlyBirdActive ? ticketType.early_bird_price! : ticketType.price;
   const originalSubtotal = effectivePrice * quantity;
   const discountAmount = appliedCoupon?.discount_amount || 0;
@@ -120,9 +128,11 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   const serviceFee = isAbsorbed ? 0 : baseAmount * (platformFeePercent / 100);
   const totalAmount = baseAmount + serviceFee;
 
-  const remainingCapacity = ticketType.capacity !== undefined && ticketType.capacity !== null && Number(ticketType.capacity) > 0
-    ? Math.max(0, Number(ticketType.capacity) - (ticketType.sold_count || 0))
+  const earlyBirdRemaining = ticketType.early_bird_capacity ? Math.max(0, ticketType.early_bird_capacity - soldCount) : 999;
+  const regularRemaining = ticketType.capacity !== undefined && ticketType.capacity !== null && Number(ticketType.capacity) > 0
+    ? Math.max(0, Number(ticketType.capacity) - soldCount)
     : 999;
+  const remainingCapacity = isEarlyBirdActive ? Math.min(regularRemaining, earlyBirdRemaining) : regularRemaining;
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;

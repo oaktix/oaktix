@@ -9,6 +9,7 @@ interface TicketType {
   name: string;
   price: number;
   early_bird_price?: number | null;
+  early_bird_capacity?: number | null;
   description?: string;
   perks?: string[];
   is_closed?: boolean;
@@ -78,10 +79,14 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
             return end < thresholdTime;
           })();
 
-          const isEarlyBirdActive = ticket.early_bird_until && new Date(ticket.early_bird_until) > now && ticket.early_bird_price !== undefined && ticket.early_bird_price !== null;
-          const isExpired = ticket.early_bird_until ? new Date(ticket.early_bird_until) < now : false;
+          const isEarlyBirdConfigured = ticket.early_bird_price !== undefined && ticket.early_bird_price !== null;
+          const isExpiredByDate = ticket.early_bird_until ? new Date(ticket.early_bird_until) < now : false;
+          const soldCount = ticket.sold_count || 0;
+          const hasCapacityLeft = ticket.early_bird_capacity ? soldCount < ticket.early_bird_capacity : true;
 
-          const isUnavailable = isClosed || isSoldOut || isExpired || isEventPast;
+          const isEarlyBirdActive = isEarlyBirdConfigured && !isExpiredByDate && hasCapacityLeft;
+
+          const isUnavailable = isClosed || isSoldOut || isEventPast;
 
           let statusBadge = null;
           let actionButtonText = "Select";
@@ -100,13 +105,6 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
               </span>
             );
             actionButtonText = "Sold Out";
-          } else if (isExpired) {
-            statusBadge = (
-              <span className="ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/15 border border-amber-500/30 text-amber-400">
-                Closed
-              </span>
-            );
-            actionButtonText = "Expired";
           }
 
           // Show remaining tickets count
@@ -130,16 +128,24 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
 
           // Show early bird active indicator
           let earlyBirdText = null;
-          if (ticket.early_bird_until && !isUnavailable) {
-            const dateStr = new Date(ticket.early_bird_until).toLocaleString("en-US", {
-              month: "short",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit"
-            });
+          if (isEarlyBirdActive && (ticket.early_bird_until || ticket.early_bird_capacity)) {
+            let details = [];
+            if (ticket.early_bird_until) {
+              const dateStr = new Date(ticket.early_bird_until).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit"
+              });
+              details.push(`ends ${dateStr}`);
+            }
+            if (ticket.early_bird_capacity) {
+              details.push(`${ticket.early_bird_capacity - soldCount} left`);
+            }
+            
             earlyBirdText = (
               <span className="text-amber-400 text-xs font-bold block mt-1">
-                ⏳ Early bird ends {dateStr}
+                ⏳ Early bird {details.join(" • ")}
               </span>
             );
           }
@@ -184,12 +190,8 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
                         Early‑bird! ✅
                       </p>
                       <div className="flex items-baseline gap-2">
-                        {isExpired ? null : (
-                          <> 
-                            <span className="text-amber-500 line-through text-sm">₦{Number(ticket.price).toLocaleString()}</span>
-                            <span className="text-xl font-bold text-amber-600">₦{Number(ticket.early_bird_price ?? ticket.price).toLocaleString()}</span>
-                          </>
-                        )}
+                        <span className="text-amber-500 line-through text-sm">₦{Number(ticket.price).toLocaleString()}</span>
+                        <span className="text-xl font-bold text-amber-600">₦{Number(ticket.early_bird_price ?? ticket.price).toLocaleString()}</span>
                       </div>
                     </>
                   ) : (

@@ -17,6 +17,7 @@ interface TicketType {
   name: string;
   price: number;
   early_bird_price?: number | null;
+  early_bird_capacity?: number | null;
   description?: string;
   perks?: string[];
   is_closed?: boolean;

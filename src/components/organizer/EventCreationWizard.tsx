@@ -27,6 +27,7 @@ interface TicketType {
   name: string;
   price: number;
   early_bird_price?: number | null;
+  early_bird_capacity?: number | null;
   description?: string;
   perks?: string[];
   is_closed?: boolean;
@@ -85,8 +86,8 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
     isVirtual: event?.venue_details?.name === "Virtual" || event?.venue_details?.address === "Online",
     absorb_fees: event?.absorb_fees || false,
     show_ticket_volume: event?.show_ticket_volume || false,
-    ticketTypes: (event?.ticket_types?.map(t => ({ ...t, capacity: t.capacity ?? undefined, early_bird_until: t.early_bird_until ?? undefined })) as TicketType[]) || [
-      { name: "General Admission", price: 0, early_bird_price: undefined, description: "Basic entry to the event.", perks: [] as string[], capacity: undefined, early_bird_until: undefined }
+    ticketTypes: (event?.ticket_types?.map(t => ({ ...t, capacity: t.capacity ?? undefined, early_bird_until: t.early_bird_until ?? undefined, early_bird_capacity: t.early_bird_capacity ?? undefined })) as TicketType[]) || [
+      { name: "General Admission", price: 0, early_bird_price: undefined, early_bird_capacity: undefined, description: "Basic entry to the event.", perks: [] as string[], capacity: undefined, early_bird_until: undefined }
     ] as TicketType[],
     imageFile: null as File | null,
     imagePreview: event?.featured_image || null as string | null,
@@ -102,7 +103,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
   const addTicketType = () => {
     setFormData((prev) => ({
       ...prev,
-      ticketTypes: [...prev.ticketTypes, { name: "", price: 0, early_bird_price: null, description: "", perks: [] }]
+      ticketTypes: [...prev.ticketTypes, { name: "", price: 0, early_bird_price: null, early_bird_capacity: null, description: "", perks: [] }]
     }));
   };
 
@@ -489,13 +490,23 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                         className="w-full mt-1 bg-white dark:bg-black/20 border border-zinc-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                       />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Tier Capacity (Optional)</label>
                         <input 
                           type="number" 
                           value={ticket.capacity ?? ""} 
                           onChange={(e) => updateTicketType(idx, "capacity", e.target.value ? parseInt(e.target.value) : undefined)}
+                          placeholder="Unlimited"
+                          className="w-full mt-1 bg-white dark:bg-black/20 border border-zinc-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Early Bird Capacity (Optional)</label>
+                        <input 
+                          type="number" 
+                          value={ticket.early_bird_capacity ?? ""} 
+                          onChange={(e) => updateTicketType(idx, "early_bird_capacity", e.target.value ? parseInt(e.target.value) : undefined)}
                           placeholder="Unlimited"
                           className="w-full mt-1 bg-white dark:bg-black/20 border border-zinc-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
                         />

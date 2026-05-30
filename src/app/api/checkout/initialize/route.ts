@@ -36,35 +36,46 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This ticket tier is sold out" }, { status: 400 });
     }
 
-    // 3. Check early bird duration limits
-    if (tier.early_bird_until) {
-      const now = new Date();
-      if (new Date(tier.early_bird_until) < now) {
-        return NextResponse.json({ error: "Early bird tickets for this tier have expired" }, { status: 400 });
-      }
-    }
+    // 3. Fetch sold count for the tier
+    const { count: soldCount, error: countError } = await supabase
+      .from("tickets")
+      .select("*", { count: "exact", head: true })
+      .eq("event_id", event_id)
+      .in("status", ["active", "used"])
+      .filter("ticket_type->>name", "eq", ticket_type_name);
 
-    // 4. Check capacity limits
+    if (countError) {
+      console.error("Count ticket error:", countError);
+    }
+    const currentSoldCount = soldCount || 0;
+
+    // 4. Check regular capacity limits
     if (tier.capacity !== undefined && tier.capacity !== null && Number(tier.capacity) > 0) {
-      const { count: soldCount, error: countError } = await supabase
-        .from("tickets")
-        .select("*", { count: "exact", head: true })
-        .eq("event_id", event_id)
-        .in("status", ["active", "used"])
-        .filter("ticket_type->>name", "eq", ticket_type_name);
-
-      if (countError) {
-        console.error("Count ticket error:", countError);
-      } else {
-        const remaining = Number(tier.capacity) - (soldCount || 0);
-        if (Number(quantity) > remaining) {
-          return NextResponse.json({ error: `Not enough tickets remaining. Only ${remaining} left.` }, { status: 400 });
-        }
+      const remaining = Number(tier.capacity) - currentSoldCount;
+      if (Number(quantity) > remaining) {
+        return NextResponse.json({ error: `Not enough tickets remaining. Only ${remaining} left.` }, { status: 400 });
       }
     }
 
-    // 5. Calculate base pricing
-    const originalSubtotal = Number(tier.price) * Number(quantity);
+    // 5. Determine effective price and check early bird limits
+    let effectivePrice = Number(tier.price);
+    const now = new Date();
+    
+    const isEarlyBirdConfigured = tier.early_bird_price !== undefined && tier.early_bird_price !== null;
+    const isExpiredByDate = tier.early_bird_until ? new Date(tier.early_bird_until) < now : false;
+    const hasCapacityLeft = tier.early_bird_capacity ? currentSoldCount < tier.early_bird_capacity : true;
+    
+    if (isEarlyBirdConfigured && !isExpiredByDate && hasCapacityLeft) {
+      // Early bird is active
+      const earlyBirdRemaining = tier.early_bird_capacity ? Math.max(0, tier.early_bird_capacity - currentSoldCount) : 999;
+      if (Number(quantity) > earlyBirdRemaining) {
+        return NextResponse.json({ error: `Requested quantity exceeds remaining early bird capacity. Only ${earlyBirdRemaining} early bird tickets left.` }, { status: 400 });
+      }
+      effectivePrice = Number(tier.early_bird_price);
+    }
+
+    // 6. Calculate base pricing
+    const originalSubtotal = effectivePrice * Number(quantity);
 
     // 6. Validate coupon (if provided) and calculate discount
     let discount = 0;
