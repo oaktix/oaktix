@@ -27,7 +27,7 @@ export default async function ContactPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF9F6] text-zinc-900 overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#FAF9F6] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 overflow-hidden">
       {/* Header */}
       <Navbar user={user} theme="light" />
 
@@ -49,7 +49,7 @@ export default async function ContactPage() {
                   <Mail className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-zinc-800">Email Address</h4>
+                  <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-100">Email Address</h4>
                   <a href="mailto:hello@oaktix.com.ng" className="text-indigo-500 text-sm font-bold hover:underline">hello@oaktix.com.ng</a>
                 </div>
               </div>
@@ -59,7 +59,7 @@ export default async function ContactPage() {
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-zinc-800">Phone Support</h4>
+                  <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-100">Phone Support</h4>
                   <a href="tel:+2349071008912" className="text-indigo-500 text-sm font-bold hover:underline">+234 907 100 8912</a>
                 </div>
               </div>
@@ -69,13 +69,13 @@ export default async function ContactPage() {
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-zinc-800">Office Location</h4>
+                  <h4 className="font-bold text-sm text-zinc-800 dark:text-zinc-100">Office Location</h4>
                   <p className="text-zinc-500 text-sm font-bold">Ibadan, Nigeria</p>
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-[#E8EBE7] space-y-3">
+            <div className="pt-6 border-t border-[#E8EBE7] dark:border-white/10 space-y-3">
               <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Official Channels</h4>
               <div className="flex gap-4 text-xs font-bold text-zinc-500">
                 <span className="hover:text-indigo-500 cursor-pointer">Instagram (@oaktix)</span>
@@ -92,7 +92,7 @@ export default async function ContactPage() {
                 <input 
                   type="text" 
                   placeholder="Enter your name" 
-                  className="w-full mt-1.5 bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm placeholder:text-zinc-400"
+                  className="w-full mt-1.5 bg-white dark:bg-zinc-900 border border-[#E8EBE7] dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100"
                 />
               </div>
 
@@ -101,7 +101,7 @@ export default async function ContactPage() {
                 <input 
                   type="email" 
                   placeholder="you@example.com" 
-                  className="w-full mt-1.5 bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm placeholder:text-zinc-400"
+                  className="w-full mt-1.5 bg-white dark:bg-zinc-900 border border-[#E8EBE7] dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100"
                 />
               </div>
 
@@ -110,7 +110,7 @@ export default async function ContactPage() {
                 <input 
                   type="text" 
                   placeholder="How can we help?" 
-                  className="w-full mt-1.5 bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm placeholder:text-zinc-400"
+                  className="w-full mt-1.5 bg-white dark:bg-zinc-900 border border-[#E8EBE7] dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100"
                 />
               </div>
 
@@ -119,7 +119,7 @@ export default async function ContactPage() {
                 <textarea 
                   rows={5} 
                   placeholder="Write your message details..." 
-                  className="w-full mt-1.5 bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm placeholder:text-zinc-400"
+                  className="w-full mt-1.5 bg-white dark:bg-zinc-900 border border-[#E8EBE7] dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100"
                 />
               </div>
 

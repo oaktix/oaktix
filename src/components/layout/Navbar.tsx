@@ -28,12 +28,10 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
     <header className="relative w-full">
       {/* Main Nav Container */}
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
+      className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
           isTransparent
             ? "bg-transparent border-white/10 text-white"
-            : isDark
-            ? "bg-[#09090b]/95 backdrop-blur-md border-zinc-800/80 text-white"
-            : "bg-[#FAF9F6]/95 backdrop-blur-md border-[#E8EBE7] text-zinc-900"
+            : "bg-[#FAF9F6]/95 dark:bg-[#09090b]/95 backdrop-blur-md border-[#E8EBE7] dark:border-zinc-800/80 text-zinc-900 dark:text-white"
         } px-6 py-4 flex items-center justify-between`}
       >
         <Link href="/" className="flex items-center gap-2 group">
@@ -48,22 +46,22 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
         {/* Desktop Links */}
         <div
           className={`hidden md:flex items-center gap-8 text-sm font-bold ${
-            isDark || isTransparent ? "text-zinc-200" : "text-zinc-600"
+            isTransparent ? "text-zinc-200" : "text-zinc-600 dark:text-zinc-200"
           }`}
         >
-          <Link href="/events" className={`hover:text-indigo-500 transition-colors ${isDark ? "hover:text-white" : ""}`}>
+          <Link href="/events" className={`hover:text-indigo-500 transition-colors`}>
             Browse Events
           </Link>
-          <Link href="/categories" className={`hover:text-indigo-500 transition-colors ${isDark ? "hover:text-white" : ""}`}>
+          <Link href="/categories" className={`hover:text-indigo-500 transition-colors`}>
             Categories
           </Link>
-          <Link href="/vendors" className={`hover:text-indigo-500 transition-colors ${isDark ? "hover:text-white" : ""}`}>
+          <Link href="/vendors" className={`hover:text-indigo-500 transition-colors`}>
             Organisers
           </Link>
-          <Link href="/about" className={`hover:text-indigo-500 transition-colors ${isDark ? "hover:text-white" : ""}`}>
+          <Link href="/about" className={`hover:text-indigo-500 transition-colors`}>
             About
           </Link>
-          <Link href="/contact" className={`hover:text-indigo-500 transition-colors ${isDark ? "hover:text-white" : ""}`}>
+          <Link href="/contact" className={`hover:text-indigo-500 transition-colors`}>
             Contact
           </Link>
         </div>
@@ -74,18 +72,14 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
             <>
               <Link
                 href="/organizer/events"
-                className={`text-sm font-bold flex items-center gap-1.5 ${
-                  isDark ? "text-zinc-300 hover:text-white" : "text-zinc-600 hover:text-indigo-500"
-                } transition-colors`}
+              className={`text-sm font-bold flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 hover:text-indigo-500 dark:hover:text-white transition-colors`}
               >
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </Link>
               <button
                 onClick={handleSignOut}
-                className={`text-sm font-bold flex items-center gap-1.5 ${
-                  isDark ? "text-zinc-400 hover:text-white" : "text-zinc-500 hover:text-red-500"
-                } transition-colors`}
+                className={`text-sm font-bold flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 hover:text-red-500 dark:hover:text-white transition-colors`}
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
@@ -95,9 +89,7 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
             <>
               <Link
                 href="/login"
-                className={`text-sm font-bold transition-colors ${
-                  isDark ? "text-zinc-400 hover:text-white" : "text-zinc-650 hover:text-indigo-500"
-                }`}
+                className={`text-sm font-bold transition-colors text-zinc-650 dark:text-zinc-400 hover:text-indigo-500 dark:hover:text-white`}
               >
                 Sign in
               </Link>
@@ -125,7 +117,7 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
             className={`p-2 rounded-lg transition-colors ${
-              isDark || isTransparent ? "hover:bg-white/5 text-white" : "hover:bg-zinc-100 text-zinc-950"
+              isTransparent ? "hover:bg-white/5 text-white" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-950 dark:text-zinc-100"
             }`}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -145,7 +137,7 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
         {/* Content Side Drawer */}
         <div
           className={`absolute right-0 top-0 h-full w-4/5 max-w-sm p-8 shadow-2xl transition-transform duration-300 flex flex-col justify-between ${
-            isDark || isTransparent ? "bg-[#09090b] text-white" : "bg-[#FAF9F6] text-zinc-900"
+            isTransparent ? "bg-[#09090b] text-white" : "bg-[#FAF9F6] dark:bg-[#09090b] text-zinc-900 dark:text-white"
           } ${isOpen ? "translate-x-0" : "translate-x-full"}`}
         >
           <div className="space-y-8 mt-12">
@@ -214,9 +206,7 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
                     handleSignOut();
                     setIsOpen(false);
                   }}
-                  className={`w-full py-3.5 rounded-xl border font-bold text-center block transition-all ${
-                    isDark ? "border-zinc-800 text-white hover:bg-white/5" : "border-zinc-200 text-zinc-700 hover:bg-zinc-100"
-                  }`}
+                  className={`w-full py-3.5 rounded-xl border font-bold text-center block transition-all border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-white/5`}
                 >
                   Sign Out
                 </button>
@@ -226,9 +216,7 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
                 <Link
                   href="/login"
                   onClick={() => setIsOpen(false)}
-                  className={`w-full py-3.5 rounded-xl border font-bold text-center block transition-all ${
-                    isDark ? "border-zinc-800 text-white hover:bg-white/5" : "border-zinc-200 text-zinc-700 hover:bg-zinc-100"
-                  }`}
+                  className={`w-full py-3.5 rounded-xl border font-bold text-center block transition-all border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-white/5`}
                 >
                   Sign In
                 </Link>

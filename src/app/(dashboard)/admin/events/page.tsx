@@ -48,6 +48,7 @@ export default async function AdminEventsPage() {
         vendor_details
       )
     `)
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {

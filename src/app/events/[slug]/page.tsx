@@ -183,6 +183,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
                     id: event.id,
                     title: event.title,
                     slug: event.slug,
+                    start_date: event.start_date,
+                    end_date: event.end_date,
                     ticket_types: ticketTypes,
                     absorb_fees: event.absorb_fees
                   }} 

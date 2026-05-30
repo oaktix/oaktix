@@ -59,7 +59,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 flex flex-col items-center justify-center p-6 relative">
+    <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 relative">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none -z-10" />
 
       <Link href="/" className="flex items-center mb-8 relative z-10 group">
@@ -89,7 +89,7 @@ function LoginForm() {
               type="email"
               required
               placeholder="name@example.com"
-              className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
+              className="w-full bg-white dark:bg-zinc-900 border border-[#E8EBE7] dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400"
             />
           </div>
 
@@ -106,7 +106,7 @@ function LoginForm() {
                 type={showPassword ? "text" : "password"}
                 required
                 placeholder="••••••••"
-                className="w-full bg-white border border-[#E8EBE7] rounded-xl pl-4 pr-12 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
+                className="w-full bg-white dark:bg-zinc-900 border border-[#E8EBE7] dark:border-white/10 rounded-xl pl-4 pr-12 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-400"
               />
               <button
                 type="button"
@@ -149,7 +149,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAF9F6] text-zinc-900 flex items-center justify-center font-bold">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#FAF9F6] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 flex items-center justify-center font-bold">Loading...</div>}>
       <LoginForm />
     </Suspense>
   );

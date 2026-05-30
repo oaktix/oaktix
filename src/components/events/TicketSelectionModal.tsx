@@ -12,6 +12,7 @@ interface TicketSelectionModalProps {
     title: string;
     slug: string;
     absorb_fees?: boolean;
+    show_ticket_volume?: boolean;
   };
   ticketType: {
     name: string;
@@ -224,7 +225,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
             <div>
               <p className="font-bold text-zinc-900">{ticketType.name}</p>
               <p className="text-zinc-500 text-xs mt-0.5">₦{Number(ticketType.price).toLocaleString()} per ticket</p>
-              {ticketType.capacity !== undefined && ticketType.capacity !== null && Number(ticketType.capacity) > 0 && (
+              {event.show_ticket_volume && ticketType.capacity !== undefined && ticketType.capacity !== null && Number(ticketType.capacity) > 0 && (
                 <p className="text-[10px] text-zinc-500 font-semibold mt-1">
                   ({remainingCapacity} tickets remaining)
                 </p>

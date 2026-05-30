@@ -51,6 +51,7 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
                 vendor_details
               )
             `)
+            .is("deleted_at", null)
             .order("created_at", { ascending: false });
           if (data) {
             setEvents(data as unknown as EventItem[]);

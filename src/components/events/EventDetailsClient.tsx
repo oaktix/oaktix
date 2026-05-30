@@ -22,8 +22,11 @@ interface EventDetailsClientProps {
     id: string;
     title: string;
     slug: string;
+    start_date?: string;
+    end_date?: string;
     ticket_types: TicketType[];
     absorb_fees?: boolean;
+    show_ticket_volume?: boolean;
   };
   user: {
     id: string;
@@ -67,15 +70,30 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
             ? (ticket.sold_count || 0) >= Number(ticket.capacity)
             : false;
           const now = new Date();
+          
+          const isEventPast = (() => {
+            const end = event.end_date ? new Date(event.end_date).getTime() : event.start_date ? new Date(event.start_date).getTime() : null;
+            if (!end) return false;
+            const thresholdTime = now.getTime() - 3 * 60 * 60 * 1000;
+            return end < thresholdTime;
+          })();
+
           const isEarlyBirdActive = ticket.early_bird_until && new Date(ticket.early_bird_until) > now && ticket.early_bird_price !== undefined && ticket.early_bird_price !== null;
           const isExpired = ticket.early_bird_until ? new Date(ticket.early_bird_until) < now : false;
 
-          const isUnavailable = isClosed || isSoldOut || isExpired;
+          const isUnavailable = isClosed || isSoldOut || isExpired || isEventPast;
 
           let statusBadge = null;
           let actionButtonText = "Select";
 
-          if (isClosed || isSoldOut) {
+          if (isEventPast) {
+            statusBadge = (
+              <span className="ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-zinc-500/15 border border-zinc-500/30 text-zinc-400">
+                Ended
+              </span>
+            );
+            actionButtonText = "Event Ended";
+          } else if (isClosed || isSoldOut) {
             statusBadge = (
               <span className="ml-2.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-500/15 border border-red-500/30 text-red-400">
                 Sold Out
@@ -93,7 +111,7 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
 
           // Show remaining tickets count
           let capacityText = null;
-          if (ticket.capacity && !isUnavailable) {
+          if (event.show_ticket_volume && ticket.capacity && !isUnavailable) {
             const remaining = Number(ticket.capacity) - (ticket.sold_count || 0);
             if (remaining <= 5) {
               capacityText = (

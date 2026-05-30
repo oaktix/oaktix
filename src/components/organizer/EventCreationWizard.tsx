@@ -54,6 +54,7 @@ interface EventData {
   featured_image?: string | null;
   absorb_fees?: boolean;
   status?: string;
+  show_ticket_volume?: boolean;
 }
 
 interface EventCreationWizardProps {
@@ -83,6 +84,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
     max_attendees: event?.max_attendees ? String(event.max_attendees) : "",
     isVirtual: event?.venue_details?.name === "Virtual" || event?.venue_details?.address === "Online",
     absorb_fees: event?.absorb_fees || false,
+    show_ticket_volume: event?.show_ticket_volume || false,
     ticketTypes: (event?.ticket_types?.map(t => ({ ...t, capacity: t.capacity ?? undefined, early_bird_until: t.early_bird_until ?? undefined })) as TicketType[]) || [
       { name: "General Admission", price: 0, early_bird_price: undefined, description: "Basic entry to the event.", perks: [] as string[], capacity: undefined, early_bird_until: undefined }
     ] as TicketType[],
@@ -171,6 +173,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
       featured_image: featured_image_url,
       absorb_fees: formData.absorb_fees,
       status: event?.status || "published",
+      show_ticket_volume: formData.show_ticket_volume,
     };
 
     if (event?.id) {
@@ -594,6 +597,23 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
                     ) : (
                       <span className="text-indigo-600 dark:text-indigo-400">Buyers pay platform fees in addition to the ticket price.</span>
                     )}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-white/10">
+                    <label className="flex items-start gap-3 text-sm font-bold text-zinc-800 dark:text-zinc-300 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.show_ticket_volume} 
+                        onChange={(e) => updateForm("show_ticket_volume", e.target.checked)}
+                        className="w-4 h-4 mt-0.5 rounded border-zinc-300 dark:border-white/10 bg-white dark:bg-white/5 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                      />
+                      <div>
+                        <span className="block">Show Ticket Volume Publicly</span>
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400 font-normal block mt-0.5">
+                          If checked, the remaining number of tickets for limited tiers will be displayed to buyers (e.g. "Only 5 left").
+                        </span>
+                      </div>
+                    </label>
                   </div>
                 </div>
               </div>

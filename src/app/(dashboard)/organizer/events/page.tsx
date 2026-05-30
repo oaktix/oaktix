@@ -5,6 +5,7 @@ import { Calendar, Plus, MapPin, Eye } from "lucide-react";
 import Image from "next/image";
 import ShareButton from "@/components/organizer/ShareButton";
 import ManageTiersButton from "@/components/organizer/ManageTiersButton";
+import DeleteEventButton from "@/components/organizer/DeleteEventButton";
 
 export default async function VendorEventsPage() {
   const supabase = await createClient();
@@ -16,6 +17,7 @@ export default async function VendorEventsPage() {
     .from("events")
     .select("*, tickets(count)")
     .eq("organizer_id", user.id)
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   return (
@@ -117,6 +119,7 @@ export default async function VendorEventsPage() {
                     >
                       Edit
                     </Link>
+                    <DeleteEventButton eventId={event.id} />
                   </div>
                 </div>
               </div>
