@@ -94,7 +94,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   // Recalculate discount if quantity updates
   useEffect(() => {
     if (appliedCoupon) {
-      const subtotal = ticketType.price * quantity;
+      const subtotal = effectivePrice * quantity;
       let newDiscount = 0;
       if (appliedCoupon.discount_type === "percentage") {
         newDiscount = subtotal * (appliedCoupon.discount_value / 100);
@@ -105,7 +105,9 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
       newDiscount = Number(newDiscount.toFixed(2));
       setAppliedCoupon(prev => prev ? { ...prev, discount_amount: newDiscount } : null);
     }
-  }, [quantity, ticketType.price, appliedCoupon?.discount_type, appliedCoupon?.discount_value]);
+  // effectivePrice is derived from ticketType.price and ticketType.early_bird_price
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quantity, ticketType.price, ticketType.early_bird_price, ticketType.early_bird_until, appliedCoupon?.discount_type, appliedCoupon?.discount_value]);
 
   const now = new Date();
   const isEarlyBirdActive = ticketType.early_bird_until && new Date(ticketType.early_bird_until) > now && ticketType.early_bird_price != null;
@@ -224,7 +226,17 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
           <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-50 border border-zinc-100">
             <div>
               <p className="font-bold text-zinc-900">{ticketType.name}</p>
-              <p className="text-zinc-500 text-xs mt-0.5">₦{Number(ticketType.price).toLocaleString()} per ticket</p>
+              {isEarlyBirdActive ? (
+                <div className="mt-0.5 space-y-0.5">
+                  <p className="text-amber-600 text-xs font-bold">⚡ Early Bird Price</p>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-zinc-400 text-xs line-through">₦{Number(ticketType.price).toLocaleString()}</span>
+                    <span className="text-amber-600 text-xs font-bold">₦{Number(effectivePrice).toLocaleString()} per ticket</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-zinc-500 text-xs mt-0.5">₦{Number(effectivePrice).toLocaleString()} per ticket</p>
+              )}
               {event.show_ticket_volume && ticketType.capacity !== undefined && ticketType.capacity !== null && Number(ticketType.capacity) > 0 && (
                 <p className="text-[10px] text-zinc-500 font-semibold mt-1">
                   ({remainingCapacity} tickets remaining)
@@ -253,6 +265,12 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
 
           {/* Pricing Details */}
           <div className="space-y-3">
+            {isEarlyBirdActive && (
+              <div className="flex justify-between text-sm">
+                <span className="text-amber-600 font-bold">⚡ Early Bird Discount</span>
+                <span className="text-amber-600 font-bold">-₦{((ticketType.price - Number(effectivePrice)) * quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            )}
             {discountAmount > 0 && (
               <div className="flex justify-between text-sm text-zinc-500">
                 <span>Subtotal (original)</span>
