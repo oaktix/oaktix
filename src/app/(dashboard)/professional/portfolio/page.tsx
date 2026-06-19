@@ -312,7 +312,7 @@ export default function ProfessionalPortfolioPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={item.thumbnail_url ?? item.image_url ?? ""}
-                  alt={item.title}
+                  alt={item.title ?? ""}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
