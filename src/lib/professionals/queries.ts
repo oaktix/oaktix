@@ -244,14 +244,7 @@ export async function getProfessionalBySlug(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("professionals")
-    .select(
-      `
-      *,
-      category:professional_categories(id, name, slug, icon, description),
-      portfolio:professional_portfolio(* order: display_order.asc),
-      reviews:professional_reviews(* order: created_at.desc limit: 10)
-    `
-    )
+    .select("*,category:professional_categories(id,name,slug,icon,description),portfolio:professional_portfolio(*,order:display_order.asc),reviews:professional_reviews(*,order:created_at.desc,limit:10)")
     .eq("slug", slug)
     .eq("status", "approved")
     .maybeSingle();
