@@ -108,8 +108,6 @@ export default function ProfessionalPortfolioPage() {
     const cfg: Record<string, React.ReactNode> = {
       image: <Image className="w-4 h-4" />,
       video: <Film className="w-4 h-4" />,
-      audio: <Music className="w-4 h-4" />,
-      document: <FileText className="w-4 h-4" />,
     };
     return cfg[type] ?? <Image className="w-4 h-4" />;
   };
