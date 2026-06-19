@@ -244,9 +244,17 @@ export async function getProfessionalBySlug(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("professionals")
-    .select("*,category:professional_categories(id,name,slug,icon,description),portfolio:professional_portfolio(*,order:display_order.asc),reviews:professional_reviews(*,order:created_at.desc,limit:10)")
+    .select(`
+      *,
+      category:professional_categories(id, name, slug, icon, description),
+      portfolio:professional_portfolio(*),
+      reviews:professional_reviews(*)
+    `)
     .eq("slug", slug)
     .eq("status", "approved")
+    .order("display_order", { referencedTable: "professional_portfolio", ascending: true })
+    .order("created_at", { referencedTable: "professional_reviews", ascending: false })
+    .limit(10, { referencedTable: "professional_reviews" })
     .maybeSingle();
 
   if (error || !data) return null;
