@@ -327,7 +327,7 @@ export default function ProfessionalPortfolioPage() {
               {/* Overlay on hover */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                 <a
-                  href={item.media_url}
+                  href={item.media_type === "video" ? (item.video_url ?? "") : (item.image_url ?? "")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all"
