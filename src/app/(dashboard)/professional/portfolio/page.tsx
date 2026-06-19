@@ -345,17 +345,14 @@ export default function ProfessionalPortfolioPage() {
                 </button>
               </div>
 
-              {/* Badges */}
-              <div className="absolute top-2 left-2 flex flex-col gap-1">
-                {item.is_featured && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white uppercase">Featured</span>
-                )}
-                {item.media_type !== "image" && (
+              {/* Badge for video */}
+              {item.media_type !== "image" && (
+                <div className="absolute top-2 left-2">
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/50 text-white uppercase backdrop-blur-sm">
                     {item.media_type}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Title at bottom */}
               <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
