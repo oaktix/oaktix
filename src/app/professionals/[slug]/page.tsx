@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   BadgeCheck, Flame, Star, MapPin, Phone, Mail, Globe,
-  MessageCircle, Instagram, Facebook, Youtube, Clock, Award,
+  MessageCircle, Camera, Share2, Play, Clock, Award,
   Users, TrendingUp, ChevronRight, ArrowLeft, ExternalLink,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -418,17 +418,17 @@ export default async function ProfessionalSlugPage({ params, searchParams }: Pag
                 <div className="flex flex-wrap gap-2">
                   {professional.instagram && (
                     <a href={`https://instagram.com/${professional.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-bold hover:opacity-90 transition-opacity">
-                      <Instagram className="w-3.5 h-3.5" /> Instagram
+                      <Camera className="w-3.5 h-3.5" /> Instagram
                     </a>
                   )}
                   {professional.facebook && (
                     <a href={professional.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:opacity-90 transition-opacity">
-                      <Facebook className="w-3.5 h-3.5" /> Facebook
+                      <Share2 className="w-3.5 h-3.5" /> Facebook
                     </a>
                   )}
                   {professional.youtube && (
                     <a href={professional.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold hover:opacity-90 transition-opacity">
-                      <Youtube className="w-3.5 h-3.5" /> YouTube
+                      <Play className="w-3.5 h-3.5" /> YouTube
                     </a>
                   )}
                   {professional.tiktok && (
