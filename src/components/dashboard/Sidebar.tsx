@@ -2,22 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Ticket, 
-  Calendar, 
-  Heart, 
-  Settings, 
-  LogOut, 
-  PlusCircle, 
-  Users, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Ticket,
+  Calendar,
+  Heart,
+  Settings,
+  LogOut,
+  PlusCircle,
+  Users,
+  BarChart3,
   Wallet,
   ShieldCheck,
   Ticket as TicketIcon,
   Mail,
   Banknote,
-  Tag
+  Tag,
+  Briefcase,
+  MessageSquare,
+  Image,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -43,6 +46,9 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "My Tickets", href: "/dashboard/tickets", icon: Ticket },
       { name: "Saved Events", href: "/dashboard/saved", icon: Heart },
       { name: "Settings", href: "/dashboard/settings", icon: Settings },
+      { name: "Professional Profile", href: "/professional", icon: Briefcase },
+      { name: "My Portfolio", href: "/professional/portfolio", icon: Image },
+      { name: "Inquiries", href: "/professional/inquiries", icon: MessageSquare },
     ],
     vendor: [
       { name: "Overview", href: "/organizer", icon: LayoutDashboard },
@@ -60,6 +66,7 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Platform Health", href: "/admin", icon: LayoutDashboard },
       { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
       { name: "Events", href: "/admin/events", icon: Calendar },
+      { name: "Professionals", href: "/admin/professionals", icon: Briefcase },
       { name: "Transactions", href: "/admin/transactions", icon: Wallet },
       { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote },
       { name: "Coupons", href: "/admin/coupons", icon: Tag },
@@ -70,6 +77,7 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Users", href: "/admin/users", icon: Users },
       { name: "Vendors", href: "/admin/vendors", icon: ShieldCheck },
       { name: "Events", href: "/admin/events", icon: Calendar },
+      { name: "Professionals", href: "/admin/professionals", icon: Briefcase },
       { name: "Transactions", href: "/admin/transactions", icon: Wallet },
       { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote },
       { name: "Coupons", href: "/admin/coupons", icon: Tag },

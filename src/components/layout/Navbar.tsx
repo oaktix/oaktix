@@ -52,6 +52,9 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
           <Link href="/events" className={`hover:text-indigo-500 transition-colors`}>
             Browse Events
           </Link>
+          <Link href="/professionals" className={`hover:text-indigo-500 transition-colors`}>
+            Professionals
+          </Link>
           <Link href="/categories" className={`hover:text-indigo-500 transition-colors`}>
             Categories
           </Link>
@@ -158,6 +161,13 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
                 className="flex items-center justify-between hover:text-indigo-500 transition-colors"
               >
                 Browse Events <ChevronRight className="w-4 h-4 text-zinc-400" />
+              </Link>
+              <Link
+                href="/professionals"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-between hover:text-indigo-500 transition-colors"
+              >
+                Professionals <ChevronRight className="w-4 h-4 text-zinc-400" />
               </Link>
               <Link
                 href="/categories"

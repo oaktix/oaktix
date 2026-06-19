@@ -36,9 +36,13 @@ export async function middleware(request: NextRequest) {
   const isOrganizerRoute = request.nextUrl.pathname.startsWith('/organizer')
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
   const isAdminSubRoute = request.nextUrl.pathname.startsWith('/admin/')
+  // /professional (exact) and /professional/* — but NOT /professionals/* (public directory)
+  const isProfessionalDashboardRoute =
+    request.nextUrl.pathname === '/professional' ||
+    request.nextUrl.pathname.startsWith('/professional/')
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
 
-  if (!user && (isDashboardRoute || isOrganizerRoute || isAdminSubRoute)) {
+  if (!user && (isDashboardRoute || isOrganizerRoute || isAdminSubRoute || isProfessionalDashboardRoute)) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

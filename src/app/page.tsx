@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import LatestEventsCarousel from "@/components/events/LatestEventsCarousel";
+import HomepageProfessionalsSection from "@/components/professionals/HomepageProfessionalsSection";
+import { getFeaturedByCategory } from "@/lib/professionals/queries";
 import type { Metadata } from 'next';
 
 export const generateMetadata = async (): Promise<Metadata> => ({
@@ -35,6 +37,9 @@ export default async function Home() {
     .eq("status", "published")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+
+  // Fetch professionals for homepage section
+  const professionalsCategoryGroups = await getFeaturedByCategory(4);
 
   const allEvents = dbEvents || [];
   
@@ -218,6 +223,9 @@ export default async function Home() {
               </div>
             )}
           </div>
+
+          {/* 4.5 Discover Event Professionals Section */}
+          <HomepageProfessionalsSection categoryGroups={professionalsCategoryGroups} />
 
           {/* 5. For Event Organisers Section */}
           <div className="w-full mb-8 relative z-10">
