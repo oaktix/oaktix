@@ -221,7 +221,7 @@ export default function ProfessionalSettingsPage() {
           { key: "linkedin", label: "LinkedIn", placeholder: "Profile URL" },
         ].map(({ key, label, placeholder }) => (
           <Field key={key} label={label}>
-            <input type="text" value={(form as Record<string, string>)[key]} onChange={(e) => update(key, e.target.value)} placeholder={placeholder} className="input" />
+            <input type="text" value={String((form as Record<string, unknown>)[key])} onChange={(e) => update(key, e.target.value)} placeholder={placeholder} className="input" />
           </Field>
         ))}
       </Section>
