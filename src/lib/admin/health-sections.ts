@@ -23,18 +23,26 @@ export const ADMIN_SECTIONS: HealthSection[] = [
     href: "/admin/transactions",
     icon: "💳",
     fetchStats: async (supabase) => {
-      const { data } = await supabase.rpc("dashboard_stats");
-      const s = (Array.isArray(data) ? data[0] : data) as { gmv?: number; platform_fee?: number; vendor_net?: number } | null;
-      const { count: pending } = await supabase
+      // Query transactions table directly — avoids dependency on the dashboard_stats() RPC
+      const { data: txRows } = await supabase
         .from("transactions")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending");
-      const p = pending ?? 0;
+        .select("amount, platform_fee, vendor_net")
+        .eq("status", "success");
+
+      const fmt = (n: number) =>
+        `₦${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      const rows = txRows ?? [];
+      const gmv = rows.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+      const platformFee = rows.reduce((s, r) => s + (Number(r.platform_fee) || 0), 0);
+      const vendorNet = rows.reduce((s, r) => s + (Number(r.vendor_net) || 0), 0);
+      const paidCount = rows.length;
+
       return [
-        { label: "Total GMV", value: `₦${(s?.gmv ?? 0).toLocaleString()}` },
-        { label: "Platform Fee", value: `₦${(s?.platform_fee ?? 0).toLocaleString()}` },
-        { label: "Vendor Net", value: `₦${(s?.vendor_net ?? 0).toLocaleString()}` },
-        { label: "Pending", value: p, status: p > 0 ? "warning" : "ok" },
+        { label: "GROSS SALES (GMV)", value: fmt(gmv) },
+        { label: "PLATFORM REVENUE", value: fmt(platformFee) },
+        { label: "VENDOR SHARE", value: fmt(vendorNet) },
+        { label: "PAID BOOKINGS", value: `${paidCount} order${paidCount !== 1 ? "s" : ""}` },
       ];
     },
   },
