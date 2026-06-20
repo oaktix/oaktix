@@ -2,19 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { addPortfolioItem, deletePortfolioItem } from "@/lib/professionals/actions";
-import { Plus, Trash2, Image, Film, ExternalLink, AlertCircle, CheckCircle, Upload } from "lucide-react";
+import { addPortfolioItem, deletePortfolioItem, updatePortfolioItem } from "@/lib/professionals/actions";
+import { Plus, Trash2, Image, Film, ExternalLink, AlertCircle, CheckCircle, Upload, Pencil, X } from "lucide-react";
 import type { ProfessionalPortfolio, Professional } from "@/lib/professionals/types";
 
 type VideoMeta = {
-  platform: 'youtube' | 'instagram' | 'tiktok';
+  platform: "youtube" | "instagram" | "tiktok";
   thumbnailUrl: string | null;
   label: string;
 } | null;
 
 function parseVideoUrl(url: string): VideoMeta {
   if (!url) return null;
-  // YouTube: watch?v=, youtu.be/, /shorts/, /embed/
   const ytMatch =
     url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ||
     url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/) ||
@@ -22,40 +21,63 @@ function parseVideoUrl(url: string): VideoMeta {
     url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
   if (ytMatch) {
     return {
-      platform: 'youtube',
+      platform: "youtube",
       thumbnailUrl: `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`,
-      label: 'YouTube',
+      label: "YouTube",
     };
   }
-  // Instagram Reels or posts
   if (/instagram\.com\/(reel|p)\//.test(url)) {
-    return { platform: 'instagram', thumbnailUrl: null, label: 'Instagram Reel' };
+    return { platform: "instagram", thumbnailUrl: null, label: "Instagram Reel" };
   }
-  // TikTok
   if (/tiktok\.com/.test(url)) {
-    return { platform: 'tiktok', thumbnailUrl: null, label: 'TikTok' };
+    return { platform: "tiktok", thumbnailUrl: null, label: "TikTok" };
   }
   return null;
 }
 
-// Only 'image' and 'video' are supported in the DB schema
 const MEDIA_TYPES = [
   { value: "image" as const, label: "Image", icon: Image },
-  { value: "video" as const, label: "Video (YouTube/Vimeo)", icon: Film },
+  { value: "video" as const, label: "Video (YouTube / Instagram / TikTok)", icon: Film },
 ];
+
+// Defined at module scope so React doesn't recreate it as a new component type on every render
+function VideoPreview({ url }: { url: string }) {
+  const meta = parseVideoUrl(url);
+  if (!url) return null;
+  if (!meta)
+    return (
+      <p className="text-xs text-red-500 flex items-center gap-1">
+        ⚠ Unsupported link. Please use YouTube, Instagram Reel, or TikTok.
+      </p>
+    );
+  return (
+    <div className="flex items-start gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+      {meta.thumbnailUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={meta.thumbnailUrl} alt="Video thumbnail" className="w-24 h-16 object-cover rounded-lg flex-shrink-0" />
+      ) : (
+        <div className="w-24 h-16 rounded-lg bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0 text-2xl">
+          {meta.platform === "instagram" ? "📸" : "🎵"}
+        </div>
+      )}
+      <div>
+        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{meta.label} detected</p>
+        <p className="text-xs text-zinc-500 mt-1 break-all">{url}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function ProfessionalPortfolioPage() {
   const supabase = createClient();
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [portfolio, setPortfolio] = useState<ProfessionalPortfolio[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Add form
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
-
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -63,12 +85,29 @@ export default function ProfessionalPortfolioPage() {
     media_type: "image" as "image" | "video",
   });
 
+  // Edit form
+  const [editingItem, setEditingItem] = useState<ProfessionalPortfolio | null>(null);
+  const [editFile, setEditFile] = useState<File | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    media_url: "",
+  });
+  const [editSaving, setEditSaving] = useState(false);
+
+  // Shared state
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     loadData();
   }, []);
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data: prof } = await supabase
@@ -94,31 +133,20 @@ export default function ProfessionalPortfolioPage() {
     setLoading(false);
   }
 
+  // ── Add item ────────────────────────────────────────────────
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!professional) return;
-    if (!form.title) {
-      setError("Title is required.");
-      return;
-    }
-
-    // For image type, require a file; for video, require a URL
-    if (form.media_type === "image" && !mediaFile) {
-      setError("Please select an image file.");
-      return;
-    }
-    if (form.media_type !== "image" && !form.media_url) {
-      setError("Title and media URL are required.");
-      return;
-    }
-    if (form.media_type !== "image" && form.media_url && !parseVideoUrl(form.media_url)) {
+    setError(null);
+    if (!form.title) { setError("Title is required."); return; }
+    if (form.media_type === "image" && !mediaFile) { setError("Please select an image file."); return; }
+    if (form.media_type === "video" && !form.media_url) { setError("Please paste a video link."); return; }
+    if (form.media_type === "video" && form.media_url && !parseVideoUrl(form.media_url)) {
       setError("Please use a YouTube, Instagram Reel, or TikTok link.");
       return;
     }
 
     setSaving(true);
-    setError(null);
-
     let finalMediaUrl = form.media_url;
 
     if (form.media_type === "image" && mediaFile) {
@@ -127,10 +155,8 @@ export default function ProfessionalPortfolioPage() {
         const userId = user?.id ?? "anonymous";
         const fileExt = mediaFile.name.split(".").pop();
         const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("portfolio-images")
-          .upload(fileName, mediaFile);
-        if (uploadError) throw new Error("Image upload failed: " + uploadError.message);
+        const { error: uploadError } = await supabase.storage.from("portfolio-images").upload(fileName, mediaFile);
+        if (uploadError) throw new Error(uploadError.message);
         finalMediaUrl = supabase.storage.from("portfolio-images").getPublicUrl(fileName).data.publicUrl;
       } catch (err) {
         setSaving(false);
@@ -139,7 +165,7 @@ export default function ProfessionalPortfolioPage() {
       }
     }
 
-    const videoMeta = form.media_type !== "image" ? parseVideoUrl(finalMediaUrl) : null;
+    const videoMeta = form.media_type === "video" ? parseVideoUrl(finalMediaUrl) : null;
     const result = await addPortfolioItem(professional.id, {
       title: form.title,
       description: form.description || undefined,
@@ -161,6 +187,77 @@ export default function ProfessionalPortfolioPage() {
     }
   };
 
+  // ── Open edit form ──────────────────────────────────────────
+  const openEdit = (item: ProfessionalPortfolio) => {
+    setEditingItem(item);
+    setEditFile(null);
+    setEditForm({
+      title: item.title ?? "",
+      description: item.description ?? "",
+      media_url: item.video_url ?? item.image_url ?? "",
+    });
+    setShowForm(false);
+    setError(null);
+  };
+
+  // ── Save edit ───────────────────────────────────────────────
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+    setError(null);
+    if (!editForm.title) { setError("Title is required."); return; }
+
+    if (editingItem.media_type === "video") {
+      if (!editForm.media_url) { setError("Please paste a video link."); return; }
+      if (!parseVideoUrl(editForm.media_url)) {
+        setError("Please use a YouTube, Instagram Reel, or TikTok link.");
+        return;
+      }
+    }
+
+    setEditSaving(true);
+    let updates: Parameters<typeof updatePortfolioItem>[1] = {
+      title: editForm.title,
+      description: editForm.description || undefined,
+    };
+
+    if (editingItem.media_type === "video") {
+      const videoMeta = parseVideoUrl(editForm.media_url);
+      updates = {
+        ...updates,
+        video_url: editForm.media_url,
+        thumbnail_url: videoMeta?.thumbnailUrl ?? null,
+      };
+    } else if (editFile) {
+      // Re-upload image
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id ?? "anonymous";
+        const fileExt = editFile.name.split(".").pop();
+        const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from("portfolio-images").upload(fileName, editFile);
+        if (uploadError) throw new Error(uploadError.message);
+        updates.image_url = supabase.storage.from("portfolio-images").getPublicUrl(fileName).data.publicUrl;
+      } catch (err) {
+        setEditSaving(false);
+        setError("Image upload failed: " + (err instanceof Error ? err.message : String(err)));
+        return;
+      }
+    }
+
+    const result = await updatePortfolioItem(editingItem.id, updates);
+    setEditSaving(false);
+    if (result.success) {
+      setSuccess("Item updated!");
+      setEditingItem(null);
+      await loadData();
+      setTimeout(() => setSuccess(null), 3000);
+    } else {
+      setError(result.error ?? "Failed to update.");
+    }
+  };
+
+  // ── Delete ──────────────────────────────────────────────────
   const handleDelete = async (id: string) => {
     if (!confirm("Remove this item from your portfolio?")) return;
     setDeletingId(id);
@@ -168,19 +265,13 @@ export default function ProfessionalPortfolioPage() {
     setDeletingId(null);
     if (result.success) {
       setPortfolio((prev) => prev.filter((p) => p.id !== id));
+      if (editingItem?.id === id) setEditingItem(null);
     } else {
       alert(result.error ?? "Failed to delete.");
     }
   };
 
-  const mediaIcon = (type: string) => {
-    const cfg: Record<string, React.ReactNode> = {
-      image: <Image className="w-4 h-4" />,
-      video: <Film className="w-4 h-4" />,
-    };
-    return cfg[type] ?? <Image className="w-4 h-4" />;
-  };
-
+  // ── Loading / guard states ──────────────────────────────────
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[300px]">
@@ -195,13 +286,8 @@ export default function ProfessionalPortfolioPage() {
         <div className="glass-card p-8 text-center">
           <Image className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
           <h2 className="font-bold text-zinc-900 dark:text-white mb-2">No Professional Profile</h2>
-          <p className="text-zinc-500 text-sm mb-4">
-            You need a professional profile before you can manage your portfolio.
-          </p>
-          <a
-            href="/professionals/register"
-            className="inline-block px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all"
-          >
+          <p className="text-zinc-500 text-sm mb-4">You need a professional profile before you can manage your portfolio.</p>
+          <a href="/professionals/register" className="inline-block px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all">
             Create Profile
           </a>
         </div>
@@ -225,17 +311,18 @@ export default function ProfessionalPortfolioPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-4xl space-y-6">
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold font-heading text-zinc-900 dark:text-white">Portfolio</h1>
           <p className="text-zinc-500 text-sm mt-1">
-            Showcase your best work — images, videos, and more. {portfolio.length}/20 items.
+            Showcase your best work — images and videos. {portfolio.length}/20 items.
           </p>
         </div>
-        {portfolio.length < 20 && (
+        {portfolio.length < 20 && !editingItem && (
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => { setShowForm(!showForm); setError(null); }}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -244,15 +331,111 @@ export default function ProfessionalPortfolioPage() {
         )}
       </div>
 
-      {/* Alerts */}
+      {/* Success banner */}
       {success && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-sm">
           <CheckCircle className="w-4 h-4" /> {success}
         </div>
       )}
 
-      {/* Add Form */}
-      {showForm && (
+      {/* ── Edit form ─────────────────────────────────────────── */}
+      {editingItem && (
+        <form onSubmit={handleEdit} className="glass-card p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-indigo-500" />
+              Edit Portfolio Item
+            </h3>
+            <button type="button" onClick={() => { setEditingItem(null); setError(null); }} className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" /> {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Title *</label>
+              <input
+                type="text"
+                value={editForm.title}
+                onChange={(e) => setEditForm((p) => ({ ...p, title: e.target.value }))}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+              />
+            </div>
+
+            {editingItem.media_type === "video" ? (
+              <div className="sm:col-span-2 space-y-3">
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider">Video Link *</label>
+                <input
+                  type="url"
+                  value={editForm.media_url}
+                  onChange={(e) => setEditForm((p) => ({ ...p, media_url: e.target.value }))}
+                  placeholder="Paste a YouTube, Instagram Reel, or TikTok link..."
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+                <VideoPreview url={editForm.media_url} />
+                <p className="text-xs text-zinc-400">Supported: YouTube, Instagram Reels, TikTok</p>
+              </div>
+            ) : (
+              <div className="sm:col-span-2 space-y-2">
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider">Image</label>
+                {/* Current image */}
+                {editingItem.image_url && !editFile && (
+                  <div className="relative w-full h-40 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={editingItem.image_url} alt="Current" className="w-full h-full object-cover" />
+                    <p className="absolute bottom-2 left-2 text-[10px] text-white bg-black/50 px-2 py-0.5 rounded">Current image</p>
+                  </div>
+                )}
+                {/* New file preview */}
+                {editFile && (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={URL.createObjectURL(editFile)} alt="New" className="w-full h-40 object-cover rounded-xl border border-zinc-200" />
+                    <button type="button" onClick={() => setEditFile(null)}
+                      className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">✕</button>
+                  </div>
+                )}
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-indigo-600 dark:text-indigo-400 font-bold">
+                  <Upload className="w-4 h-4" />
+                  {editFile ? "Change image" : "Replace image"}
+                  <input type="file" accept="image/*" className="sr-only"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) setEditFile(f); }} />
+                </label>
+              </div>
+            )}
+
+            <div className="sm:col-span-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Description (optional)</label>
+              <textarea
+                value={editForm.description}
+                onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
+                rows={2}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button type="submit" disabled={editSaving}
+              className="px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all disabled:opacity-60">
+              {editSaving ? "Saving..." : "Save Changes"}
+            </button>
+            <button type="button" onClick={() => { setEditingItem(null); setError(null); }}
+              className="px-5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 text-zinc-600 dark:text-zinc-300 font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all">
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* ── Add form ──────────────────────────────────────────── */}
+      {showForm && !editingItem && (
         <form onSubmit={handleAdd} className="glass-card p-6 space-y-4">
           <h3 className="font-bold text-zinc-900 dark:text-white">Add Portfolio Item</h3>
           {error && (
@@ -266,9 +449,7 @@ export default function ProfessionalPortfolioPage() {
             <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-2">Media Type</label>
             <div className="flex flex-wrap gap-2">
               {MEDIA_TYPES.map((mt) => (
-                <button
-                  key={mt.value}
-                  type="button"
+                <button key={mt.value} type="button"
                   onClick={() => setForm((p) => ({ ...p, media_type: mt.value }))}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all ${
                     form.media_type === mt.value
@@ -286,9 +467,7 @@ export default function ProfessionalPortfolioPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Title *</label>
-              <input
-                type="text"
-                value={form.title}
+              <input type="text" value={form.title}
                 onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
                 placeholder="e.g. DJ Set at Lagos Carnival 2024"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
@@ -319,151 +498,123 @@ export default function ProfessionalPortfolioPage() {
               </div>
             ) : (
               <div className="sm:col-span-2 space-y-3">
-                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider">
-                  Video Link *
-                </label>
-                <input
-                  type="url"
-                  value={form.media_url}
-                  onChange={(e) => setForm(p => ({ ...p, media_url: e.target.value }))}
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider">Video Link *</label>
+                <input type="url" value={form.media_url}
+                  onChange={(e) => setForm((p) => ({ ...p, media_url: e.target.value }))}
                   placeholder="Paste a YouTube, Instagram Reel, or TikTok link..."
                   className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
                 />
-                {/* Detection feedback */}
-                {(() => {
-                  const meta = parseVideoUrl(form.media_url);
-                  if (!form.media_url) return null;
-                  if (!meta) {
-                    return (
-                      <p className="text-xs text-red-500 flex items-center gap-1">
-                        ⚠ Unsupported link. Please use YouTube, Instagram Reel, or TikTok.
-                      </p>
-                    );
-                  }
-                  return (
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                      {meta.thumbnailUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={meta.thumbnailUrl} alt="Video thumbnail" className="w-24 h-16 object-cover rounded-lg flex-shrink-0" />
-                      ) : (
-                        <div className="w-24 h-16 rounded-lg bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0 text-2xl">
-                          {meta.platform === 'instagram' ? '📸' : '🎵'}
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{meta.label} detected</p>
-                        <p className="text-xs text-zinc-500 mt-1 break-all">{form.media_url}</p>
-                      </div>
-                    </div>
-                  );
-                })()}
+                <VideoPreview url={form.media_url} />
                 <p className="text-xs text-zinc-400">Supported: YouTube, Instagram Reels, TikTok</p>
               </div>
             )}
 
             <div className="sm:col-span-2">
               <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Description (optional)</label>
-              <textarea
-                value={form.description}
+              <textarea value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                rows={2}
-                placeholder="Brief description of this work..."
+                rows={2} placeholder="Brief description of this work..."
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"
               />
             </div>
           </div>
 
           <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all disabled:opacity-60"
-            >
+            <button type="submit" disabled={saving}
+              className="px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all disabled:opacity-60">
               {saving ? "Adding..." : "Add to Portfolio"}
             </button>
-            <button
-              type="button"
-              onClick={() => { setShowForm(false); setError(null); setMediaFile(null); }}
-              className="px-5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 text-zinc-600 dark:text-zinc-300 font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
-            >
+            <button type="button" onClick={() => { setShowForm(false); setError(null); setMediaFile(null); }}
+              className="px-5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 text-zinc-600 dark:text-zinc-300 font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all">
               Cancel
             </button>
           </div>
         </form>
       )}
 
-      {/* Portfolio Grid */}
+      {/* ── Portfolio Grid ─────────────────────────────────────── */}
       {portfolio.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <Image className="w-12 h-12 text-zinc-200 dark:text-zinc-700 mx-auto mb-3" />
           <h3 className="font-bold text-zinc-900 dark:text-white mb-1">No portfolio items yet</h3>
-          <p className="text-zinc-500 text-sm mb-4">
-            Start showcasing your work. Add photos, videos, or other media to attract clients.
-          </p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all"
-          >
+          <p className="text-zinc-500 text-sm mb-4">Start showcasing your work. Add photos and videos to attract clients.</p>
+          <button onClick={() => setShowForm(true)}
+            className="px-5 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all">
             Add Your First Item
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {portfolio.map((item) => (
-            <div key={item.id} className="group relative rounded-2xl overflow-hidden border border-[#E8EBE7] dark:border-white/10 bg-zinc-100 dark:bg-zinc-800 aspect-square">
-              {/* Thumbnail */}
-              {item.thumbnail_url || item.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.thumbnail_url ?? item.image_url ?? ""}
-                  alt={item.title ?? ""}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-400 dark:text-zinc-500">
-                  {mediaIcon(item.media_type)}
+          {portfolio.map((item) => {
+            const isEditing = editingItem?.id === item.id;
+            const thumbSrc = item.thumbnail_url ?? item.image_url;
+            const openUrl = item.media_type === "video" ? (item.video_url ?? "") : (item.image_url ?? "");
+
+            return (
+              <div
+                key={item.id}
+                className={`rounded-2xl overflow-hidden border transition-all ${
+                  isEditing
+                    ? "border-indigo-500 ring-2 ring-indigo-500/20"
+                    : "border-[#E8EBE7] dark:border-white/10"
+                } bg-white dark:bg-zinc-900`}
+              >
+                {/* Thumbnail */}
+                <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-800">
+                  {thumbSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={thumbSrc} alt={item.title ?? ""} className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      {item.media_type === "video"
+                        ? <Film className="w-8 h-8 text-zinc-300 dark:text-zinc-600" />
+                        : <Image className="w-8 h-8 text-zinc-300 dark:text-zinc-600" />}
+                    </div>
+                  )}
+                  {/* Video type badge */}
+                  {item.media_type === "video" && (
+                    <div className="absolute top-2 left-2">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/60 text-white uppercase backdrop-blur-sm">
+                        video
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {/* Overlay on hover */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                <a
-                  href={item.media_type === "video" ? (item.video_url ?? "") : (item.image_url ?? "")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all"
-                  title="Open"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  disabled={deletingId === item.id}
-                  className="p-2 rounded-xl bg-red-500/80 hover:bg-red-500 text-white backdrop-blur-sm transition-all disabled:opacity-50"
-                  title="Remove"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Badge for video */}
-              {item.media_type !== "image" && (
-                <div className="absolute top-2 left-2">
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/50 text-white uppercase backdrop-blur-sm">
-                    {item.media_type}
-                  </span>
+                {/* Always-visible action bar */}
+                <div className="flex items-center gap-1 px-2 py-2 border-t border-[#E8EBE7] dark:border-white/10">
+                  <p className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 truncate flex-1 min-w-0">
+                    {item.title}
+                  </p>
+                  {/* Open link */}
+                  {openUrl && (
+                    <a href={openUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex-shrink-0 p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+                      title="Open">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  {/* Edit */}
+                  <button onClick={() => openEdit(item)}
+                    className={`flex-shrink-0 p-1.5 rounded-lg transition-all ${
+                      isEditing
+                        ? "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30"
+                        : "text-zinc-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                    }`}
+                    title="Edit">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  {/* Delete */}
+                  <button onClick={() => handleDelete(item.id)} disabled={deletingId === item.id}
+                    className="flex-shrink-0 p-1.5 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all disabled:opacity-40"
+                    title="Delete">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-              )}
-
-              {/* Title at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                <p className="text-[11px] text-white font-medium line-clamp-1">{item.title}</p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -485,7 +636,7 @@ export default function ProfessionalPortfolioPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-emerald-500 font-bold mt-0.5">✓</span>
-            <span>Mark your best piece as &quot;Featured&quot; — it&apos;ll appear first in your gallery.</span>
+            <span>Keep your portfolio fresh — update it after every major event.</span>
           </li>
         </ul>
       </div>

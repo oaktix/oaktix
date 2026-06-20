@@ -299,6 +299,43 @@ export async function deletePortfolioItem(
   return { success: true };
 }
 
+export async function updatePortfolioItem(
+  itemId: string,
+  updates: {
+    title?: string;
+    description?: string;
+    video_url?: string | null;
+    image_url?: string | null;
+    thumbnail_url?: string | null;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const { data: prof } = await supabase
+    .from("professionals")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!prof?.id) return { success: false, error: "Unauthorized" };
+
+  const { error } = await supabase
+    .from("professional_portfolio")
+    .update(updates)
+    .eq("id", itemId)
+    .eq("professional_id", prof.id);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/professional/portfolio");
+  return { success: true };
+}
+
 // ─────────────────────────────────────────────────────────────
 // INQUIRIES
 // ─────────────────────────────────────────────────────────────
