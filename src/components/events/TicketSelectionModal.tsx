@@ -40,6 +40,8 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   const [guestError, setGuestError] = useState<string | null>(null);
   const [platformFeePercent, setPlatformFeePercent] = useState(4.0);
   const [userProfile, setUserProfile] = useState<{ full_name: string | null; phone: string | null } | null>(null);
+  const [freeLoading, setFreeLoading] = useState(false);
+  const [freeError, setFreeError] = useState<string | null>(null);
 
   // Coupon States
   const [couponCode, setCouponCode] = useState("");
@@ -215,6 +217,37 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
     }
   }, [guestEmail, guestName]);
 
+  const handleClaimFree = useCallback(async () => {
+    const checkoutUser = user || guestUser;
+    if (!checkoutUser) return;
+    setFreeLoading(true);
+    setFreeError(null);
+    try {
+      const res = await fetch("/api/checkout/free", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: checkoutUser.email,
+          event_id: event.id,
+          ticket_type_name: ticketType.name,
+          quantity,
+          user_id: checkoutUser.id,
+          guest_name: !user ? guestName : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await handleSuccess(data.reference);
+      } else {
+        setFreeError(data.error || "Failed to claim ticket. Please try again.");
+      }
+    } catch (err) {
+      setFreeError("Network error. Please try again.");
+    } finally {
+      setFreeLoading(false);
+    }
+  }, [user, guestUser, event.id, ticketType.name, quantity, guestName, handleSuccess]);
+
   const activeUser = user || guestUser;
 
   return (
@@ -245,7 +278,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
                   </div>
                 </div>
               ) : (
-                <p className="text-zinc-500 text-xs mt-0.5">₦{Number(effectivePrice).toLocaleString()} per ticket</p>
+                <p className="text-zinc-500 text-xs mt-0.5">{Number(effectivePrice) === 0 ? "Free" : `₦${Number(effectivePrice).toLocaleString()} per ticket`}</p>
               )}
               {event.show_ticket_volume && ticketType.capacity !== undefined && ticketType.capacity !== null && Number(ticketType.capacity) > 0 && (
                 <p className="text-[10px] text-zinc-500 font-semibold mt-1">
@@ -309,7 +342,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
             </div>
             <div className="flex justify-between text-xl font-bold font-heading pt-3 border-t border-zinc-200/60">
               <span className="text-zinc-900">Total</span>
-              <span className="text-indigo-600">₦{totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className="text-indigo-600">{totalAmount === 0 ? <span className="text-emerald-500">Free</span> : `₦${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</span>
             </div>
           </div>
 
@@ -353,112 +386,148 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
           </div>
 
           {/* User Auth or Guest Flow */}
-          {activeUser ? (
+          {totalAmount === 0 ? (
+            /* FREE TICKET FLOW */
             <div className="space-y-4">
-              {guestUser && (
-                <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 text-xs text-indigo-600 font-semibold">
-                  Checking out as guest: <span className="font-bold">{guestEmail}</span>
+              {!activeUser ? (
+                /* Guest needs to provide details first */
+                !isGuestMode ? (
+                  <div className="space-y-3">
+                    <p className="text-zinc-500 text-xs text-center mb-1">Log in or continue as a guest to claim your free ticket.</p>
+                    <Link
+                      href={`/login?redirect=/events/${event.slug}`}
+                      className="w-full block text-center py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all cursor-pointer shadow-md shadow-indigo-600/10"
+                    >
+                      Log In / Create Account
+                    </Link>
+                    <button
+                      onClick={() => setIsGuestMode(true)}
+                      className="w-full text-center py-3.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 text-zinc-700 font-bold transition-all border border-zinc-200 cursor-pointer"
+                    >
+                      Continue as Guest
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleGuestCheckoutSubmit} className="space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <button type="button" onClick={() => setIsGuestMode(false)} className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-800 transition-colors cursor-pointer">
+                        <ArrowLeft className="w-3.5 h-3.5" /> Back to options
+                      </button>
+                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Guest Details</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Full Name</label>
+                        <div className="relative">
+                          <UserIcon className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
+                          <input type="text" required placeholder="Your full name" value={guestName} onChange={(e) => setGuestName(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Email Address</label>
+                        <div className="relative">
+                          <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
+                          <input type="email" required placeholder="name@example.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                    {guestError && <p className="text-red-500 text-xs font-bold text-center mt-1">{guestError}</p>}
+                    <button type="submit" disabled={loadingGuest} className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/20">
+                      {loadingGuest ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</> : "Continue"}
+                    </button>
+                  </form>
+                )
+              ) : (
+                /* activeUser available — show Claim button */
+                <div className="space-y-4">
+                  {guestUser && (
+                    <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 text-xs text-indigo-600 font-semibold">
+                      Claiming as guest: <span className="font-bold">{guestEmail}</span>
+                    </div>
+                  )}
+                  {freeError && <p className="text-red-500 text-xs font-bold text-center">{freeError}</p>}
+                  <button
+                    onClick={handleClaimFree}
+                    disabled={freeLoading}
+                    className="w-full py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/20 disabled:opacity-60"
+                  >
+                    {freeLoading ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</> : "🎟 Get Free Ticket"}
+                  </button>
+                  <p className="text-center text-xs text-zinc-400">No payment required. Confirmation will be sent to your email.</p>
                 </div>
               )}
-              <TransactpayButton 
-                email={activeUser.email}
-                amount={totalAmount}
-                firstName={userProfile?.full_name?.split(" ")[0] || undefined}
-                lastName={userProfile?.full_name?.split(" ").slice(1).join(" ") || undefined}
-                phone={userProfile?.phone || undefined}
-                couponCode={appliedCoupon?.code || undefined}
-                metadata={{
-                  event_id: event.id,
-                  ticket_type_name: ticketType.name,
-                  quantity: quantity,
-                  user_id: activeUser.id,
-                  guest_name: !user ? guestName : undefined
-                }}
-                onSuccess={handleSuccess}
-                onClose={() => console.log('Payment closed')}
-              />
             </div>
           ) : (
+            /* PAID TICKET FLOW — existing code unchanged */
             <div className="space-y-4">
-              {!isGuestMode ? (
-                <div className="space-y-3">
-                  <p className="text-zinc-500 text-xs text-center mb-1">Log in to track orders or proceed directly as a guest.</p>
-                  <Link 
-                    href={`/login?redirect=/events/${event.slug}`}
-                    className="w-full block text-center py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all cursor-pointer shadow-md shadow-indigo-600/10"
-                  >
-                    Log In / Create Account
-                  </Link>
-                  <button 
-                    onClick={() => setIsGuestMode(true)}
-                    className="w-full text-center py-3.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 text-zinc-700 font-bold transition-all border border-zinc-200 cursor-pointer"
-                  >
-                    Continue as Guest
-                  </button>
+              {activeUser ? (
+                <div className="space-y-4">
+                  {guestUser && (
+                    <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 text-xs text-indigo-600 font-semibold">
+                      Checking out as guest: <span className="font-bold">{guestEmail}</span>
+                    </div>
+                  )}
+                  <TransactpayButton
+                    email={activeUser.email}
+                    amount={totalAmount}
+                    firstName={userProfile?.full_name?.split(" ")[0] || undefined}
+                    lastName={userProfile?.full_name?.split(" ").slice(1).join(" ") || undefined}
+                    phone={userProfile?.phone || undefined}
+                    couponCode={appliedCoupon?.code || undefined}
+                    metadata={{
+                      event_id: event.id,
+                      ticket_type_name: ticketType.name,
+                      quantity: quantity,
+                      user_id: activeUser.id,
+                      guest_name: !user ? guestName : undefined
+                    }}
+                    onSuccess={handleSuccess}
+                    onClose={() => console.log('Payment closed')}
+                  />
                 </div>
               ) : (
-                <form onSubmit={handleGuestCheckoutSubmit} className="space-y-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <button 
-                      type="button"
-                      onClick={() => setIsGuestMode(false)}
-                      className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-800 transition-colors cursor-pointer"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5" /> Back to options
-                    </button>
-                    <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Guest Checkout</span>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Full Name</label>
-                      <div className="relative">
-                        <UserIcon className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
-                        <input
-                          type="text"
-                          required
-                          placeholder="Your full name"
-                          value={guestName}
-                          onChange={(e) => setGuestName(e.target.value)}
-                          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm"
-                        />
-                      </div>
+                <div className="space-y-4">
+                  {!isGuestMode ? (
+                    <div className="space-y-3">
+                      <p className="text-zinc-500 text-xs text-center mb-1">Log in to track orders or proceed directly as a guest.</p>
+                      <Link href={`/login?redirect=/events/${event.slug}`} className="w-full block text-center py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all cursor-pointer shadow-md shadow-indigo-600/10">
+                        Log In / Create Account
+                      </Link>
+                      <button onClick={() => setIsGuestMode(true)} className="w-full text-center py-3.5 rounded-xl bg-zinc-50 hover:bg-zinc-100 text-zinc-700 font-bold transition-all border border-zinc-200 cursor-pointer">
+                        Continue as Guest
+                      </button>
                     </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Email Address</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
-                        <input
-                          type="email"
-                          required
-                          placeholder="name@example.com"
-                          value={guestEmail}
-                          onChange={(e) => setGuestEmail(e.target.value)}
-                          className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm"
-                        />
+                  ) : (
+                    <form onSubmit={handleGuestCheckoutSubmit} className="space-y-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <button type="button" onClick={() => setIsGuestMode(false)} className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-800 transition-colors cursor-pointer">
+                          <ArrowLeft className="w-3.5 h-3.5" /> Back to options
+                        </button>
+                        <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Guest Checkout</span>
                       </div>
-                    </div>
-                  </div>
-
-                  {guestError && (
-                    <p className="text-red-500 text-xs font-bold text-center mt-1">{guestError}</p>
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Full Name</label>
+                          <div className="relative">
+                            <UserIcon className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
+                            <input type="text" required placeholder="Your full name" value={guestName} onChange={(e) => setGuestName(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Email Address</label>
+                          <div className="relative">
+                            <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
+                            <input type="email" required placeholder="name@example.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm" />
+                          </div>
+                        </div>
+                      </div>
+                      {guestError && <p className="text-red-500 text-xs font-bold text-center mt-1">{guestError}</p>}
+                      <button type="submit" disabled={loadingGuest} className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/20">
+                        {loadingGuest ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</> : "Continue to Payment"}
+                      </button>
+                    </form>
                   )}
-
-                  <button
-                    type="submit"
-                    disabled={loadingGuest}
-                    className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/20"
-                  >
-                    {loadingGuest ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" /> Processing...
-                      </>
-                    ) : (
-                      "Continue to Payment"
-                    )}
-                  </button>
-                </form>
+                </div>
               )}
             </div>
           )}

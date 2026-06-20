@@ -190,13 +190,15 @@ export default function EventDetailsClient({ event, user }: EventDetailsClientPr
                         Early‑bird! ✅
                       </p>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-amber-500 line-through text-sm">₦{Number(ticket.price).toLocaleString()}</span>
+                        {Number(ticket.price) !== 0 && (
+                          <span className="text-amber-500 line-through text-sm">₦{Number(ticket.price).toLocaleString()}</span>
+                        )}
                         <span className="text-xl font-bold text-amber-600">₦{Number(ticket.early_bird_price ?? ticket.price).toLocaleString()}</span>
                       </div>
                     </>
                   ) : (
                     <p className={`text-2xl font-bold font-heading ${isUnavailable ? "text-zinc-400" : "text-zinc-900 dark:text-white"}`}>
-                      ₦{Number(ticket.price).toLocaleString()}
+                      {Number(ticket.price) === 0 ? "Free" : `₦${Number(ticket.price).toLocaleString()}`}
                     </p>
                   )}
                 </div>

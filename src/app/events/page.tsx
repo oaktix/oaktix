@@ -217,7 +217,10 @@ export default async function DiscoverEvents({
                       <div>
                         <span className="text-[10px] text-zinc-500 font-bold block uppercase tracking-wide">Tickets from</span>
                         <span className="text-lg font-bold text-white">
-                          ₦{Number(event.price_naira || event.ticket_types?.[0]?.price || 0).toLocaleString()}
+                          {(() => {
+                            const price = Number(event.price_naira || event.ticket_types?.[0]?.price || 0);
+                            return price === 0 ? "Free" : `₦${price.toLocaleString()}`;
+                          })()}
                         </span>
                       </div>
                       <span className="px-5 py-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all font-bold text-xs">
