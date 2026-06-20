@@ -6,6 +6,38 @@ import { addPortfolioItem, deletePortfolioItem } from "@/lib/professionals/actio
 import { Plus, Trash2, Image, Film, ExternalLink, AlertCircle, CheckCircle, Upload } from "lucide-react";
 import type { ProfessionalPortfolio, Professional } from "@/lib/professionals/types";
 
+type VideoMeta = {
+  platform: 'youtube' | 'instagram' | 'tiktok';
+  thumbnailUrl: string | null;
+  label: string;
+} | null;
+
+function parseVideoUrl(url: string): VideoMeta {
+  if (!url) return null;
+  // YouTube: watch?v=, youtu.be/, /shorts/, /embed/
+  const ytMatch =
+    url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ||
+    url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/) ||
+    url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/) ||
+    url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) {
+    return {
+      platform: 'youtube',
+      thumbnailUrl: `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`,
+      label: 'YouTube',
+    };
+  }
+  // Instagram Reels or posts
+  if (/instagram\.com\/(reel|p)\//.test(url)) {
+    return { platform: 'instagram', thumbnailUrl: null, label: 'Instagram Reel' };
+  }
+  // TikTok
+  if (/tiktok\.com/.test(url)) {
+    return { platform: 'tiktok', thumbnailUrl: null, label: 'TikTok' };
+  }
+  return null;
+}
+
 // Only 'image' and 'video' are supported in the DB schema
 const MEDIA_TYPES = [
   { value: "image" as const, label: "Image", icon: Image },
@@ -28,7 +60,6 @@ export default function ProfessionalPortfolioPage() {
     title: "",
     description: "",
     media_url: "",
-    thumbnail_url: "",
     media_type: "image" as "image" | "video",
   });
 
@@ -80,6 +111,10 @@ export default function ProfessionalPortfolioPage() {
       setError("Title and media URL are required.");
       return;
     }
+    if (form.media_type !== "image" && form.media_url && !parseVideoUrl(form.media_url)) {
+      setError("Please use a YouTube, Instagram Reel, or TikTok link.");
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -104,11 +139,12 @@ export default function ProfessionalPortfolioPage() {
       }
     }
 
+    const videoMeta = form.media_type !== "image" ? parseVideoUrl(finalMediaUrl) : null;
     const result = await addPortfolioItem(professional.id, {
       title: form.title,
       description: form.description || undefined,
       media_url: finalMediaUrl,
-      thumbnail_url: form.thumbnail_url || undefined,
+      thumbnail_url: videoMeta?.thumbnailUrl ?? undefined,
       media_type: form.media_type,
     });
 
@@ -117,7 +153,7 @@ export default function ProfessionalPortfolioPage() {
       setSuccess("Portfolio item added!");
       setShowForm(false);
       setMediaFile(null);
-      setForm({ title: "", description: "", media_url: "", thumbnail_url: "", media_type: "image" });
+      setForm({ title: "", description: "", media_url: "", media_type: "image" });
       await loadData();
       setTimeout(() => setSuccess(null), 3000);
     } else {
@@ -282,29 +318,46 @@ export default function ProfessionalPortfolioPage() {
                 </div>
               </div>
             ) : (
-              <div className="sm:col-span-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Media URL *</label>
+              <div className="sm:col-span-2 space-y-3">
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                  Video Link *
+                </label>
                 <input
                   type="url"
                   value={form.media_url}
-                  onChange={(e) => setForm((p) => ({ ...p, media_url: e.target.value }))}
-                  placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                  onChange={(e) => setForm(p => ({ ...p, media_url: e.target.value }))}
+                  placeholder="Paste a YouTube, Instagram Reel, or TikTok link..."
+                  className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
                 />
-                <p className="text-[11px] text-zinc-400 mt-1">Paste a YouTube or Vimeo URL — it will be embedded automatically.</p>
-              </div>
-            )}
-
-            {form.media_type !== "image" && (
-              <div className="sm:col-span-2">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Thumbnail URL (optional)</label>
-                <input
-                  type="url"
-                  value={form.thumbnail_url}
-                  onChange={(e) => setForm((p) => ({ ...p, thumbnail_url: e.target.value }))}
-                  placeholder="https://example.com/thumbnail.jpg"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-                />
+                {/* Detection feedback */}
+                {(() => {
+                  const meta = parseVideoUrl(form.media_url);
+                  if (!form.media_url) return null;
+                  if (!meta) {
+                    return (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        ⚠ Unsupported link. Please use YouTube, Instagram Reel, or TikTok.
+                      </p>
+                    );
+                  }
+                  return (
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                      {meta.thumbnailUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={meta.thumbnailUrl} alt="Video thumbnail" className="w-24 h-16 object-cover rounded-lg flex-shrink-0" />
+                      ) : (
+                        <div className="w-24 h-16 rounded-lg bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0 text-2xl">
+                          {meta.platform === 'instagram' ? '📸' : '🎵'}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{meta.label} detected</p>
+                        <p className="text-xs text-zinc-500 mt-1 break-all">{form.media_url}</p>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <p className="text-xs text-zinc-400">Supported: YouTube, Instagram Reels, TikTok</p>
               </div>
             )}
 

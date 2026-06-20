@@ -128,6 +128,43 @@ export async function createProfessionalProfile(
   }
 
   revalidatePath("/professionals");
+
+  // Fire-and-forget registration emails
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://oaktix.com.ng";
+    const { sendProfessionalRegistrationAdminEmail, sendProfessionalRegistrationConfirmationEmail } = await import("@/lib/email");
+
+    // Fetch category name for the admin email
+    let categoryName = "Unknown";
+    if (step2.category_id) {
+      const { data: cat } = await supabase
+        .from("professional_categories")
+        .select("name")
+        .eq("id", step2.category_id)
+        .maybeSingle();
+      if (cat?.name) categoryName = cat.name;
+    }
+
+    await Promise.all([
+      sendProfessionalRegistrationAdminEmail({
+        professionalName: step2.professional_name,
+        category: categoryName,
+        city: step2.city ?? null,
+        state: step2.state ?? null,
+        applicantEmail: user.email ?? "unknown",
+        adminUrl: `${siteUrl}/admin/professionals`,
+      }),
+      user.email
+        ? sendProfessionalRegistrationConfirmationEmail({
+            to: user.email,
+            professionalName: step2.professional_name,
+          })
+        : Promise.resolve(),
+    ]);
+  } catch (emailErr) {
+    console.error("createProfessionalProfile — registration emails failed:", emailErr);
+  }
+
   return { success: true, slug: data.slug };
 }
 
@@ -537,6 +574,40 @@ export async function approveProfessional(
 
   revalidatePath("/admin/professionals");
   revalidatePath("/professionals");
+
+  // Fire-and-forget approval email to the professional
+  try {
+    const { data: prof } = await supabase
+      .from("professionals")
+      .select("professional_name, email, user_id, slug")
+      .eq("id", professionalId)
+      .maybeSingle();
+
+    if (prof) {
+      let recipientEmail = prof.email;
+      if (!recipientEmail && prof.user_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", prof.user_id)
+          .maybeSingle();
+        recipientEmail = profile?.email ?? null;
+      }
+
+      if (recipientEmail) {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://oaktix.com.ng";
+        const { sendProfessionalApprovalEmail } = await import("@/lib/email");
+        await sendProfessionalApprovalEmail({
+          to: recipientEmail,
+          professionalName: prof.professional_name,
+          profileUrl: `${siteUrl}/professionals/${prof.slug}`,
+        });
+      }
+    }
+  } catch (emailErr) {
+    console.error("approveProfessional — approval email failed:", emailErr);
+  }
+
   return { success: true };
 }
 
