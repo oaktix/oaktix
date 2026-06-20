@@ -4,17 +4,20 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { updateProfessionalProfile } from "@/lib/professionals/actions";
-import { Save, CheckCircle, AlertCircle } from "lucide-react";
+import { Save, CheckCircle, AlertCircle, Upload } from "lucide-react";
 import type { Professional } from "@/lib/professionals/types";
 import { NIGERIAN_STATES, PRICING_TYPE_LABELS } from "@/lib/professionals/types";
 
 export default function ProfessionalSettingsPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     professional_name: "",
@@ -42,7 +45,6 @@ export default function ProfessionalSettingsPage() {
 
   useEffect(() => {
     async function load() {
-      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login"); return; }
 
@@ -91,8 +93,49 @@ export default function ProfessionalSettingsPage() {
     setError(null);
     setSuccess(false);
 
+    // Use local overrides for newly uploaded URLs so we don't depend on async setState
+    let uploadedProfilePhoto = form.profile_photo;
+    let uploadedCoverImage = form.cover_image;
+
+    if (profilePhotoFile || coverImageFile) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id ?? "anonymous";
+
+        if (profilePhotoFile) {
+          const fileExt = profilePhotoFile.name.split(".").pop();
+          const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage
+            .from("professional-images")
+            .upload(fileName, profilePhotoFile);
+          if (uploadError) throw new Error("Image upload failed: " + uploadError.message);
+          uploadedProfilePhoto = supabase.storage.from("professional-images").getPublicUrl(fileName).data.publicUrl;
+          setForm((p) => ({ ...p, profile_photo: uploadedProfilePhoto }));
+          setProfilePhotoFile(null);
+        }
+
+        if (coverImageFile) {
+          const fileExt = coverImageFile.name.split(".").pop();
+          const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const { error: uploadError } = await supabase.storage
+            .from("professional-images")
+            .upload(fileName, coverImageFile);
+          if (uploadError) throw new Error("Image upload failed: " + uploadError.message);
+          uploadedCoverImage = supabase.storage.from("professional-images").getPublicUrl(fileName).data.publicUrl;
+          setForm((p) => ({ ...p, cover_image: uploadedCoverImage }));
+          setCoverImageFile(null);
+        }
+      } catch (err) {
+        setSaving(false);
+        setError("Image upload failed: " + (err instanceof Error ? err.message : String(err)));
+        return;
+      }
+    }
+
     const result = await updateProfessionalProfile(professional.id, {
       ...form,
+      profile_photo: uploadedProfilePhoto,
+      cover_image: uploadedCoverImage,
       years_of_experience: Number(form.years_of_experience),
       starting_price: form.starting_price ? Number(form.starting_price) : undefined,
     } as Parameters<typeof updateProfessionalProfile>[1]);
@@ -186,11 +229,60 @@ export default function ProfessionalSettingsPage() {
 
       {/* Images */}
       <Section title="Profile Images">
-        <Field label="Profile Photo URL" className="sm:col-span-2">
-          <input type="url" value={form.profile_photo} onChange={(e) => update("profile_photo", e.target.value)} placeholder="https://..." className="input" />
+        {/* Profile Photo */}
+        <Field label="Profile Photo" className="sm:col-span-2">
+          <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-4 flex flex-col items-center gap-3">
+            {(profilePhotoFile || form.profile_photo) ? (
+              <div className="relative w-24 h-24">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={profilePhotoFile ? URL.createObjectURL(profilePhotoFile) : form.profile_photo}
+                  alt="Profile preview"
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+                <button type="button" onClick={() => { setProfilePhotoFile(null); update("profile_photo", ""); }}
+                  className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">✕</button>
+              </div>
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                <Upload className="w-8 h-8 text-zinc-400" />
+              </div>
+            )}
+            <label className="cursor-pointer px-4 py-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:bg-indigo-500/20 transition-colors">
+              {profilePhotoFile ? "Change Photo" : "Upload Photo"}
+              <input type="file" accept="image/*" className="sr-only"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) setProfilePhotoFile(f); }} />
+            </label>
+            <p className="text-xs text-zinc-400">JPG, PNG, WebP up to 5MB</p>
+          </div>
         </Field>
-        <Field label="Cover Image URL" className="sm:col-span-2">
-          <input type="url" value={form.cover_image} onChange={(e) => update("cover_image", e.target.value)} placeholder="https://..." className="input" />
+
+        {/* Cover Image */}
+        <Field label="Cover Image" className="sm:col-span-2">
+          <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-4 flex flex-col items-center gap-3">
+            {(coverImageFile || form.cover_image) ? (
+              <div className="relative w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={coverImageFile ? URL.createObjectURL(coverImageFile) : form.cover_image}
+                  alt="Cover preview"
+                  className="w-full h-24 object-cover rounded-xl"
+                />
+                <button type="button" onClick={() => { setCoverImageFile(null); update("cover_image", ""); }}
+                  className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">✕</button>
+              </div>
+            ) : (
+              <div className="w-full h-24 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                <Upload className="w-8 h-8 text-zinc-400" />
+              </div>
+            )}
+            <label className="cursor-pointer px-4 py-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:bg-indigo-500/20 transition-colors">
+              {coverImageFile ? "Change Cover" : "Upload Cover"}
+              <input type="file" accept="image/*" className="sr-only"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) setCoverImageFile(f); }} />
+            </label>
+            <p className="text-xs text-zinc-400">JPG, PNG, WebP up to 5MB</p>
+          </div>
         </Field>
       </Section>
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { addPortfolioItem, deletePortfolioItem } from "@/lib/professionals/actions";
-import { Plus, Trash2, Image, Film, ExternalLink, AlertCircle, CheckCircle } from "lucide-react";
+import { Plus, Trash2, Image, Film, ExternalLink, AlertCircle, CheckCircle, Upload } from "lucide-react";
 import type { ProfessionalPortfolio, Professional } from "@/lib/professionals/types";
 
 // Only 'image' and 'video' are supported in the DB schema
@@ -13,6 +13,7 @@ const MEDIA_TYPES = [
 ];
 
 export default function ProfessionalPortfolioPage() {
+  const supabase = createClient();
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [portfolio, setPortfolio] = useState<ProfessionalPortfolio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +22,7 @@ export default function ProfessionalPortfolioPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -35,7 +37,6 @@ export default function ProfessionalPortfolioPage() {
   }, []);
 
   async function loadData() {
-    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -65,17 +66,48 @@ export default function ProfessionalPortfolioPage() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!professional) return;
-    if (!form.title || !form.media_url) {
+    if (!form.title) {
+      setError("Title is required.");
+      return;
+    }
+
+    // For image type, require a file; for video, require a URL
+    if (form.media_type === "image" && !mediaFile) {
+      setError("Please select an image file.");
+      return;
+    }
+    if (form.media_type !== "image" && !form.media_url) {
       setError("Title and media URL are required.");
       return;
     }
+
     setSaving(true);
     setError(null);
+
+    let finalMediaUrl = form.media_url;
+
+    if (form.media_type === "image" && mediaFile) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id ?? "anonymous";
+        const fileExt = mediaFile.name.split(".").pop();
+        const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("portfolio-images")
+          .upload(fileName, mediaFile);
+        if (uploadError) throw new Error("Image upload failed: " + uploadError.message);
+        finalMediaUrl = supabase.storage.from("portfolio-images").getPublicUrl(fileName).data.publicUrl;
+      } catch (err) {
+        setSaving(false);
+        setError("Image upload failed: " + (err instanceof Error ? err.message : String(err)));
+        return;
+      }
+    }
 
     const result = await addPortfolioItem(professional.id, {
       title: form.title,
       description: form.description || undefined,
-      media_url: form.media_url,
+      media_url: finalMediaUrl,
       thumbnail_url: form.thumbnail_url || undefined,
       media_type: form.media_type,
     });
@@ -84,6 +116,7 @@ export default function ProfessionalPortfolioPage() {
     if (result.success) {
       setSuccess("Portfolio item added!");
       setShowForm(false);
+      setMediaFile(null);
       setForm({ title: "", description: "", media_url: "", thumbnail_url: "", media_type: "image" });
       await loadData();
       setTimeout(() => setSuccess(null), 3000);
@@ -226,23 +259,41 @@ export default function ProfessionalPortfolioPage() {
               />
             </div>
 
-            <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Media URL *</label>
-              <input
-                type="url"
-                value={form.media_url}
-                onChange={(e) => setForm((p) => ({ ...p, media_url: e.target.value }))}
-                placeholder={
-                  form.media_type === "video"
-                    ? "https://youtube.com/watch?v=... or https://vimeo.com/..."
-                    : "https://example.com/my-photo.jpg"
-                }
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-              />
-              {form.media_type === "video" && (
+            {form.media_type === "image" ? (
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Image File *</label>
+                <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-4">
+                  {mediaFile ? (
+                    <div className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={URL.createObjectURL(mediaFile)} alt="Preview" className="w-full h-40 object-cover rounded-lg" />
+                      <button type="button" onClick={() => setMediaFile(null)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">✕</button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center gap-2 cursor-pointer py-4">
+                      <Upload className="w-8 h-8 text-zinc-400" />
+                      <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">Click to upload image</span>
+                      <span className="text-xs text-zinc-400">JPG, PNG, WebP up to 10MB</span>
+                      <input type="file" accept="image/*" className="sr-only"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) setMediaFile(f); }} />
+                    </label>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="sm:col-span-2">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Media URL *</label>
+                <input
+                  type="url"
+                  value={form.media_url}
+                  onChange={(e) => setForm((p) => ({ ...p, media_url: e.target.value }))}
+                  placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                />
                 <p className="text-[11px] text-zinc-400 mt-1">Paste a YouTube or Vimeo URL — it will be embedded automatically.</p>
-              )}
-            </div>
+              </div>
+            )}
 
             {form.media_type !== "image" && (
               <div className="sm:col-span-2">
@@ -279,7 +330,7 @@ export default function ProfessionalPortfolioPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setShowForm(false); setError(null); }}
+              onClick={() => { setShowForm(false); setError(null); setMediaFile(null); }}
               className="px-5 py-2.5 rounded-xl border border-[#E8EBE7] dark:border-white/10 text-zinc-600 dark:text-zinc-300 font-bold text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
             >
               Cancel
