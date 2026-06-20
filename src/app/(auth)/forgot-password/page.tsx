@@ -2,30 +2,31 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Mail, KeyRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+
+type Step = "email" | "otp";
 
 export default function ForgotPasswordPage() {
+  const [step, setStep] = useState<Step>("email");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
   const supabase = createClient();
 
-  async function handleReset(e: React.FormEvent<HTMLFormElement>) {
+  // Step 1 — send OTP to the user's email
+  async function handleSendCode(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMessage(null);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
+    const emailValue = (formData.get("email") as string).trim().toLowerCase();
+    setEmail(emailValue);
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      // Use the bare callback URL — no query params — so it exactly matches the
-      // Supabase redirect allow list. The callback route detects type=recovery
-      // and routes to /reset-password automatically.
-      redirectTo: `${window.location.origin}/auth/callback`,
-    });
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(emailValue);
 
     if (resetError) {
       setError(resetError.message);
@@ -33,8 +34,35 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    setMessage("Check your email for the password reset link.");
     setLoading(false);
+    setStep("otp");
+  }
+
+  // Step 2 — verify the OTP code and redirect to set a new password
+  async function handleVerifyOtp(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const token = (formData.get("otp") as string).trim().replace(/\s/g, "");
+
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: "recovery",
+    });
+
+    if (verifyError) {
+      setError(verifyError.message === "Token has expired or is invalid"
+        ? "That code is incorrect or has expired. Please request a new one."
+        : verifyError.message);
+      setLoading(false);
+      return;
+    }
+
+    // Session is now set — redirect to the reset-password form
+    router.push("/reset-password");
   }
 
   return (
@@ -51,39 +79,94 @@ export default function ForgotPasswordPage() {
       </Link>
 
       <div className="glass-card w-full max-w-md p-8 relative z-10 bg-white border border-[#E8EBE7] shadow-sm">
-        <h1 className="text-2xl font-bold font-heading mb-2 text-center text-zinc-900">Reset password</h1>
-        <p className="text-zinc-500 text-center mb-8 text-sm">We will email you a link to reset your password.</p>
+        {step === "email" ? (
+          <>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+                <Mail className="w-5 h-5 text-indigo-500" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold font-heading text-zinc-900">Forgot password?</h1>
+                <p className="text-zinc-500 text-xs">We&apos;ll send a code to your email.</p>
+              </div>
+            </div>
 
-        {message && (
-          <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 mb-6 text-sm text-indigo-500 text-center font-bold">
-            {message}
-          </div>
+            <form onSubmit={handleSendCode} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Email Address</label>
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="name@example.com"
+                  className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
+                />
+              </div>
+
+              {error && <p className="text-red-500 text-xs font-bold text-center">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10 cursor-pointer"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Reset Code"}
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center flex-shrink-0">
+                <KeyRound className="w-5 h-5 text-indigo-500" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold font-heading text-zinc-900">Enter your code</h1>
+                <p className="text-zinc-500 text-xs">Sent to <span className="font-semibold text-zinc-700">{email}</span></p>
+              </div>
+            </div>
+
+            <div className="bg-indigo-500/8 border border-indigo-500/20 rounded-xl p-3 mb-6 text-xs text-indigo-700 font-medium text-center">
+              Check your inbox for the reset code — it expires in 1 hour.
+            </div>
+
+            <form onSubmit={handleVerifyOtp} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Reset Code</label>
+                <input
+                  name="otp"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                  placeholder="12345678"
+                  maxLength={8}
+                  className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-2xl font-mono font-bold text-center tracking-widest text-zinc-800 placeholder:text-zinc-300 placeholder:text-base placeholder:tracking-normal placeholder:font-sans placeholder:font-normal"
+                />
+              </div>
+
+              {error && <p className="text-red-500 text-xs font-bold text-center">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10 cursor-pointer"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Code"}
+              </button>
+            </form>
+
+            <button
+              type="button"
+              onClick={() => { setStep("email"); setError(null); }}
+              className="w-full mt-4 text-center text-xs text-zinc-400 hover:text-indigo-500 font-bold uppercase tracking-wide transition-colors cursor-pointer"
+            >
+              Resend or use a different email
+            </button>
+          </>
         )}
 
-        <form onSubmit={handleReset} className="space-y-5">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">Email Address</label>
-            <input
-              name="email"
-              type="email"
-              required
-              placeholder="name@example.com"
-              className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
-            />
-          </div>
-
-          {error && <p className="text-red-500 text-xs font-bold text-center mt-2">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10 mt-4 cursor-pointer"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Reset Link"}
-          </button>
-        </form>
-
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           <Link href="/login" className="inline-flex items-center gap-2 text-zinc-500 hover:text-indigo-500 font-bold text-xs uppercase tracking-wide transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to login
           </Link>
