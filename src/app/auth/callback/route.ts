@@ -9,21 +9,26 @@ export async function GET(request: Request) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/dashboard";
 
+  // Password recovery always lands on the reset-password form regardless of
+  // what "next" was set to.  This avoids problems where the redirectTo URL
+  // with query-params doesn't exactly match the Supabase allow-list entry.
+  const destination = type === "recovery" ? "/reset-password" : next;
+
   const supabase = await createClient();
 
-  // PKCE flow — magic link / OAuth / email confirmation
+  // PKCE flow — magic link / OAuth / email confirmation / password recovery
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 
-  // Token-hash flow — password recovery links sent by Supabase Auth
+  // Token-hash flow — password recovery links (non-PKCE / token_hash format)
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash, type });
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 
