@@ -14,6 +14,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
+  const next = searchParams.get("next");
   const supabase = createClient();
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
@@ -37,6 +38,13 @@ function LoginForm() {
     }
 
     if (data.user) {
+      // If a `?next=` redirect is present, honour it before role-based routing.
+      if (next) {
+        router.push(next);
+        router.refresh();
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
@@ -134,11 +142,17 @@ function LoginForm() {
           </button>
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center space-y-3">
           <p className="text-zinc-500 text-sm">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-indigo-500 hover:text-indigo-600 font-bold transition-colors">
               Sign up
+            </Link>
+          </p>
+          <p className="text-zinc-400 text-xs">
+            Event professional?{" "}
+            <Link href="/login?next=/professional" className="text-indigo-500 hover:text-indigo-600 font-bold transition-colors">
+              Professional Login
             </Link>
           </p>
         </div>

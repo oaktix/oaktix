@@ -224,7 +224,55 @@ export default async function Home() {
             )}
           </div>
 
-          {/* 4.5 Discover Event Professionals Section */}
+          {/* 4.5 For Event Professionals CTA Section */}
+          <div className="w-full mb-12 relative z-10">
+            <div className="rounded-3xl bg-indigo-500/10 dark:bg-indigo-500/5 border border-indigo-500/20 dark:border-indigo-500/15 p-8 md:p-12 grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+
+              <div className="lg:col-span-3 space-y-6">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-xs font-bold text-indigo-600 uppercase tracking-wide">
+                  For Event Professionals
+                </span>
+                <h2 className="text-3xl md:text-4xl font-bold font-heading text-indigo-600 dark:text-indigo-400 tracking-tight leading-tight">
+                  Get hired at events across Nigeria.
+                </h2>
+                <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed max-w-lg">
+                  Join our vetted directory of photographers, DJs, MCs, decorators and more. Clients search, you get booked — no commission taken.
+                </p>
+
+                <div className="flex flex-wrap gap-4 pt-2">
+                  <Link
+                    href="/professionals/register"
+                    className="px-6 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/10"
+                  >
+                    Create Your Profile
+                  </Link>
+                  <Link
+                    href="/login?next=/professional"
+                    className="px-6 py-3 rounded-xl border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/5 font-bold text-sm transition-all"
+                  >
+                    Professional Login
+                  </Link>
+                </div>
+              </div>
+
+              <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+                {[
+                  { title: "₦0", desc: "listing fee" },
+                  { title: "Free", desc: "forever plan" },
+                  { title: "1,000+", desc: "monthly searches" },
+                  { title: "Direct", desc: "client contact" },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white/80 dark:bg-white/5 p-5 rounded-2xl border border-indigo-500/10 dark:border-indigo-500/15 text-center">
+                    <div className="text-3xl font-bold font-heading text-indigo-500 mb-1">{stat.title}</div>
+                    <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">{stat.desc}</div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </div>
+
+          {/* 4.6 Discover Event Professionals Section */}
           <HomepageProfessionalsSection categoryGroups={professionalsCategoryGroups} />
 
           {/* 5. For Event Organisers Section */}

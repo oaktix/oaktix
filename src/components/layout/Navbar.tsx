@@ -74,6 +74,12 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
           {user ? (
             <>
               <Link
+                href="/professional"
+                className={`text-sm font-bold transition-colors text-zinc-600 dark:text-zinc-300 hover:text-indigo-500 dark:hover:text-white`}
+              >
+                Pro Dashboard
+              </Link>
+              <Link
                 href="/organizer/events"
               className={`text-sm font-bold flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 hover:text-indigo-500 dark:hover:text-white transition-colors`}
               >
@@ -90,6 +96,12 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
             </>
           ) : (
             <>
+              <Link
+                href="/professionals/register"
+                className={`text-sm font-bold transition-colors text-zinc-500 dark:text-zinc-400 hover:text-indigo-500 dark:hover:text-white`}
+              >
+                Join as Pro
+              </Link>
               <Link
                 href="/login"
                 className={`text-sm font-bold transition-colors text-zinc-650 dark:text-zinc-400 hover:text-indigo-500 dark:hover:text-white`}
@@ -205,6 +217,13 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
             {user ? (
               <>
                 <Link
+                  href="/professional"
+                  onClick={() => setIsOpen(false)}
+                  className={`w-full py-3.5 rounded-xl border font-bold text-center block transition-all border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/5`}
+                >
+                  Pro Dashboard
+                </Link>
+                <Link
                   href="/organizer/events"
                   onClick={() => setIsOpen(false)}
                   className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-750 text-white font-bold text-center block transition-all shadow-md shadow-indigo-600/20"
@@ -223,6 +242,13 @@ export default function Navbar({ theme = "light", user = null }: NavbarProps) {
               </>
             ) : (
               <>
+                <Link
+                  href="/professionals/register"
+                  onClick={() => setIsOpen(false)}
+                  className={`w-full py-3.5 rounded-xl border font-bold text-center block transition-all border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/5`}
+                >
+                  Join as Professional
+                </Link>
                 <Link
                   href="/login"
                   onClick={() => setIsOpen(false)}

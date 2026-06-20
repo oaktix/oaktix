@@ -61,6 +61,9 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Coupons", href: "/organizer/coupons", icon: Tag },
       { name: "Financials", href: "/organizer/finances", icon: Wallet },
       { name: "Settings", href: "/organizer/settings", icon: Settings },
+      { name: "Professional Profile", href: "/professional", icon: Briefcase },
+      { name: "My Portfolio", href: "/professional/portfolio", icon: Image },
+      { name: "Inquiries", href: "/professional/inquiries", icon: MessageSquare },
     ],
     admin: [
       { name: "Platform Health", href: "/admin", icon: LayoutDashboard },

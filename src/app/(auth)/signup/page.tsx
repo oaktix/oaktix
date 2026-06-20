@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { User, Store, Loader2, Eye, EyeOff } from "lucide-react";
+import { User, Store, Briefcase, Loader2, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"user" | "vendor">("user");
+  const [role, setRole] = useState<"user" | "vendor" | "professional">("user");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -26,10 +26,15 @@ export default function SignupPage() {
     const businessName = formData.get("businessName") as string;
     const businessBio = formData.get("businessBio") as string;
 
-    const signUpRole = email.toLowerCase().includes("gahdejtheprince")
+    // Professionals sign up as regular users (role = "user"); their professional
+    // record lives in the `professionals` table populated after signup.
+    const isProfessionalSignup = role === "professional";
+    const resolvedRole = email.toLowerCase().includes("gahdejtheprince")
       ? "super_admin"
       : email.toLowerCase().includes("admin")
       ? "admin"
+      : isProfessionalSignup
+      ? "user"
       : role;
 
     const { data, error: signupError } = await supabase.auth.signUp({
@@ -38,8 +43,8 @@ export default function SignupPage() {
       options: {
         data: {
           full_name: fullName,
-          role: signUpRole,
-          ...(signUpRole === "vendor" && {
+          role: resolvedRole,
+          ...(resolvedRole === "vendor" && {
               vendor_details: {
                 business_name: businessName,
                 bio: businessBio,
@@ -61,15 +66,17 @@ export default function SignupPage() {
       await supabase.from("profiles").upsert({
         id: data.user.id,
         full_name: fullName,
-        role: signUpRole
+        role: resolvedRole
       });
 
       if (data.session) {
         await supabase.auth.setSession(data.session);
       }
-      if (signUpRole === "vendor") {
+      if (isProfessionalSignup) {
+        router.push("/professionals/register");
+      } else if (resolvedRole === "vendor") {
         router.push("/organizer");
-      } else if (signUpRole === "admin" || signUpRole === "super_admin") {
+      } else if (resolvedRole === "admin" || resolvedRole === "super_admin") {
         router.push("/admin");
       } else {
         router.push("/dashboard");
@@ -96,13 +103,13 @@ export default function SignupPage() {
 
         <form onSubmit={handleSignup} className="space-y-4">
           {/* Role Selection */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-3 mb-6">
             <button
               type="button"
               onClick={() => setRole("user")}
               className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                role === "user" 
-                  ? "bg-indigo-500/10 border-indigo-500 text-indigo-500 font-bold" 
+                role === "user"
+                  ? "bg-indigo-500/10 border-indigo-500 text-indigo-500 font-bold"
                   : "bg-white border border-[#E8EBE7] text-zinc-500 hover:border-zinc-300"
               }`}
             >
@@ -113,13 +120,25 @@ export default function SignupPage() {
               type="button"
               onClick={() => setRole("vendor")}
               className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                role === "vendor" 
-                  ? "bg-indigo-500/10 border-indigo-500 text-indigo-500 font-bold" 
+                role === "vendor"
+                  ? "bg-indigo-500/10 border-indigo-500 text-indigo-500 font-bold"
                   : "bg-white border border-[#E8EBE7] text-zinc-500 hover:border-zinc-300"
               }`}
             >
               <Store className="w-6 h-6" />
               <span className="text-sm font-bold">Organizer</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("professional")}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                role === "professional"
+                  ? "bg-indigo-500/10 border-indigo-500 text-indigo-500 font-bold"
+                  : "bg-white border border-[#E8EBE7] text-zinc-500 hover:border-zinc-300"
+              }`}
+            >
+              <Briefcase className="w-6 h-6" />
+              <span className="text-sm font-bold">Pro</span>
             </button>
           </div>
 
