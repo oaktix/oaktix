@@ -296,6 +296,50 @@ export async function submitInquiry(
     return { success: false, error: "Failed to send inquiry. Please try again." };
   }
 
+  // Fire-and-forget email notification to the professional
+  try {
+    const { data: prof } = await supabase
+      .from("professionals")
+      .select("professional_name, email, user_id")
+      .eq("id", professionalId)
+      .maybeSingle();
+
+    if (prof) {
+      // Prefer the professional's direct contact email; fall back to their account email
+      let recipientEmail = prof.email;
+      if (!recipientEmail && prof.user_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", prof.user_id)
+          .maybeSingle();
+        recipientEmail = profile?.email ?? null;
+      }
+
+      if (recipientEmail) {
+        const { sendProfessionalInquiryEmail } = await import("@/lib/email");
+        const dashboardUrl =
+          process.env.NEXT_PUBLIC_SITE_URL
+            ? `${process.env.NEXT_PUBLIC_SITE_URL}/professional/inquiries`
+            : "https://oaktix.com.ng/professional/inquiries";
+
+        await sendProfessionalInquiryEmail({
+          to: recipientEmail,
+          professionalName: prof.professional_name,
+          clientName: formData.name,
+          clientEmail: formData.email,
+          eventType: formData.event_type,
+          eventDate: formData.event_date,
+          message: formData.message,
+          dashboardUrl,
+        });
+      }
+    }
+  } catch (emailErr) {
+    console.error("submitInquiry — email notification failed:", emailErr);
+    // Non-blocking: inquiry was saved successfully, email failure should not surface to client
+  }
+
   return { success: true };
 }
 
