@@ -29,6 +29,10 @@ interface SidebarProps {
   role: 'user' | 'vendor' | 'admin' | 'super_admin' | 'staff';
 }
 
+type NavItem =
+  | { name: string; href: string; icon: React.ElementType }
+  | { separator: true; label: string };
+
 export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -40,7 +44,7 @@ export function Sidebar({ role }: SidebarProps) {
     router.refresh();
   };
 
-  const navItems = {
+  const navItems: Record<string, NavItem[]> = {
     user: [
       { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
       { name: "My Tickets", href: "/dashboard/tickets", icon: Ticket },
@@ -61,6 +65,7 @@ export function Sidebar({ role }: SidebarProps) {
       { name: "Coupons", href: "/organizer/coupons", icon: Tag },
       { name: "Financials", href: "/organizer/finances", icon: Wallet },
       { name: "Settings", href: "/organizer/settings", icon: Settings },
+      { separator: true, label: "Professional" },
       { name: "Professional Profile", href: "/professional", icon: Briefcase },
       { name: "My Portfolio", href: "/professional/portfolio", icon: Image },
       { name: "Inquiries", href: "/professional/inquiries", icon: MessageSquare },
@@ -107,15 +112,22 @@ export function Sidebar({ role }: SidebarProps) {
       </div>
 
       <nav className="flex-1 space-y-1">
-        {items.map((item) => {
+        {items.map((item, i) => {
+          if ("separator" in item) {
+            return (
+              <div key={`sep-${i}`} className="pt-4 pb-1 px-4">
+                <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">{item.label}</p>
+              </div>
+            );
+          }
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                isActive 
-                  ? "bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 font-bold" 
+                isActive
+                  ? "bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 font-bold"
                   : "text-zinc-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 font-medium"
               }`}
             >

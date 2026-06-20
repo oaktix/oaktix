@@ -39,8 +39,11 @@ function LoginForm() {
 
     if (data.user) {
       // If a `?next=` redirect is present, honour it before role-based routing.
-      if (next) {
-        router.push(next);
+      // Validate: must be a relative path (starts with /) and not protocol-relative (//).
+      const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+      if (safeNext) {
+        setLoading(false);
+        router.push(safeNext);
         router.refresh();
         return;
       }
