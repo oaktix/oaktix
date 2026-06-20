@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  BadgeCheck, Flame, Star, MapPin, Check, X, Ban, ExternalLink, Search, ChevronDown,
+  BadgeCheck, Flame, Star, MapPin, Check, X, Ban, ExternalLink, Search, ChevronDown, Pencil,
 } from "lucide-react";
 import {
   approveProfessional,
@@ -118,6 +118,13 @@ export default function AdminProfessionalsClient({ professionals }: AdminProfess
 
                 {/* Actions */}
                 <div className="flex flex-wrap gap-2 flex-shrink-0">
+                  <Link
+                    href={`/admin/professionals/${p.id}`}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#E8EBE7] dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-indigo-500/30 hover:text-indigo-600 text-xs font-bold transition-all"
+                    title="Edit professional"
+                  >
+                    <Pencil className="w-3.5 h-3.5" /> Edit
+                  </Link>
                   <Link
                     href={`/professionals/${p.slug}`}
                     target="_blank"

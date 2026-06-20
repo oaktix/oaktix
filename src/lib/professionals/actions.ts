@@ -754,3 +754,85 @@ export async function createCategory(data: {
   revalidatePath("/professionals");
   return { success: true };
 }
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN — full profile edit and delete
+// ─────────────────────────────────────────────────────────────
+
+export async function adminUpdateProfessional(
+  professionalId: string,
+  updates: {
+    professional_name?: string;
+    business_name?: string | null;
+    headline?: string | null;
+    bio?: string | null;
+    years_of_experience?: number;
+    category_id?: string | null;
+    city?: string | null;
+    state?: string | null;
+    country?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    whatsapp?: string | null;
+    website?: string | null;
+    instagram?: string | null;
+    facebook?: string | null;
+    twitter?: string | null;
+    linkedin?: string | null;
+    tiktok?: string | null;
+    youtube?: string | null;
+    pricing_type?: "fixed" | "hourly" | "per_event" | "negotiable";
+    starting_price?: number | null;
+    currency?: string;
+    verified?: boolean;
+    featured?: boolean;
+    top_rated?: boolean;
+    most_booked?: boolean;
+    fast_responder?: boolean;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { user, allowed } = await assertAdmin(supabase);
+
+  if (!user) return { success: false, error: "Not authenticated" };
+  if (!allowed) return { success: false, error: "Forbidden" };
+
+  const { error } = await supabase
+    .from("professionals")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", professionalId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/admin/professionals");
+  revalidatePath(`/admin/professionals/${professionalId}`);
+  revalidatePath("/professionals");
+  return { success: true };
+}
+
+export async function adminDeleteProfessional(
+  professionalId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { user, allowed } = await assertAdmin(supabase);
+
+  if (!user) return { success: false, error: "Not authenticated" };
+  if (!allowed) return { success: false, error: "Forbidden" };
+
+  // Delete portfolio items first (FK constraint)
+  await supabase
+    .from("professional_portfolio")
+    .delete()
+    .eq("professional_id", professionalId);
+
+  const { error } = await supabase
+    .from("professionals")
+    .delete()
+    .eq("id", professionalId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/admin/professionals");
+  revalidatePath("/professionals");
+  return { success: true };
+}
