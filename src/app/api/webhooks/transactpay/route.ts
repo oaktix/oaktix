@@ -115,13 +115,20 @@ export async function POST(req: Request) {
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
           email: customerEmail,
           password: tempPassword,
-          email_confirm: true,
+          email_confirm: false,
           user_metadata: {
             full_name: customerName,
             role: "user",
-            otp_verified: true
           }
         });
+
+        // Send the OTP verification email so the guest can confirm their
+        // account when they first log in.
+        if (!createError && newUser?.user) {
+          await supabase.auth.resend({ type: "signup", email: customerEmail }).catch(() => {
+            // Non-fatal — guest can request a new code from the login page
+          });
+        }
 
         if (!createError && newUser?.user) {
           matchedUser = newUser.user;
