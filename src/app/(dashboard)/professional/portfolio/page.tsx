@@ -6,14 +6,18 @@ import { addPortfolioItem, deletePortfolioItem, updatePortfolioItem } from "@/li
 import { Plus, Trash2, Image, Film, ExternalLink, AlertCircle, CheckCircle, Upload, Pencil, X } from "lucide-react";
 import type { ProfessionalPortfolio, Professional } from "@/lib/professionals/types";
 
+type VideoPlatform = "youtube" | "instagram" | "tiktok" | "vimeo";
+
 type VideoMeta = {
-  platform: "youtube" | "instagram" | "tiktok";
-  thumbnailUrl: string | null;
+  platform: VideoPlatform;
+  embedUrl: string | null; // null = cannot embed inline
   label: string;
 } | null;
 
 function parseVideoUrl(url: string): VideoMeta {
   if (!url) return null;
+
+  // YouTube (watch, short, Shorts, embed)
   const ytMatch =
     url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ||
     url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/) ||
@@ -22,16 +26,29 @@ function parseVideoUrl(url: string): VideoMeta {
   if (ytMatch) {
     return {
       platform: "youtube",
-      thumbnailUrl: `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`,
+      embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?rel=0`,
       label: "YouTube",
     };
   }
-  if (/instagram\.com\/(reel|p)\//.test(url)) {
-    return { platform: "instagram", thumbnailUrl: null, label: "Instagram Reel" };
+
+  // TikTok — full URL with video ID can be embedded
+  const tikMatch = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+  if (tikMatch) {
+    return {
+      platform: "tiktok",
+      embedUrl: `https://www.tiktok.com/embed/v2/${tikMatch[1]}`,
+      label: "TikTok",
+    };
   }
   if (/tiktok\.com/.test(url)) {
-    return { platform: "tiktok", thumbnailUrl: null, label: "TikTok" };
+    return { platform: "tiktok", embedUrl: null, label: "TikTok" };
   }
+
+  // Instagram — cannot be embedded (platform blocks iframes)
+  if (/instagram\.com\/(reel|p)\//.test(url)) {
+    return { platform: "instagram", embedUrl: null, label: "Instagram Reel" };
+  }
+
   return null;
 }
 
@@ -50,19 +67,45 @@ function VideoPreview({ url }: { url: string }) {
         ⚠ Unsupported link. Please use YouTube, Instagram Reel, or TikTok.
       </p>
     );
+
+  const isPortrait = meta.platform === "tiktok";
+
+  // Embeddable platforms — show inline preview
+  if (meta.embedUrl) {
+    return (
+      <div className="rounded-xl overflow-hidden bg-black border border-zinc-200 dark:border-zinc-700">
+        <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+          {meta.label} preview
+        </p>
+        <div className={`w-full ${isPortrait ? "aspect-[9/16] max-h-72 max-w-[162px] mx-auto" : "aspect-video"}`}>
+          <iframe
+            src={meta.embedUrl}
+            className="w-full h-full"
+            allowFullScreen
+            allow="encrypted-media; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Non-embeddable (Instagram, TikTok short links)
+  const emoji = meta.platform === "instagram" ? "📸" : "🎵";
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-      {meta.thumbnailUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={meta.thumbnailUrl} alt="Video thumbnail" className="w-24 h-16 object-cover rounded-lg flex-shrink-0" />
-      ) : (
-        <div className="w-24 h-16 rounded-lg bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0 text-2xl">
-          {meta.platform === "instagram" ? "📸" : "🎵"}
-        </div>
-      )}
-      <div>
-        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{meta.label} detected</p>
-        <p className="text-xs text-zinc-500 mt-1 break-all">{url}</p>
+      <div className="w-10 h-10 rounded-lg bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0 text-xl">
+        {emoji}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{meta.label} link detected</p>
+        {meta.platform === "instagram" && (
+          <p className="text-[10px] text-zinc-400 mt-0.5">Instagram videos can't be embedded — clients will tap to open.</p>
+        )}
+        {meta.platform === "tiktok" && (
+          <p className="text-[10px] text-zinc-400 mt-0.5">Use the full TikTok video URL (e.g. tiktok.com/@user/video/123…) for inline preview.</p>
+        )}
+        <p className="text-[10px] text-zinc-400 mt-1 truncate">{url}</p>
       </div>
     </div>
   );

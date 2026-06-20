@@ -1,12 +1,85 @@
 "use client";
 
 import { useState } from "react";
-import { X, ChevronLeft, ChevronRight, Image, Play, ZoomIn } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Image, Play, ZoomIn, ExternalLink } from "lucide-react";
 import type { ProfessionalPortfolio } from "@/lib/professionals/types";
 
 interface ProfessionalPortfolioGalleryProps {
   portfolio: ProfessionalPortfolio[];
 }
+
+// ─── Video URL helpers ─────────────────────────────────────────────────────
+
+type VideoPlatform = "youtube" | "tiktok" | "instagram" | "vimeo" | "unknown";
+
+interface VideoInfo {
+  platform: VideoPlatform;
+  embedUrl: string | null; // null = cannot embed, redirect instead
+  /** 16:9 for landscape, 9:16 for portrait (TikTok) */
+  aspectRatio: "16/9" | "9/16";
+}
+
+function getVideoInfo(url: string): VideoInfo {
+  if (!url) return { platform: "unknown", embedUrl: null, aspectRatio: "16/9" };
+
+  // ── YouTube (watch, short URL, Shorts, embed) ──────────────────────────
+  const ytMatch =
+    url.match(/[?&]v=([a-zA-Z0-9_-]{11})/) ||
+    url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/) ||
+    url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/) ||
+    url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) {
+    return {
+      platform: "youtube",
+      embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0`,
+      aspectRatio: "16/9",
+    };
+  }
+
+  // ── TikTok ─────────────────────────────────────────────────────────────
+  // URL formats: tiktok.com/@user/video/123456  OR  vm.tiktok.com/XXXXX
+  const tikMatch = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+  if (tikMatch) {
+    return {
+      platform: "tiktok",
+      embedUrl: `https://www.tiktok.com/embed/v2/${tikMatch[1]}`,
+      aspectRatio: "9/16",
+    };
+  }
+  if (/tiktok\.com/.test(url)) {
+    // Short link or unrecognised format — can't extract ID, redirect instead
+    return { platform: "tiktok", embedUrl: null, aspectRatio: "9/16" };
+  }
+
+  // ── Instagram ──────────────────────────────────────────────────────────
+  // Instagram blocks all iframe embedding (X-Frame-Options: SAMEORIGIN)
+  // We always redirect — never try to iframe Instagram
+  if (/instagram\.com\/(reel|p)\//.test(url)) {
+    return { platform: "instagram", embedUrl: null, aspectRatio: "9/16" };
+  }
+
+  // ── Vimeo ──────────────────────────────────────────────────────────────
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) {
+    return {
+      platform: "vimeo",
+      embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`,
+      aspectRatio: "16/9",
+    };
+  }
+
+  return { platform: "unknown", embedUrl: null, aspectRatio: "16/9" };
+}
+
+const PLATFORM_LABELS: Record<VideoPlatform, string> = {
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  instagram: "Instagram",
+  vimeo: "Vimeo",
+  unknown: "Video",
+};
+
+// ─── Component ────────────────────────────────────────────────────────────
 
 export default function ProfessionalPortfolioGallery({
   portfolio,
@@ -25,7 +98,7 @@ export default function ProfessionalPortfolioGallery({
 
   return (
     <>
-      {/* Gallery Grid */}
+      {/* ── Gallery Grid ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {portfolio.map((item, index) => (
           <button
@@ -47,11 +120,20 @@ export default function ProfessionalPortfolioGallery({
                     <Play className="w-8 h-8 text-white/50" />
                   </div>
                 )}
+                {/* Play overlay */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                  <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <Play className="w-5 h-5 text-zinc-900 ml-0.5" />
                   </div>
                 </div>
+                {/* Platform badge */}
+                {item.video_url && (
+                  <div className="absolute top-2 left-2">
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/60 text-white uppercase backdrop-blur-sm">
+                      {PLATFORM_LABELS[getVideoInfo(item.video_url).platform]}
+                    </span>
+                  </div>
+                )}
               </>
             ) : item.image_url ? (
               <>
@@ -80,7 +162,7 @@ export default function ProfessionalPortfolioGallery({
         ))}
       </div>
 
-      {/* Lightbox */}
+      {/* ── Lightbox ─────────────────────────────────────────────────── */}
       {lightboxIndex !== null && currentItem && (
         <div
           className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
@@ -119,20 +201,13 @@ export default function ProfessionalPortfolioGallery({
             </button>
           )}
 
-          {/* Media */}
+          {/* ── Media area ─────────────────────────────────────────── */}
           <div
-            className="max-w-4xl max-h-[85vh] w-full flex flex-col items-center"
+            className="flex flex-col items-center gap-4 max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {currentItem.media_type === "video" && currentItem.video_url ? (
-              <div className="w-full aspect-video rounded-xl overflow-hidden bg-black">
-                <iframe
-                  src={getVideoEmbedUrl(currentItem.video_url)}
-                  className="w-full h-full"
-                  allowFullScreen
-                  allow="autoplay; encrypted-media"
-                />
-              </div>
+              <VideoEmbed url={currentItem.video_url} />
             ) : currentItem.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -143,7 +218,7 @@ export default function ProfessionalPortfolioGallery({
             ) : null}
 
             {(currentItem.title || currentItem.description) && (
-              <div className="mt-4 text-center max-w-lg">
+              <div className="text-center max-w-lg">
                 {currentItem.title && (
                   <h4 className="text-white font-bold text-sm">{currentItem.title}</h4>
                 )}
@@ -162,7 +237,9 @@ export default function ProfessionalPortfolioGallery({
                   key={item.id}
                   onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); }}
                   className={`w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden transition-all ${
-                    i === lightboxIndex ? "ring-2 ring-indigo-400 opacity-100" : "opacity-50 hover:opacity-80"
+                    i === lightboxIndex
+                      ? "ring-2 ring-indigo-400 opacity-100"
+                      : "opacity-50 hover:opacity-80"
                   }`}
                 >
                   {item.image_url || item.thumbnail_url ? (
@@ -187,16 +264,63 @@ export default function ProfessionalPortfolioGallery({
   );
 }
 
-function getVideoEmbedUrl(url: string): string {
-  // YouTube
-  const ytMatch = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/
+// ─── VideoEmbed ───────────────────────────────────────────────────────────
+// Renders the correct embed for each platform, with platform-native aspect ratio.
+// Instagram cannot be embedded — shows a redirect card instead.
+
+function VideoEmbed({ url }: { url: string }) {
+  const info = getVideoInfo(url);
+
+  // ── Platforms that can be embedded ────────────────────────────────────
+  if (info.embedUrl) {
+    const isPortrait = info.aspectRatio === "9/16";
+
+    return (
+      <div
+        className={`rounded-xl overflow-hidden bg-black shadow-2xl ${
+          isPortrait
+            ? // Portrait: cap height, let width follow the 9:16 ratio
+              "h-[70vh] aspect-[9/16]"
+            : // Landscape: fill available width up to 4xl, 16:9
+              "w-full max-w-4xl aspect-video"
+        }`}
+      >
+        <iframe
+          src={info.embedUrl}
+          className="w-full h-full"
+          allowFullScreen
+          allow="autoplay; encrypted-media; picture-in-picture"
+          // Needed for TikTok
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      </div>
+    );
+  }
+
+  // ── Instagram / unresolvable TikTok short links ────────────────────────
+  const label = PLATFORM_LABELS[info.platform];
+  const emoji = info.platform === "instagram" ? "📸" : info.platform === "tiktok" ? "🎵" : "▶️";
+
+  return (
+    <div className="flex flex-col items-center gap-5 p-8 rounded-2xl bg-zinc-900 border border-zinc-700 max-w-xs text-center">
+      <span className="text-5xl">{emoji}</span>
+      <div>
+        <p className="text-white font-bold text-base mb-1">{label} Video</p>
+        <p className="text-white/50 text-xs leading-relaxed">
+          {info.platform === "instagram"
+            ? "Instagram does not allow videos to be embedded from external sites."
+            : "This link format cannot be embedded directly."}
+        </p>
+      </div>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition-colors"
+      >
+        <ExternalLink className="w-4 h-4" />
+        Watch on {label}
+      </a>
+    </div>
   );
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
-
-  // Vimeo
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
-
-  return url;
 }
