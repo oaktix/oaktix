@@ -117,7 +117,8 @@ export default function AdminProfessionalEditClient({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.professional_name.trim()) { setError("Professional name is required."); return; }
+    if (!form.business_name.trim()) { setError("Brand / Business name is required."); return; }
+    if (!form.professional_name.trim()) { setError("Full legal name is required."); return; }
     setSaving(true);
     setError(null);
     const result = await adminUpdateProfessional(initial.id, {
@@ -171,7 +172,7 @@ export default function AdminProfessionalEditClient({
         <div className="w-16 h-16 flex-shrink-0 rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
           {initial.profile_photo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={initial.profile_photo} alt={initial.professional_name} className="w-full h-full object-cover" />
+            <img src={initial.profile_photo} alt={initial.business_name || initial.professional_name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-2xl">
               {initial.category?.icon ?? "🎯"}
@@ -182,7 +183,7 @@ export default function AdminProfessionalEditClient({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold font-heading text-zinc-900 dark:text-white truncate">
-              {initial.professional_name}
+              {initial.business_name || initial.professional_name}
             </h1>
             {initial.verified && <BadgeCheck className="w-5 h-5 text-indigo-500" />}
             {initial.featured && <Flame className="w-5 h-5 text-amber-500" />}
@@ -315,12 +316,14 @@ export default function AdminProfessionalEditClient({
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Professional Name *</label>
-                <input type="text" value={form.professional_name} onChange={f("professional_name")} className={inputCls} required />
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Brand / Business Name *</label>
+                <input type="text" value={form.business_name} onChange={f("business_name")} className={inputCls} required />
+                <p className="text-[11px] text-zinc-400 mt-1">Publicly displayed name</p>
               </div>
               <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Business Name</label>
-                <input type="text" value={form.business_name} onChange={f("business_name")} className={inputCls} />
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Full Legal Name * <span className="text-indigo-500 normal-case tracking-normal font-normal">(KYC)</span></label>
+                <input type="text" value={form.professional_name} onChange={f("professional_name")} className={inputCls} required />
+                <p className="text-[11px] text-zinc-400 mt-1">For verification only — not shown publicly</p>
               </div>
               <div>
                 <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider block mb-1">Category</label>

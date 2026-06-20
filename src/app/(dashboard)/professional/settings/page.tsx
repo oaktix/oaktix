@@ -187,11 +187,13 @@ export default function ProfessionalSettingsPage() {
 
       {/* Identity */}
       <Section title="Professional Identity">
-        <Field label="Professional Name *">
-          <input type="text" value={form.professional_name} onChange={(e) => update("professional_name", e.target.value)} className="input" />
+        <Field label="Brand / Business Name *">
+          <input type="text" value={form.business_name} onChange={(e) => update("business_name", e.target.value)} className="input" placeholder="e.g. DJ Mighty Events" />
+          <p className="text-[11px] text-zinc-400 mt-1">Your public display name</p>
         </Field>
-        <Field label="Business Name">
-          <input type="text" value={form.business_name} onChange={(e) => update("business_name", e.target.value)} className="input" placeholder="Optional" />
+        <Field label="Full Legal Name *">
+          <input type="text" value={form.professional_name} onChange={(e) => update("professional_name", e.target.value)} className="input" />
+          <p className="text-[11px] text-zinc-400 mt-1">For verification only — not shown publicly</p>
         </Field>
         <Field label="Headline *" className="sm:col-span-2">
           <input type="text" value={form.headline} onChange={(e) => update("headline", e.target.value)} maxLength={120} className="input" />

@@ -29,7 +29,8 @@ export default function AdminProfessionalsClient({ professionals }: AdminProfess
   const filtered = professionals.filter(
     (p) =>
       !search ||
-      p.professional_name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.business_name || p.professional_name).toLowerCase().includes(search.toLowerCase()) ||
+      (p.professional_name).toLowerCase().includes(search.toLowerCase()) ||
       (p.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
       (p.city ?? "").toLowerCase().includes(search.toLowerCase())
   );
@@ -87,7 +88,7 @@ export default function AdminProfessionalsClient({ professionals }: AdminProfess
                 <div className="w-12 h-12 flex-shrink-0 rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                   {p.profile_photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.profile_photo} alt={p.professional_name} className="w-full h-full object-cover" />
+                    <img src={p.profile_photo} alt={p.business_name || p.professional_name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-xl">{p.category?.icon ?? "🎯"}</div>
                   )}
@@ -96,7 +97,12 @@ export default function AdminProfessionalsClient({ professionals }: AdminProfess
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold text-zinc-900 dark:text-white">{p.professional_name}</span>
+                    <span className="font-bold text-zinc-900 dark:text-white">
+                      {p.business_name || p.professional_name}
+                    </span>
+                    {p.business_name && (
+                      <span className="text-[10px] text-zinc-400 font-normal">({p.professional_name})</span>
+                    )}
                     {p.verified && <BadgeCheck className="w-4 h-4 text-indigo-500" />}
                     {p.featured && <Flame className="w-4 h-4 text-amber-500" />}
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${statusBadge(p.status)}`}>
@@ -149,7 +155,7 @@ export default function AdminProfessionalsClient({ professionals }: AdminProfess
                   {/* Reject */}
                   {p.status === "pending" && (
                     <button
-                      onClick={() => setRejectModal({ id: p.id, name: p.professional_name })}
+                      onClick={() => setRejectModal({ id: p.id, name: p.business_name || p.professional_name })}
                       disabled={loadingId === p.id}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition-all disabled:opacity-60"
                     >

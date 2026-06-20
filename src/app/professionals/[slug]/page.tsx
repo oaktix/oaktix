@@ -53,12 +53,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const professional = await getProfessionalBySlug(slug);
   if (professional) {
     return {
-      title: `${professional.professional_name} — ${professional.category?.name ?? "Professional"} | OakTix`,
+      title: `${professional.business_name || professional.professional_name} — ${professional.category?.name ?? "Professional"} | OakTix`,
       description:
         professional.headline ??
-        `${professional.professional_name} is a professional ${professional.category?.name ?? "event professional"} based in ${professional.city ?? "Nigeria"}.`,
+        `${professional.business_name || professional.professional_name} is a professional ${professional.category?.name ?? "event professional"} based in ${professional.city ?? "Nigeria"}.`,
       openGraph: {
-        title: `${professional.professional_name} | OakTix Professionals`,
+        title: `${professional.business_name || professional.professional_name} | OakTix Professionals`,
         description: professional.headline ?? "",
         images: professional.profile_photo ? [{ url: professional.profile_photo }] : [],
         type: "profile",
@@ -215,7 +215,7 @@ export default async function ProfessionalSlugPage({ params, searchParams }: Pag
               <ChevronRight className="w-3 h-3" />
             </>
           )}
-          <span className="text-white">{professional.professional_name}</span>
+          <span className="text-white">{professional.business_name || professional.professional_name}</span>
         </div>
       </div>
 
@@ -228,7 +228,7 @@ export default async function ProfessionalSlugPage({ params, searchParams }: Pag
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white dark:border-zinc-900 bg-zinc-200 dark:bg-zinc-700 overflow-hidden shadow-xl">
                 {professional.profile_photo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={professional.profile_photo} alt={professional.professional_name} className="w-full h-full object-cover" />
+                  <img src={professional.profile_photo} alt={professional.business_name || professional.professional_name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-indigo-500/10">
                     <span className="text-4xl">{professional.category?.icon ?? "🎯"}</span>
@@ -243,7 +243,7 @@ export default async function ProfessionalSlugPage({ params, searchParams }: Pag
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-zinc-900 dark:text-white">
-                      {professional.professional_name}
+                      {professional.business_name || professional.professional_name}
                     </h1>
                     {professional.verified && (
                       <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-bold">
@@ -256,9 +256,6 @@ export default async function ProfessionalSlugPage({ params, searchParams }: Pag
                       </span>
                     )}
                   </div>
-                  {professional.business_name && (
-                    <p className="text-zinc-500 text-sm">{professional.business_name}</p>
-                  )}
                 </div>
               </div>
 
@@ -374,7 +371,7 @@ export default async function ProfessionalSlugPage({ params, searchParams }: Pag
                 <h3 className="font-bold text-zinc-900 dark:text-white text-sm">Contact</h3>
                 {professional.whatsapp && (
                   <a
-                    href={`https://wa.me/${professional.whatsapp.replace(/\D/g, "")}?text=Hello ${encodeURIComponent(professional.professional_name)}, I found your profile on OakTix and I'd like to discuss an event.`}
+                    href={`https://wa.me/${professional.whatsapp.replace(/\D/g, "")}?text=Hello ${encodeURIComponent(professional.business_name || professional.professional_name)}, I found your profile on OakTix and I'd like to discuss an event.`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm transition-all"

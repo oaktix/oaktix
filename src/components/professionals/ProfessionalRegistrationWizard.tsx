@@ -57,7 +57,8 @@ export default function ProfessionalRegistrationWizard({
   const validateStep = (): boolean => {
     setError(null);
     if (step === 0) {
-      if (!professionalName.trim()) { setError("Please enter your professional name."); return false; }
+      if (!businessName.trim()) { setError("Please enter your brand or business name."); return false; }
+      if (!professionalName.trim()) { setError("Please enter your full legal name."); return false; }
       if (!categoryId) { setError("Please select your category."); return false; }
       if (!headline.trim()) { setError("Please add a short headline."); return false; }
       if (!bio.trim() || bio.length < 50) { setError("Please write a bio of at least 50 characters."); return false; }
@@ -129,7 +130,7 @@ export default function ProfessionalRegistrationWizard({
     const result = await createProfessionalProfile(
       {
         professional_name: professionalName,
-        business_name: businessName || undefined,
+        business_name: businessName,
         category_id: categoryId,
         headline,
         bio,
@@ -250,25 +251,26 @@ export default function ProfessionalRegistrationWizard({
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="label-style">Professional Name *</label>
-                <input
-                  type="text"
-                  value={professionalName}
-                  onChange={(e) => setProfessionalName(e.target.value)}
-                  placeholder="e.g. DJ Mighty, MC John"
-                  className="input-style"
-                />
-                <p className="text-[11px] text-zinc-400 mt-1">This is your public display name</p>
-              </div>
-              <div>
-                <label className="label-style">Business Name (optional)</label>
+                <label className="label-style">Brand / Business Name *</label>
                 <input
                   type="text"
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Your company or brand name"
+                  placeholder="e.g. DJ Mighty Events, Lagos Sounds"
                   className="input-style"
                 />
+                <p className="text-[11px] text-zinc-400 mt-1">Your public display name — what clients see</p>
+              </div>
+              <div>
+                <label className="label-style">Your Full Legal Name *</label>
+                <input
+                  type="text"
+                  value={professionalName}
+                  onChange={(e) => setProfessionalName(e.target.value)}
+                  placeholder="e.g. John Adeyemi"
+                  className="input-style"
+                />
+                <p className="text-[11px] text-zinc-400 mt-1">For verification only — not shown publicly</p>
               </div>
             </div>
 

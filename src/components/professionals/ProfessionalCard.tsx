@@ -22,7 +22,7 @@ export default function ProfessionalCard({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={p.profile_photo}
-                alt={p.professional_name}
+                alt={p.business_name || p.professional_name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             ) : (
@@ -43,7 +43,7 @@ export default function ProfessionalCard({
               <div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <h3 className="font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-500 transition-colors">
-                    {p.professional_name}
+                    {p.business_name || p.professional_name}
                   </h3>
                   {p.featured && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-bold uppercase tracking-wider">
@@ -100,7 +100,7 @@ export default function ProfessionalCard({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={p.cover_image}
-              alt={`${p.professional_name} cover`}
+              alt={`${p.business_name || p.professional_name} cover`}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
@@ -131,7 +131,7 @@ export default function ProfessionalCard({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={p.profile_photo}
-                alt={p.professional_name}
+                alt={p.business_name || p.professional_name}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -147,7 +147,7 @@ export default function ProfessionalCard({
           {/* Name + Verified */}
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-500 transition-colors leading-tight line-clamp-1">
-              {p.professional_name}
+              {p.business_name || p.professional_name}
             </h3>
             {p.verified && (
               <BadgeCheck className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />

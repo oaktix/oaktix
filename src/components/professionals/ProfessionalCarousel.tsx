@@ -124,7 +124,7 @@ export default function ProfessionalCarousel({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={p.cover_image || p.profile_photo!}
-                      alt={p.professional_name}
+                      alt={p.business_name || p.professional_name}
                       className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
                       draggable={false}
                     />
@@ -146,7 +146,7 @@ export default function ProfessionalCarousel({
                   {p.profile_photo && p.cover_image && (
                     <div className="absolute -bottom-4 left-3 w-10 h-10 rounded-full border-2 border-white dark:border-zinc-900 overflow-hidden bg-zinc-200 shadow">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={p.profile_photo} alt={p.professional_name} className="w-full h-full object-cover" draggable={false} />
+                      <img src={p.profile_photo} alt={p.business_name || p.professional_name} className="w-full h-full object-cover" draggable={false} />
                     </div>
                   )}
                 </div>
@@ -155,7 +155,7 @@ export default function ProfessionalCarousel({
                 <div className={`p-3 flex-1 flex flex-col ${p.profile_photo && p.cover_image ? "pt-6" : ""}`}>
                   <div className="flex items-start justify-between gap-1">
                     <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 group-hover/card:text-indigo-500 transition-colors line-clamp-1 leading-snug">
-                      {p.professional_name}
+                      {p.business_name || p.professional_name}
                     </h4>
                     {p.verified && (
                       <BadgeCheck className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 mt-0.5" />

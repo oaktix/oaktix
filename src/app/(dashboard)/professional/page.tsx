@@ -86,7 +86,7 @@ export default async function ProfessionalDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
         <div>
           <h1 className="text-2xl font-bold font-heading text-zinc-900 dark:text-white">
-            Welcome, {professional.professional_name} 👋
+            Welcome, {professional.business_name || professional.professional_name} 👋
           </h1>
           <p className="text-zinc-500 text-sm mt-1">
             {professional.category?.name} · {[professional.city, professional.state].filter(Boolean).join(", ")}

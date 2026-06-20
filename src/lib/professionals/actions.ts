@@ -90,7 +90,7 @@ export async function createProfessionalProfile(
   }
 
   // Generate unique slug
-  const baseSlug = generateSlug(step2.professional_name);
+  const baseSlug = generateSlug(step2.business_name || step2.professional_name);
   const slug = await ensureUniqueSlug(supabase, baseSlug);
 
   const { data, error } = await supabase
