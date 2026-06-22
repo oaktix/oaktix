@@ -96,19 +96,24 @@ export default function ProfessionalCard({
     <Link href={`/professionals/${p.slug}`} className="block group h-full">
       <div className="glass-card overflow-hidden flex flex-col h-full hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300">
         {/* Cover / Profile Photo */}
-        <div className="relative h-44 bg-zinc-100 dark:bg-zinc-800 overflow-hidden flex-shrink-0">
-          {p.cover_image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={p.cover_image}
-              alt={`${p.business_name || p.professional_name} cover`}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500/10 to-amber-500/10">
-              <span className="text-5xl opacity-40">{p.category?.icon ?? "🎯"}</span>
-            </div>
-          )}
+        {/* overflow-hidden removed from outer div so the avatar circle isn't clipped at the bottom.
+            It is re-applied on the inner image wrapper so the hover-scale effect still works. */}
+        <div className="relative h-44 bg-zinc-100 dark:bg-zinc-800 flex-shrink-0">
+          {/* Image wrapper — keeps overflow-hidden for the scale animation only */}
+          <div className="absolute inset-0 overflow-hidden">
+            {p.cover_image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={p.cover_image}
+                alt={`${p.business_name || p.professional_name} cover`}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500/10 to-amber-500/10">
+                <span className="text-5xl opacity-40">{p.category?.icon ?? "🎯"}</span>
+              </div>
+            )}
+          </div>
 
           {/* Category badge */}
           <div className="absolute top-3 left-3">
@@ -126,7 +131,7 @@ export default function ProfessionalCard({
             </div>
           )}
 
-          {/* Profile photo circle — click to enlarge */}
+          {/* Profile photo circle — outside overflow-hidden so full circle shows */}
           <ProfilePhotoLightbox
             src={p.profile_photo}
             alt={p.business_name || p.professional_name}
