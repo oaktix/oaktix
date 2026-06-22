@@ -175,9 +175,9 @@ export default async function DiscoverEvents({
                 const formattedDate = date ? format(date, "MMM d • h:mm a") : "Coming Soon";
                 
                 return (
-                  <Link 
-                    key={event.id} 
-                    href={`/events/${event.slug}`}
+                  <Link
+                    key={event.id}
+                    href={event.slug ? `/events/${event.slug}` : '#'}
                     className="bg-zinc-950 border border-zinc-850 rounded-2xl overflow-hidden group cursor-pointer hover:border-indigo-500/30 transition-all duration-300 flex flex-col justify-between hover:shadow-lg hover:shadow-indigo-500/5"
                   >
                     <div>

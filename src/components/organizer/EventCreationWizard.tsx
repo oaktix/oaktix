@@ -68,6 +68,17 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Track whether the organiser has manually customised the slug so we don't
+  // overwrite it when the title changes.
+  const [slugManuallySet, setSlugManuallySet] = useState(!!(event?.slug));
+
+  // Utility: convert any string into a URL-safe slug
+  const toSlug = (value: string) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
   // Form State
   const [formData, setFormData] = useState({
@@ -140,6 +151,19 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
     const endDate = formData.end_date ? new Date(formData.end_date) : null;
     if (endDate && endDate < startDate) throw new Error("End date must be after start date");
 
+    // Resolve and validate slug – always produce a URL-safe value
+    const resolvedSlug =
+      formData.slug ||
+      formData.title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+    if (!resolvedSlug) {
+      throw new Error("Event title is required to generate a URL slug.");
+    }
+
     let featured_image_url = event?.featured_image || null;
 
     // 1. Upload Image (only if a new one is selected)
@@ -158,7 +182,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
     // 2. Insert or Update Event
     const eventPayload = {
       title: formData.title,
-      slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug: resolvedSlug,
       description: formData.description,
       category: formData.category === "custom" ? formData.customCategory : formData.category,
       start_date: startDate.toISOString(),
@@ -236,23 +260,43 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Event Title</label>
-                  <input 
-                    type="text" 
-                    value={formData.title} 
-                    onChange={(e) => updateForm("title", e.target.value)}
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => {
+                      const newTitle = e.target.value;
+                      updateForm("title", newTitle);
+                      // Auto-generate slug from title unless the organiser already
+                      // customised it manually.
+                      if (!slugManuallySet) {
+                        updateForm("slug", toSlug(newTitle));
+                      }
+                    }}
                     placeholder="E.g., Lagos Tech Summit 2026"
                     className="w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-400 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-zinc-800 dark:text-zinc-200">URL Slug (Optional)</label>
-                  <input 
-                    type="text" 
-                    value={formData.slug} 
-                    onChange={(e) => updateForm("slug", e.target.value)}
+                  <label className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                    URL Slug <span className="text-zinc-400 font-normal">(auto-generated — edit to customise)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => {
+                      // Sanitise on every keystroke so no invalid chars can enter
+                      const sanitised = toSlug(e.target.value);
+                      updateForm("slug", sanitised);
+                      setSlugManuallySet(true);
+                    }}
                     placeholder="lagos-tech-summit-2026"
                     className="w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 font-mono text-sm text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-400 outline-none"
                   />
+                  {formData.slug && (
+                    <p className="mt-1 text-[11px] text-zinc-500 font-mono">
+                      Preview: <span className="text-indigo-500">/events/{formData.slug}</span>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Description</label>

@@ -216,12 +216,18 @@ export default function LatestEventsCarousel({ events }: LatestEventsCarouselPro
                       {minPrice > 0 ? `₦${minPrice.toLocaleString()}` : "Free"}
                     </span>
                   </div>
-                  <Link
-                    href={`/events/${event.slug}`}
-                    className="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-500 font-bold text-xs group-hover/card:bg-indigo-500 group-hover/card:text-white transition-all cursor-pointer"
-                  >
-                    Book Tickets
-                  </Link>
+                  {event.slug ? (
+                    <Link
+                      href={`/events/${event.slug}`}
+                      className="px-4 py-2 rounded-xl bg-indigo-500/10 text-indigo-500 font-bold text-xs group-hover/card:bg-indigo-500 group-hover/card:text-white transition-all cursor-pointer"
+                    >
+                      Book Tickets
+                    </Link>
+                  ) : (
+                    <span className="px-4 py-2 rounded-xl bg-zinc-500/10 text-zinc-400 font-bold text-xs cursor-not-allowed">
+                      Unavailable
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

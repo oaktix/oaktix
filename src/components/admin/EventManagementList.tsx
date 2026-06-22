@@ -235,9 +235,15 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
                           )}
                         </div>
                         <div>
-                          <Link href={`/events/${event.slug}`} target="_blank" className="font-bold text-zinc-100 text-sm hover:underline hover:text-indigo-400 flex items-center gap-1">
-                            {event.title} <Eye className="w-3.5 h-3.5 inline text-zinc-500" />
-                          </Link>
+                          {event.slug ? (
+                            <Link href={`/events/${event.slug}`} target="_blank" className="font-bold text-zinc-100 text-sm hover:underline hover:text-indigo-400 flex items-center gap-1">
+                              {event.title} <Eye className="w-3.5 h-3.5 inline text-zinc-500" />
+                            </Link>
+                          ) : (
+                            <span className="font-bold text-zinc-400 text-sm flex items-center gap-1" title="No slug — organiser must re-save this event">
+                              {event.title} <Eye className="w-3.5 h-3.5 inline text-zinc-600" />
+                            </span>
+                          )}
                           <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
                             <MapPin className="w-3.5 h-3.5 text-zinc-650" /> {venueName}
                           </p>

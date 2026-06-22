@@ -338,7 +338,7 @@ export default async function Home() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 opacity-80 hover:opacity-100 transition-opacity duration-300">
                 {archiveEvents.map((event) => (
-                  <Link href={`/events/${event.slug}`} key={event.id} className="block group">
+                  <Link href={event.slug ? `/events/${event.slug}` : '#'} key={event.id} className="block group">
                     <div className="glass-card overflow-hidden h-full flex flex-col border border-zinc-200/50 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10 transition-colors">
                       <div className="relative h-40 w-full bg-zinc-800 overflow-hidden shrink-0">
                         {event.featured_image ? (
