@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 interface ProfilePhotoLightboxProps {
   src: string | null;
   alt: string;
-  fallbackIcon?: string;
+  fallbackIcon?: string | null;
 }
 
 export default function ProfilePhotoLightbox({ src, alt, fallbackIcon }: ProfilePhotoLightboxProps) {
