@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ShieldCheck, CheckCircle, XCircle, Clock, FileText } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ShieldCheck, CheckCircle, XCircle, Clock, FileText, X, ZoomIn } from "lucide-react";
 
 interface KYCRecord {
   id: string;
@@ -238,7 +239,25 @@ function StatusBadge({ status }: { status: string }) {
 
 function DocViewer({ url }: { url: string }) {
   const [open, setOpen] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
   const isPdf = url.toLowerCase().includes('.pdf') || url.toLowerCase().includes('%2Fpdf') || url.toLowerCase().includes('application%2Fpdf');
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Escape key closes lightbox
+  useEffect(() => {
+    if (!lightbox) return;
+    closeRef.current?.focus();
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setLightbox(false); triggerRef.current?.focus(); }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [lightbox]);
 
   return (
     <div className="ml-auto">
@@ -261,14 +280,62 @@ function DocViewer({ url }: { url: string }) {
               style={{ height: "60vh", border: "none" }}
             />
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={url}
-              alt="KYC Document"
-              className="w-full max-h-[60vh] object-contain bg-zinc-100 p-2"
-            />
+            /* Image — click to open fullscreen lightbox for verification */
+            <div className="relative group">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={url}
+                alt="KYC Document"
+                className="w-full max-h-[50vh] object-contain bg-zinc-100 p-2 cursor-zoom-in"
+                onClick={() => setLightbox(true)}
+              />
+              <button
+                ref={triggerRef}
+                type="button"
+                onClick={() => setLightbox(true)}
+                className="absolute bottom-2 right-2 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-xs font-bold backdrop-blur-sm transition-colors"
+                aria-label="View fullscreen"
+              >
+                <ZoomIn className="w-3.5 h-3.5" /> View Full Size
+              </button>
+            </div>
           )}
         </div>
+      )}
+
+      {/* Fullscreen lightbox — portal to escape any overflow/stacking constraints */}
+      {mounted && lightbox && createPortal(
+        <div
+          className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4"
+          onClick={() => { setLightbox(false); triggerRef.current?.focus(); }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="KYC Document fullscreen"
+        >
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={() => { setLightbox(false); triggerRef.current?.focus(); }}
+            className="absolute top-4 right-4 z-[201] bg-white/10 hover:bg-white/25 text-white rounded-full p-2.5 transition-colors"
+            aria-label="Close fullscreen"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex flex-col items-center gap-3 max-w-5xl w-full"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt="KYC Document — full size"
+              className="max-h-[90vh] max-w-full w-auto object-contain rounded-xl shadow-2xl"
+            />
+            <p className="text-white/50 text-xs">Click outside or press Escape to close</p>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
