@@ -881,3 +881,133 @@ ${rejectionReason ? `
     console.error('⚠ KYC rejection email failed:', error);
   }
 }
+
+/** ------------------------------------------------------------------ */
+/** Abandoned checkout — reminder email to complete ticket purchase      */
+/** ------------------------------------------------------------------ */
+export async function sendAbandonedCheckoutEmail(opts: {
+  to: string;
+  recipientName: string;
+  eventTitle: string;
+  eventSlug: string;
+  eventDate: string;
+  location: string | null;
+  ticketTypeName: string;
+  quantity: number;
+  amount: number;
+  eventImageUrl: string | null;
+  windowLabel: string;         // "2 hours" | "12 hours" | "24 hours"
+  siteUrl: string;
+}) {
+  const {
+    to, recipientName, eventTitle, eventSlug, eventDate,
+    location, ticketTypeName, quantity, amount, eventImageUrl,
+    windowLabel, siteUrl,
+  } = opts;
+
+  const checkoutUrl = `${siteUrl}/events/${eventSlug}`;
+  const formattedDate = new Date(eventDate).toLocaleDateString("en-NG", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  });
+  const formattedAmount = amount > 0 ? `₦${amount.toLocaleString()}` : "Free";
+  const is24h = windowLabel === "24 hours";
+
+  const subject = is24h
+    ? `Last chance! Complete your ${eventTitle} ticket purchase — OakTix`
+    : `You left something behind — ${eventTitle} tickets are waiting 🎟️`;
+
+  const urgencyMsg = is24h
+    ? "This is your final reminder. Don't miss your chance to secure your spot."
+    : `You started buying tickets ${windowLabel} ago but didn't complete the purchase.`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:560px;background:#ffffff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,0.06);overflow:hidden;">
+
+<!-- Header -->
+<tr><td style="background:linear-gradient(135deg,#0E4B31 0%,#1a6b47 100%);padding:28px 40px 24px;text-align:center;">
+<div style="font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:6px;">
+  <span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span>
+</div>
+<p style="color:rgba(255,255,255,0.70);font-size:12px;margin:0;letter-spacing:0.5px;">Nigeria's #1 Event Ticketing Platform</p>
+</td></tr>
+
+${eventImageUrl ? `
+<!-- Event image -->
+<tr><td style="padding:0;">
+<img src="${eventImageUrl}" alt="${eventTitle}" style="width:100%;height:200px;object-fit:cover;display:block;" />
+</td></tr>` : ''}
+
+<!-- Body -->
+<tr><td style="padding:36px 40px 28px;">
+<p style="font-size:14px;color:#64786B;margin:0 0 6px;">Hi <strong style="color:#1A1A1A;">${recipientName}</strong>,</p>
+<h1 style="font-size:20px;font-weight:800;color:#1A1A1A;margin:0 0 12px;line-height:1.3;">${urgencyMsg}</h1>
+<p style="font-size:14px;color:#64786B;line-height:1.6;margin:0 0 24px;">Your spot at <strong style="color:#1A1A1A;">${eventTitle}</strong> is not confirmed yet. Complete your purchase before tickets sell out.</p>
+
+<!-- Event details card -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F0F7F4;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+  <tr><td style="padding-bottom:10px;">
+    <p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Event</p>
+    <p style="margin:4px 0 0;font-size:15px;font-weight:700;color:#1A1A1A;">${eventTitle}</p>
+  </td></tr>
+  <tr><td style="border-top:1px solid #DCE3DF;padding:10px 0;">
+    <p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Date</p>
+    <p style="margin:4px 0 0;font-size:13px;color:#1A1A1A;">📅 ${formattedDate}</p>
+  </td></tr>
+  ${location ? `<tr><td style="border-top:1px solid #DCE3DF;padding:10px 0;">
+    <p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Location</p>
+    <p style="margin:4px 0 0;font-size:13px;color:#1A1A1A;">📍 ${location}</p>
+  </td></tr>` : ''}
+  <tr><td style="border-top:1px solid #DCE3DF;padding:10px 0;">
+    <p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Your Order</p>
+    <p style="margin:4px 0 0;font-size:13px;color:#1A1A1A;">${ticketTypeName} × ${quantity}</p>
+  </td></tr>
+  <tr><td style="border-top:1px solid #DCE3DF;padding-top:10px;">
+    <p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Total</p>
+    <p style="margin:4px 0 0;font-size:16px;font-weight:800;color:#0E4B31;">${formattedAmount}</p>
+  </td></tr>
+</table>
+
+<!-- CTA -->
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+<tr><td align="center">
+<a href="${checkoutUrl}" style="display:inline-block;padding:15px 36px;background:linear-gradient(135deg,#0E4B31,#1a6b47);color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;letter-spacing:0.3px;">
+  🎟️ Complete My Purchase
+</a>
+</td></tr>
+</table>
+
+${is24h ? `<div style="background:#FFF9EB;border:1px solid #FDE68A;border-radius:12px;padding:14px 20px;text-align:center;margin-bottom:8px;">
+<p style="margin:0;font-size:13px;color:#92400E;font-weight:700;">⏰ Final Reminder — don't miss out!</p>
+<p style="margin:4px 0 0;font-size:12px;color:#78350F;">This is the last reminder we'll send. Tickets are limited.</p>
+</div>` : ''}
+
+<p style="font-size:12px;color:#AAB8B2;text-align:center;margin:16px 0 0;line-height:1.6;">
+  If you no longer wish to attend, simply ignore this email.<br/>
+  Questions? <a href="mailto:hello@oaktix.com.ng" style="color:#0E4B31;text-decoration:none;font-weight:600;">hello@oaktix.com.ng</a>
+</p>
+</td></tr>
+
+<!-- Divider -->
+<tr><td style="padding:0 40px;"><div style="height:1px;background:#E8EBE7;"></div></td></tr>
+
+<!-- Footer -->
+<tr><td style="padding:20px 40px;text-align:center;">
+<p style="font-size:11px;color:#DCE3DF;margin:0;">Sent by <strong style="color:#64786B;">OakTix</strong> · Nigeria's Favourite Ticketing Platform · hello@oaktix.com.ng</p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  const ok = await sendEmail(to, subject, html);
+  if (!ok) {
+    throw new Error(`sendEmail returned false for abandoned checkout reminder → ${to}`);
+  }
+}
