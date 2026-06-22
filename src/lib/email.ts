@@ -3,6 +3,13 @@ import { Resend } from 'resend';
 // Initialise Resend client – same API key used throughout the project
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
+export interface EmailAttachment {
+  filename: string;
+  content: string;   // base64-encoded file content
+  content_type: string;
+  content_id?: string; // set this to embed inline via CID (for images in body)
+}
+
 /**
  * Send an email via Resend.
  * Returns `true` when the email was accepted by Resend, otherwise `false`.
@@ -12,6 +19,7 @@ export async function sendEmail(
   to: string,
   subject: string,
   html: string,
+  attachments?: EmailAttachment[],
 ): Promise<boolean> {
   try {
     // Forward any @oaktix.com.ng email to the corresponding @esteiwiloa.resend.app address
@@ -26,6 +34,12 @@ export async function sendEmail(
       to: recipients,
       subject,
       html,
+      attachments: attachments?.map((a) => ({
+        filename: a.filename,
+        content: Buffer.from(a.content, 'base64'),
+        content_type: a.content_type,
+        ...(a.content_id ? { content_id: a.content_id } : {}),
+      })),
     });
 
     console.log('✅ Resend email sent', result);
@@ -576,9 +590,23 @@ export async function sendCampaignEmail(opts: {
   recipientName: string;
   subject: string;
   bodyHtml: string;
+  trackingPixelUrl?: string;
+  attachments?: EmailAttachment[];
 }) {
-  const { to, recipientName, subject, bodyHtml } = opts;
+  const { to, recipientName, subject, bodyHtml, trackingPixelUrl, attachments } = opts;
   const replySubject = encodeURIComponent(`Re: ${subject}`);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://oaktix.com.ng';
+  const logoUrl = `${siteUrl}/logo-header.png`;
+
+  // Inline images: CID-based embeds that appear in the body section
+  const inlineImages = attachments?.filter((a) => !!a.content_id) ?? [];
+  const inlineImagesHtml = inlineImages.length > 0
+    ? `<div style="margin:20px 0 0;">${inlineImages.map((img) =>
+        `<img src="cid:${img.content_id}" alt="${img.filename}"
+              style="max-width:100%;border-radius:10px;display:block;margin-bottom:12px;" />`
+      ).join('')}</div>`
+    : '';
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
@@ -587,19 +615,17 @@ export async function sendCampaignEmail(opts: {
 <tr><td align="center">
 <table width="100%" style="max-width:560px;background:#ffffff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,0.06);overflow:hidden;">
 
-<!-- Header -->
-<tr><td style="background:linear-gradient(135deg,#0E4B31 0%,#1a6b47 100%);padding:32px 40px;text-align:center;">
-<table cellpadding="0" cellspacing="0" style="margin:0 auto 10px;">
-<tr><td style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px 14px;">
-<span style="font-size:26px;">🎟️</span>
-</td></tr>
-</table>
-<div style="margin-top:10px;">
-<span style="font-size:30px;font-weight:800;letter-spacing:-0.5px;">
-<span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span>
-</span>
-</div>
-<p style="color:rgba(255,255,255,0.75);font-size:13px;margin:4px 0 0;letter-spacing:0.5px;">Nigeria's #1 Event Ticketing Platform</p>
+<!-- Header — real OakTix logo -->
+<tr><td style="background:linear-gradient(135deg,#0E4B31 0%,#1a6b47 100%);padding:28px 40px 24px;text-align:center;">
+<a href="${siteUrl}" style="display:inline-block;">
+  <img src="${logoUrl}" alt="OakTix"
+       style="height:40px;width:auto;display:block;margin:0 auto;"
+       onerror="this.style.display='none';document.getElementById('oaktix-logo-text').style.display='block';" />
+  <span id="oaktix-logo-text" style="display:none;font-size:28px;font-weight:800;letter-spacing:-0.5px;">
+    <span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span>
+  </span>
+</a>
+<p style="color:rgba(255,255,255,0.70);font-size:12px;margin:10px 0 0;letter-spacing:0.5px;">Nigeria's #1 Event Ticketing Platform</p>
 </td></tr>
 
 <!-- Subject banner -->
@@ -611,10 +637,11 @@ export async function sendCampaignEmail(opts: {
 <!-- Body -->
 <tr><td style="padding:36px 40px 28px;">
 <p style="font-size:14px;color:#64786B;margin:0 0 20px;">Hi <strong style="color:#1A1A1A;">${recipientName}</strong>,</p>
-<div style="font-size:14px;color:#333;line-height:1.75;margin:0 0 28px;">${bodyHtml}</div>
+<div style="font-size:14px;color:#333;line-height:1.75;margin:0 0 4px;">${bodyHtml}</div>
+${inlineImagesHtml}
 
 <!-- Reply CTA -->
-<table width="100%" cellpadding="0" cellspacing="0">
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;">
 <tr><td align="center">
 <a href="mailto:theoaktix@gmail.com?subject=${replySubject}"
    style="display:inline-block;padding:13px 30px;background:linear-gradient(135deg,#0E4B31,#1a6b47);color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;border-radius:12px;letter-spacing:0.3px;">
@@ -630,6 +657,8 @@ export async function sendCampaignEmail(opts: {
 
 <!-- Footer -->
 <tr><td style="padding:24px 40px;text-align:center;">
+<img src="${logoUrl}" alt="OakTix" style="height:24px;width:auto;display:block;margin:0 auto 10px;"
+     onerror="this.style.display='none';" />
 <p style="font-size:12px;color:#BAC6BF;margin:0 0 4px;">Sent by <strong style="color:#64786B;">OakTix</strong> · Nigeria's Favourite Ticketing Platform</p>
 <p style="font-size:11px;color:#DCE3DF;margin:0;">hello@oaktix.com.ng</p>
 </td></tr>
@@ -637,10 +666,11 @@ export async function sendCampaignEmail(opts: {
 </table>
 </td></tr>
 </table>
+${trackingPixelUrl ? `<!-- Open tracking pixel --><img src="${trackingPixelUrl}" width="1" height="1" style="display:none;border:0;outline:0;" alt="" />` : ''}
 </body>
 </html>`;
 
-  return sendEmail(to, subject, html);
+  return sendEmail(to, subject, html, attachments);
 }
 
 /** ------------------------------------------------------------------ */
