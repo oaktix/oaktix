@@ -11,6 +11,7 @@ type VideoPlatform = "youtube" | "instagram" | "tiktok" | "vimeo";
 type VideoMeta = {
   platform: VideoPlatform;
   embedUrl: string | null; // null = cannot embed inline
+  thumbnailUrl: string | null;
   label: string;
 } | null;
 
@@ -27,6 +28,7 @@ function parseVideoUrl(url: string): VideoMeta {
     return {
       platform: "youtube",
       embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?rel=0`,
+      thumbnailUrl: `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`,
       label: "YouTube",
     };
   }
@@ -37,16 +39,17 @@ function parseVideoUrl(url: string): VideoMeta {
     return {
       platform: "tiktok",
       embedUrl: `https://www.tiktok.com/embed/v2/${tikMatch[1]}`,
+      thumbnailUrl: null,
       label: "TikTok",
     };
   }
   if (/tiktok\.com/.test(url)) {
-    return { platform: "tiktok", embedUrl: null, label: "TikTok" };
+    return { platform: "tiktok", embedUrl: null, thumbnailUrl: null, label: "TikTok" };
   }
 
   // Instagram — cannot be embedded (platform blocks iframes)
   if (/instagram\.com\/(reel|p)\//.test(url)) {
-    return { platform: "instagram", embedUrl: null, label: "Instagram Reel" };
+    return { platform: "instagram", embedUrl: null, thumbnailUrl: null, label: "Instagram Reel" };
   }
 
   return null;
