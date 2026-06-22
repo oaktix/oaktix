@@ -18,9 +18,9 @@ import { NextResponse } from "next/server";
 import { sendAbandonedCheckoutEmail } from "@/lib/email";
 
 const WINDOWS = [
-  { key: "reminder_2h_sent_at" as const,  hoursMin: 2,  hoursMax: 26 },
-  { key: "reminder_12h_sent_at" as const, hoursMin: 12, hoursMax: 26 },
-  { key: "reminder_24h_sent_at" as const, hoursMin: 24, hoursMax: 26 },
+  { key: "reminder_2h_sent_at" as const,  hoursMin: 2,  hoursMax: 50 },
+  { key: "reminder_12h_sent_at" as const, hoursMin: 12, hoursMax: 50 },
+  { key: "reminder_24h_sent_at" as const, hoursMin: 24, hoursMax: 50 },
 ] as const;
 
 function parseMetadata(paymentChannel: string | null): {
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
   );
 
   const now = new Date();
-  const windowStart = new Date(now.getTime() - 26 * 60 * 60 * 1000); // 26h ago
+  const windowStart = new Date(now.getTime() - 50 * 60 * 60 * 1000); // 50h ago — wide enough for daily cron to catch the 24h window
   const windowEnd   = new Date(now.getTime() -  2 * 60 * 60 * 1000); // 2h ago
 
   // 1. Fetch pending transactions in the eligible time window
