@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { sendKYCApprovedEmail } from "@/lib/email";
+import { sendKYCApprovedEmail, sendKYCRejectedEmail } from "@/lib/email";
 
 async function authorizeAdmin() {
   const supabase = await createClient();
@@ -106,12 +106,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://oaktix.com.ng";
+
   // Send approval email
   if (action === "approve" && profile.email) {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://oaktix.com.ng";
     await sendKYCApprovedEmail({
       to: profile.email,
       organizerName: profile.full_name ?? "Organizer",
+      dashboardUrl: `${siteUrl}/organizer/finances`,
+    });
+  }
+
+  // Send rejection email
+  if (action === "reject" && profile.email) {
+    await sendKYCRejectedEmail({
+      to: profile.email,
+      organizerName: profile.full_name ?? "Organizer",
+      rejectionReason: reason || undefined,
       dashboardUrl: `${siteUrl}/organizer/finances`,
     });
   }

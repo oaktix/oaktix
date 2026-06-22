@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { sendKYCSubmittedAdminEmail } from "@/lib/email";
+import { sendKYCSubmittedAdminEmail, sendKYCPendingOrganizerEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -124,6 +124,16 @@ export async function POST(req: Request) {
       documentType: docTypeLabel,
       adminUrl: `${siteUrl}/admin/kyc`,
     });
+
+    // Notify organizer — submission confirmation
+    if (user.email) {
+      await sendKYCPendingOrganizerEmail({
+        to: user.email,
+        organizerName: profile?.full_name ?? "Organizer",
+        documentType: docTypeLabel,
+        dashboardUrl: `${siteUrl}/organizer/finances`,
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

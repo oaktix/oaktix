@@ -771,3 +771,113 @@ export async function sendKYCApprovedEmail(opts: {
     console.error('⚠ KYC approval email failed:', error);
   }
 }
+
+/** ------------------------------------------------------------------ */
+/** KYC submitted — organizer submission confirmation                    */
+/** ------------------------------------------------------------------ */
+export async function sendKYCPendingOrganizerEmail(opts: {
+  to: string;
+  organizerName: string;
+  documentType: string;
+  dashboardUrl: string;
+}) {
+  const { to, organizerName, documentType, dashboardUrl } = opts;
+  const subject = `Your KYC Document Has Been Received — OakTix`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,.05);overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#0E4B31,#1a6b47);padding:32px 40px;text-align:center;">
+<div style="margin-bottom:8px;font-size:28px;font-weight:800;"><span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span></div>
+<p style="color:rgba(255,255,255,.75);font-size:13px;margin:0;">Nigeria's #1 Event Ticketing Platform</p>
+</td></tr>
+<tr><td style="padding:40px 40px 32px;">
+<h1 style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0 0 8px;">Document Received ✅</h1>
+<p style="font-size:14px;color:#64786B;line-height:1.6;margin:0 0 24px;">Hi <strong>${organizerName}</strong>, we have received your identity verification document and it is now under review by our team.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F0F7F4;border-radius:14px;padding:24px;margin-bottom:24px;">
+<tr><td style="padding-bottom:12px;">
+<p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Document Submitted</p>
+<p style="margin:4px 0 0;font-size:14px;color:#1A1A1A;">${documentType}</p>
+</td></tr>
+<tr><td style="border-top:1px solid #DCE3DF;padding-top:12px;">
+<p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Status</p>
+<p style="margin:4px 0 0;font-size:14px;color:#D97706;font-weight:700;">⏳ Pending Review</p>
+</td></tr>
+</table>
+<div style="background:#FFF9EB;border:1px solid #FDE68A;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+<p style="margin:0;font-size:13px;color:#92400E;font-weight:700;">⏳ What happens next?</p>
+<p style="margin:8px 0 0;font-size:13px;color:#78350F;line-height:1.6;">Our team typically reviews documents within 24–48 hours. You will receive an email once your verification is approved or if we need you to resubmit.</p>
+</div>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center">
+<a href="${dashboardUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#0E4B31,#1a6b47);color:#fff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;">View Dashboard →</a>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:24px 40px;text-align:center;border-top:1px solid #E8EBE7;">
+<p style="font-size:11px;color:#DCE3DF;margin:0;">Sent by <strong style="color:#64786B;">OakTix</strong> · hello@oaktix.com.ng</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
+  try {
+    await sendEmail(to, subject, html);
+  } catch (error) {
+    console.error('⚠ KYC pending organizer email failed:', error);
+  }
+}
+
+/** ------------------------------------------------------------------ */
+/** KYC rejected — organizer rejection notification with reupload guide  */
+/** ------------------------------------------------------------------ */
+export async function sendKYCRejectedEmail(opts: {
+  to: string;
+  organizerName: string;
+  rejectionReason?: string;
+  dashboardUrl: string;
+}) {
+  const { to, organizerName, rejectionReason, dashboardUrl } = opts;
+  const subject = `Action Required: Your KYC Verification Was Not Accepted — OakTix`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,.05);overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#0E4B31,#1a6b47);padding:32px 40px;text-align:center;">
+<div style="margin-bottom:8px;font-size:28px;font-weight:800;"><span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span></div>
+<p style="color:rgba(255,255,255,.75);font-size:13px;margin:0;">Nigeria's #1 Event Ticketing Platform</p>
+</td></tr>
+<tr><td style="padding:40px 40px 32px;">
+<h1 style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0 0 8px;">Verification Not Accepted ❌</h1>
+<p style="font-size:14px;color:#64786B;line-height:1.6;margin:0 0 24px;">Hi <strong>${organizerName}</strong>, unfortunately your identity verification document was not accepted. Please review the reason below and resubmit.</p>
+${rejectionReason ? `
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF1F2;border:1px solid #FECDD3;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+<tr><td>
+<p style="margin:0;font-size:11px;font-weight:700;color:#BE123C;letter-spacing:1.5px;text-transform:uppercase;">Reason for Rejection</p>
+<p style="margin:8px 0 0;font-size:14px;color:#1A1A1A;line-height:1.6;">${rejectionReason}</p>
+</td></tr>
+</table>` : ''}
+<div style="background:#F0F7F4;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+<p style="margin:0;font-size:13px;color:#0E4B31;font-weight:700;">🔄 How to fix this</p>
+<ul style="margin:10px 0 0;padding-left:18px;font-size:13px;color:#64786B;line-height:1.8;">
+<li>Make sure your document is valid, not expired, and clearly readable.</li>
+<li>Upload a high-quality image — blurry or cut-off documents will be rejected.</li>
+<li>If your document was rejected, try using a different document type (e.g. Voter's Card, Passport, or Driver's Licence).</li>
+</ul>
+</div>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center">
+<a href="${dashboardUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#0E4B31,#1a6b47);color:#fff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;">Resubmit Verification →</a>
+</td></tr>
+</table>
+<p style="font-size:12px;color:#AAB8B2;text-align:center;margin:20px 0 0;">Need help? Reply to this email or contact <a href="mailto:hello@oaktix.com.ng" style="color:#0E4B31;text-decoration:none;font-weight:600;">hello@oaktix.com.ng</a></p>
+</td></tr>
+<tr><td style="padding:24px 40px;text-align:center;border-top:1px solid #E8EBE7;">
+<p style="font-size:11px;color:#DCE3DF;margin:0;">Sent by <strong style="color:#64786B;">OakTix</strong> · hello@oaktix.com.ng</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
+  try {
+    await sendEmail(to, subject, html);
+  } catch (error) {
+    console.error('⚠ KYC rejection email failed:', error);
+  }
+}
