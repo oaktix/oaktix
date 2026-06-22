@@ -60,9 +60,24 @@ interface EventData {
 
 interface EventCreationWizardProps {
   event?: EventData | null;
+  /**
+   * When true the wizard POSTs to /api/admin/events/upsert (service-role)
+   * instead of calling the Supabase client directly, so admins can edit
+   * events they don't own without hitting RLS.
+   */
+  isAdminMode?: boolean;
+  /**
+   * Where to redirect after a successful save.
+   * Defaults to /organizer/events.  Admin pages pass /admin/events.
+   */
+  returnPath?: string;
 }
 
-export default function EventCreationWizard({ event }: EventCreationWizardProps) {
+export default function EventCreationWizard({
+  event,
+  isAdminMode = false,
+  returnPath,
+}: EventCreationWizardProps) {
   const router = useRouter();
   const supabase = createClient();
   const [step, setStep] = useState(1);
@@ -201,8 +216,20 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
       show_ticket_volume: formData.show_ticket_volume,
     };
 
-    if (event?.id) {
-      // Update
+    if (isAdminMode) {
+      // ── Admin path: use service-role API route to bypass RLS ──────────────
+      const res = await fetch("/api/admin/events/upsert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: event?.id ?? undefined,
+          payload: eventPayload,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Admin save failed");
+    } else if (event?.id) {
+      // ── Organiser update path ─────────────────────────────────────────────
       const { error: updateError } = await supabase
         .from("events")
         .update(eventPayload)
@@ -210,7 +237,7 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
 
       if (updateError) throw new Error(updateError.message);
     } else {
-      // Insert
+      // ── Organiser insert path ─────────────────────────────────────────────
       const { error: insertError } = await supabase.from("events").insert({
         ...eventPayload,
         organizer_id: user.id,
@@ -219,7 +246,8 @@ export default function EventCreationWizard({ event }: EventCreationWizardProps)
       if (insertError) throw new Error(insertError.message);
     }
 
-    router.push(`/organizer/events`);
+    const destination = returnPath ?? "/organizer/events";
+    router.push(destination);
     router.refresh();
   } catch (err: unknown) {
     console.error(err);

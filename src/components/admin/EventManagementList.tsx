@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Calendar, MapPin, Trash2, ShieldAlert, CheckCircle2, AlertCircle, RefreshCw, Eye } from "lucide-react";
+import { Search, Calendar, MapPin, Trash2, ShieldAlert, CheckCircle2, AlertCircle, RefreshCw, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -291,7 +291,7 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
                         {event.status === "draft" ? (
                           <button
                             onClick={() => handleUpdateStatus(event.id, "published")}
@@ -311,6 +311,15 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
                             <RefreshCw className="w-3.5 h-3.5" /> Revert to Draft
                           </button>
                         ) : null}
+
+                        {/* Edit — full CRUD for super-admin */}
+                        <Link
+                          href={`/admin/events/${event.id}/edit`}
+                          className="p-2 rounded bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 hover:text-amber-300 transition-all flex items-center gap-1 text-xs font-bold"
+                          title="Edit Event"
+                        >
+                          <Pencil className="w-3.5 h-3.5" /> Edit
+                        </Link>
 
                         <button
                           onClick={() => handleDeleteEvent(event.id)}
