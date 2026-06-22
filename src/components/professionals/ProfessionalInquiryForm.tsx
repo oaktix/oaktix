@@ -66,9 +66,23 @@ export default function ProfessionalInquiryForm({
       // Build WhatsApp deep-link if the professional has a number
       if (professionalWhatsApp) {
         const cleanNumber = professionalWhatsApp.replace(/\D/g, "");
-        const text = encodeURIComponent(
-          `Hi ${professionalName}, I just sent you an inquiry via OakTix. Looking forward to hearing from you!`
-        );
+
+        // Build a detailed message with all filled-in fields
+        const lines: string[] = [
+          `Hi ${professionalName}, I just sent you an inquiry via OakTix. Here are my details:`,
+          ``,
+          `👤 Name: ${formData.name}`,
+          `📧 Email: ${formData.email}`,
+        ];
+        if (formData.phone)          lines.push(`📞 Phone: ${formData.phone}`);
+        if (formData.whatsapp)       lines.push(`💬 WhatsApp: ${formData.whatsapp}`);
+        if (formData.event_type)     lines.push(`🎉 Event Type: ${formData.event_type}`);
+        if (formData.event_date)     lines.push(`📅 Event Date: ${new Date(formData.event_date).toLocaleDateString("en-NG", { dateStyle: "long" })}`);
+        if (formData.event_location) lines.push(`📍 Location: ${formData.event_location}`);
+        if (formData.budget)         lines.push(`💰 Budget: ₦${Number(formData.budget).toLocaleString()}`);
+        lines.push(``, `💬 Message:`, formData.message);
+
+        const text = encodeURIComponent(lines.join("\n"));
         setWhatsappUrl(`https://wa.me/${cleanNumber}?text=${text}`);
       }
       setSubmitted(true);

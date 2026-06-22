@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { adminSupabase } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import type {
   InquiryFormData,
@@ -349,7 +350,8 @@ export async function submitInquiry(
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { error } = await supabase.from("professional_inquiries").insert({
+  const admin = adminSupabase();
+  const { error } = await admin.from("professional_inquiries").insert({
     professional_id: professionalId,
     sender_id: user?.id || null,
     name: formData.name,
