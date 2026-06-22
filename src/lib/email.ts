@@ -42,9 +42,14 @@ export async function sendEmail(
       })),
     });
 
-    console.log('✅ Resend email sent', result);
-    // Resend returns an object with `id` on success – treat truthy `id` as success
-    return Boolean((result as any)?.id);
+    const { data, error: resendError } = result as any;
+    if (resendError) {
+      console.error('❌ Resend API error:', resendError);
+      return false;
+    }
+    console.log('✅ Resend email sent', data);
+    // Resend v6 returns { data: { id }, error } — success when data.id is truthy
+    return Boolean(data?.id);
   } catch (error) {
     console.error('❌ Failed to send email via Resend:', error);
     return false;
