@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { target, subject, body, recipientEmail, recipientName } = await req.json();
+  const { target, subject, body, recipientEmail, recipientName, recipients: recipientsPayload } = await req.json();
 
   if (!subject?.trim() || !body?.trim()) {
     return NextResponse.json({ error: "Subject and body are required." }, { status: 400 });
@@ -31,8 +31,17 @@ export async function POST(req: Request) {
   let recipients: { email: string; name: string }[] = [];
 
   if (target === "individual") {
-    if (!recipientEmail) return NextResponse.json({ error: "recipientEmail required for individual send." }, { status: 400 });
-    recipients = [{ email: recipientEmail, name: recipientName || recipientEmail.split("@")[0] }];
+    // Support both legacy single-recipient and new multi-recipient array
+    if (Array.isArray(recipientsPayload) && recipientsPayload.length > 0) {
+      recipients = recipientsPayload.map((r: { email: string; name?: string }) => ({
+        email: r.email,
+        name: r.name || r.email.split("@")[0],
+      }));
+    } else if (recipientEmail) {
+      recipients = [{ email: recipientEmail, name: recipientName || recipientEmail.split("@")[0] }];
+    } else {
+      return NextResponse.json({ error: "At least one recipient is required for individual send." }, { status: 400 });
+    }
   } else {
     // Fetch emails based on target group
     let query = admin.from("profiles").select("full_name, email").not("email", "is", null);
