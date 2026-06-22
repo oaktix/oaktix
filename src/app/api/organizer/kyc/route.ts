@@ -68,10 +68,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Failed to upload document. Please try again." }, { status: 500 });
       }
 
-      const {
-        data: { publicUrl },
-      } = admin.storage.from("kyc-documents").getPublicUrl(path);
-      documentUrl = publicUrl;
+      // Store the storage path (not a public URL — bucket is private)
+      documentUrl = path;
     }
 
     // Fetch current profile

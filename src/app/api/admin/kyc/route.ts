@@ -21,6 +21,15 @@ async function authorizeAdmin() {
   return { user, allowed, supabase };
 }
 
+// Extracts the storage path from either a legacy public URL or a plain path
+function extractStoragePath(documentUrl: string): string {
+  const marker = '/object/public/kyc-documents/';
+  const idx = documentUrl.indexOf(marker);
+  if (idx !== -1) return documentUrl.slice(idx + marker.length);
+  // Already a plain storage path (new format)
+  return documentUrl;
+}
+
 // GET: list organizers with pending KYC
 export async function GET() {
   const { user, allowed } = await authorizeAdmin();
@@ -39,15 +48,35 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Filter profiles that have kyc data
-  const withKyc = (data || [])
-    .filter((p: any) => p.vendor_details?.kyc)
-    .map((p: any) => ({
-      id: p.id,
-      full_name: p.full_name,
-      email: p.email,
-      kyc: p.vendor_details.kyc,
-    }));
+  // Filter profiles that have kyc data; generate signed URLs for documents
+  const withKyc = await Promise.all(
+    (data || [])
+      .filter((p: any) => p.vendor_details?.kyc)
+      .map(async (p: any) => {
+        const kyc = { ...p.vendor_details.kyc };
+
+        if (kyc.document_url) {
+          try {
+            const storagePath = extractStoragePath(kyc.document_url);
+            const { data: signed } = await admin.storage
+              .from("kyc-documents")
+              .createSignedUrl(storagePath, 3600); // 1-hour TTL
+            if (signed?.signedUrl) {
+              kyc.signed_document_url = signed.signedUrl;
+            }
+          } catch {
+            // Non-blocking — admin can still review without the document preview
+          }
+        }
+
+        return {
+          id: p.id,
+          full_name: p.full_name,
+          email: p.email,
+          kyc,
+        };
+      })
+  );
 
   return NextResponse.json({ vendors: withKyc });
 }

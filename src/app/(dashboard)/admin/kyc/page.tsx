@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShieldCheck, CheckCircle, XCircle, Clock, FileText, ExternalLink } from "lucide-react";
+import { ShieldCheck, CheckCircle, XCircle, Clock, FileText } from "lucide-react";
 
 interface KYCRecord {
   id: string;
@@ -13,6 +13,7 @@ interface KYCRecord {
     submitted_at: string;
     nin?: string;
     document_url?: string;
+    signed_document_url?: string;
     rejection_reason?: string;
   };
 }
@@ -168,15 +169,8 @@ function KYCCard({
         <FileText className="w-4 h-4 text-indigo-400 flex-shrink-0" />
         <span className="font-medium">{DOC_LABELS[kyc.type] ?? kyc.type}</span>
         {kyc.nin && <span className="ml-2 font-mono text-xs bg-zinc-200 px-2 py-0.5 rounded">{kyc.nin}</span>}
-        {kyc.document_url && (
-          <a
-            href={kyc.document_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-auto flex items-center gap-1 text-indigo-500 hover:text-indigo-600 text-xs font-bold"
-          >
-            View Document <ExternalLink className="w-3 h-3" />
-          </a>
+        {kyc.signed_document_url && (
+          <DocViewer url={kyc.signed_document_url} />
         )}
       </div>
 
@@ -240,4 +234,42 @@ function StatusBadge({ status }: { status: string }) {
   if (status === "rejected")
     return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 border border-red-200 text-red-700"><XCircle className="w-3.5 h-3.5" /> Rejected</span>;
   return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-700"><Clock className="w-3.5 h-3.5" /> Pending</span>;
+}
+
+function DocViewer({ url }: { url: string }) {
+  const [open, setOpen] = useState(false);
+  const isPdf = url.toLowerCase().includes('.pdf') || url.toLowerCase().includes('%2Fpdf') || url.toLowerCase().includes('application%2Fpdf');
+
+  return (
+    <div className="ml-auto">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 text-indigo-500 hover:text-indigo-600 text-xs font-bold transition-colors"
+      >
+        {open ? "Hide Document" : "View Document"}
+        <FileText className="w-3 h-3" />
+      </button>
+
+      {open && (
+        <div className="mt-3 rounded-xl overflow-hidden border border-zinc-200 bg-zinc-50 w-full">
+          {isPdf ? (
+            <iframe
+              src={url}
+              title="KYC Document"
+              className="w-full"
+              style={{ height: "60vh", border: "none" }}
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={url}
+              alt="KYC Document"
+              className="w-full max-h-[60vh] object-contain bg-zinc-100 p-2"
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
