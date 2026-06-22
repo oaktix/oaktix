@@ -445,6 +445,7 @@ export default async function ProfessionalSlugPage({ params, searchParams }: Pag
               <ProfessionalInquiryForm
                 professionalId={professional.id}
                 professionalName={professional.professional_name}
+                professionalWhatsApp={professional.whatsapp ?? null}
               />
             </div>
 

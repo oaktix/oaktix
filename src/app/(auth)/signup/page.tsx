@@ -13,6 +13,7 @@ type PendingSignup = {
   fullName: string;
   resolvedRole: string;
   isProfessionalSignup: boolean;
+  phone?: string;
 };
 
 export default function SignupPage() {
@@ -44,6 +45,7 @@ export default function SignupPage() {
     const fullName = formData.get("fullName") as string;
     const businessName = formData.get("businessName") as string;
     const businessBio = formData.get("businessBio") as string;
+    const phone = (formData.get("phone") as string | null)?.trim() || "";
 
     const isProfessionalSignup = role === "professional";
     const resolvedRole = email.includes("gahdejtheprince")
@@ -85,7 +87,7 @@ export default function SignupPage() {
     }
 
     // Save state needed for the OTP step
-    setPending({ email, fullName, resolvedRole, isProfessionalSignup });
+    setPending({ email, fullName, resolvedRole, isProfessionalSignup, phone });
 
     // If a session came back immediately (edge case / future config change),
     // skip OTP and finish now.
@@ -94,6 +96,7 @@ export default function SignupPage() {
         id: data.user.id,
         full_name: fullName,
         role: resolvedRole,
+        ...(phone ? { phone } : {}),
       });
       redirectAfterSignup(isProfessionalSignup, resolvedRole);
       return;
@@ -137,6 +140,7 @@ export default function SignupPage() {
         id: data.user.id,
         full_name: pending.fullName,
         role: pending.resolvedRole,
+        ...(pending.phone ? { phone: pending.phone } : {}),
       });
     }
 
@@ -312,6 +316,21 @@ export default function SignupPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+              </div>
+
+              {/* Phone — mandatory for ALL roles */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wide">
+                  Phone Number <span className="text-red-400">*</span>
+                </label>
+                <input
+                  name="phone"
+                  type="tel"
+                  required
+                  placeholder="+2348012345678"
+                  className="w-full bg-white border border-[#E8EBE7] rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-sm text-zinc-800 placeholder:text-zinc-400"
+                />
+                <p className="text-[11px] text-zinc-400">Used for notifications and account verification.</p>
               </div>
 
               {role === "vendor" && (

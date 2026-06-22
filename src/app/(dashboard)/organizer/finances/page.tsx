@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Wallet, ArrowDownCircle, CheckCircle2, Clock, History } from "lucide-react";
 import SettlementForm from "@/components/dashboard/SettlementForm";
 import WithdrawalForm from "@/components/dashboard/WithdrawalForm";
+import KYCGate from "@/components/dashboard/KYCGate";
 
 export default async function OrganizerFinances() {
   const supabase = await createClient();
@@ -123,7 +124,9 @@ export default async function OrganizerFinances() {
           <SettlementForm profile={profile} />
 
           <h2 className="text-xl font-bold font-heading">Request Payout</h2>
-          <WithdrawalForm profile={profile} availableBalance={availableBalance} />
+          <KYCGate kycData={(profile?.vendor_details as any)?.kyc ?? null}>
+            <WithdrawalForm profile={profile} availableBalance={availableBalance} />
+          </KYCGate>
         </div>
 
         {/* Transactions & Withdrawals History Panel */}

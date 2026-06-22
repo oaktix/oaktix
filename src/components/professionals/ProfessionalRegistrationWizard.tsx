@@ -40,6 +40,10 @@ export default function ProfessionalRegistrationWizard({
   const [state, setState] = useState("");
   const [pricingType, setPricingType] = useState<"fixed" | "hourly" | "per_event" | "negotiable">("negotiable");
   const [startingPrice, setStartingPrice] = useState("");
+  // Contact details — mandatory
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactWhatsapp, setContactWhatsapp] = useState("");
 
   // Step 3 — Portfolio & Social
   const [profilePhoto, setProfilePhoto] = useState("");
@@ -66,6 +70,10 @@ export default function ProfessionalRegistrationWizard({
     if (step === 1) {
       if (!city.trim()) { setError("Please enter your city."); return false; }
       if (!state) { setError("Please select your state."); return false; }
+      if (!contactEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+        setError("Please enter a valid contact email address."); return false;
+      }
+      if (!contactPhone.trim()) { setError("Please enter a contact phone number."); return false; }
     }
     return true;
   };
@@ -151,6 +159,25 @@ export default function ProfessionalRegistrationWizard({
         website: website || undefined,
       }
     );
+
+    if (result.success && (contactPhone || contactEmail || contactWhatsapp)) {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase
+            .from("professionals")
+            .update({
+              ...(contactEmail ? { email: contactEmail } : {}),
+              ...(contactPhone ? { phone: contactPhone } : {}),
+              ...(contactWhatsapp ? { whatsapp: contactWhatsapp } : {}),
+            })
+            .eq("user_id", user.id);
+        }
+      } catch {
+        // Non-blocking — profile was created, contact save failed silently
+      }
+    }
 
     setLoading(false);
 
@@ -391,6 +418,47 @@ export default function ProfessionalRegistrationWizard({
               <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
                 Setting a starting price helps clients quickly gauge if you fit their budget. You can always negotiate. Most professionals on OakTix see 2x more inquiries with a visible price range.
               </p>
+            </div>
+
+            {/* Mandatory contact details */}
+            <div className="pt-2">
+              <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Contact Details *</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="label-style">Contact Email <span style={{ color: "#ef4444" }}>*</span></label>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="bookings@yourname.com"
+                    required
+                    className="input-style"
+                  />
+                  <p className="text-[11px] text-zinc-400 mt-1">Public contact email for client inquiries</p>
+                </div>
+                <div>
+                  <label className="label-style">Phone Number <span style={{ color: "#ef4444" }}>*</span></label>
+                  <input
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="+2348012345678"
+                    required
+                    className="input-style"
+                  />
+                </div>
+                <div>
+                  <label className="label-style">WhatsApp Number</label>
+                  <input
+                    type="tel"
+                    value={contactWhatsapp}
+                    onChange={(e) => setContactWhatsapp(e.target.value)}
+                    placeholder="+2348012345678 (if different)"
+                    className="input-style"
+                  />
+                  <p className="text-[11px] text-zinc-400 mt-1">Enables the WhatsApp button for clients</p>
+                </div>
+              </div>
             </div>
           </div>
         )}

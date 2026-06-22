@@ -498,15 +498,32 @@ export async function sendWithdrawalRequestedEmail(
   amount: number,
 ) {
   const finalRecipient = to === 'hello@oaktix.com.ng' ? 'theoaktix@gmail.com' : to;
-  const subject = 'Withdrawal Request Received';
-  const html = `<p>Dear Vendor,</p>
-<p>We have received your withdrawal request of <strong>₦${amount.toLocaleString()}</strong>. Our team will process it within 24 hours.</p>
-<p>Thank you for using Oaktix.</p>`;
+  const subject = 'Withdrawal Request Received — OakTix';
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,.05);overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#0E4B31,#1a6b47);padding:32px 40px;text-align:center;">
+<div style="margin-bottom:8px;font-size:28px;font-weight:800;"><span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span></div>
+<p style="color:rgba(255,255,255,.75);font-size:13px;margin:0;">Nigeria's #1 Event Ticketing Platform</p>
+</td></tr>
+<tr><td style="padding:40px 40px 32px;">
+<h1 style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0 0 16px;">Withdrawal Request Received</h1>
+<p style="font-size:14px;color:#64786B;line-height:1.6;margin:0 0 24px;">We have received your withdrawal request of <strong style="color:#1A1A1A;">₦${amount.toLocaleString()}</strong>. Our team will process it within 24 hours.</p>
+<div style="background:#F0F7F4;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+<p style="margin:0;font-size:13px;color:#0E4B31;font-weight:700;">⏳ What happens next?</p>
+<p style="margin:8px 0 0;font-size:13px;color:#64786B;line-height:1.6;">Once processed, funds will be transferred to your linked bank account. You'll receive another email when your withdrawal is approved.</p>
+</div>
+</td></tr>
+<tr><td style="padding:24px 40px;text-align:center;border-top:1px solid #E8EBE7;">
+<p style="font-size:11px;color:#DCE3DF;margin:0;">Sent by <strong style="color:#64786B;">OakTix</strong> · hello@oaktix.com.ng</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
   try {
     await sendEmail(finalRecipient, subject, html);
   } catch (error) {
     console.error('⚠ Withdrawal request email failed:', error);
-    // Continue without interrupting withdrawal flow
   }
 }
 
@@ -516,15 +533,206 @@ export async function sendWithdrawalStatusEmail(
   status: 'approved' | 'rejected',
 ) {
   const finalRecipient = to === 'hello@oaktix.com.ng' ? 'theoaktix@gmail.com' : to;
-  const capitalized = status.charAt(0).toUpperCase() + status.slice(1);
-  const subject = `Your Withdrawal Has Been ${capitalized}`;
-  const html = `<p>Dear Vendor,</p>
-<p>Your withdrawal request of <strong>₦${amount.toLocaleString()}</strong> has been <strong>${status}</strong> by the Oaktix admin team.</p>
-<p>Thank you for using Oaktix.</p>`;
+  const isApproved = status === 'approved';
+  const subject = `Your Withdrawal Has Been ${isApproved ? 'Approved' : 'Rejected'} — OakTix`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,.05);overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#0E4B31,#1a6b47);padding:32px 40px;text-align:center;">
+<div style="margin-bottom:8px;font-size:28px;font-weight:800;"><span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span></div>
+<p style="color:rgba(255,255,255,.75);font-size:13px;margin:0;">Nigeria's #1 Event Ticketing Platform</p>
+</td></tr>
+<tr><td style="padding:40px 40px 32px;">
+<h1 style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0 0 16px;">Withdrawal ${isApproved ? 'Approved ✅' : 'Rejected'}</h1>
+<p style="font-size:14px;color:#64786B;line-height:1.6;margin:0 0 24px;">Your withdrawal request of <strong style="color:#1A1A1A;">₦${amount.toLocaleString()}</strong> has been <strong style="color:${isApproved ? '#16a34a' : '#dc2626'};">${status}</strong> by the OakTix admin team.</p>
+${isApproved
+  ? `<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+<p style="margin:0;font-size:13px;color:#15803D;font-weight:700;">💰 Funds on the way</p>
+<p style="margin:8px 0 0;font-size:13px;color:#16a34a;line-height:1.6;">Your funds should appear in your linked bank account within 1–2 business days.</p>
+</div>`
+  : `<div style="background:#FFF1F2;border:1px solid #FECDD3;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+<p style="margin:0;font-size:13px;color:#BE123C;font-weight:700;">❌ Request Not Approved</p>
+<p style="margin:8px 0 0;font-size:13px;color:#BE123C;line-height:1.6;">Please contact support at hello@oaktix.com.ng for assistance or to resubmit your request.</p>
+</div>`}
+</td></tr>
+<tr><td style="padding:24px 40px;text-align:center;border-top:1px solid #E8EBE7;">
+<p style="font-size:11px;color:#DCE3DF;margin:0;">Sent by <strong style="color:#64786B;">OakTix</strong> · hello@oaktix.com.ng</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
   try {
     await sendEmail(finalRecipient, subject, html);
   } catch (error) {
     console.error('⚠ Withdrawal status email failed:', error);
-    // Continue without interrupting withdrawal flow
+  }
+}
+
+/** ------------------------------------------------------------------ */
+/** Admin email campaign — sends a branded message to a single recipient */
+/** ------------------------------------------------------------------ */
+export async function sendCampaignEmail(opts: {
+  to: string;
+  recipientName: string;
+  subject: string;
+  bodyHtml: string;
+}) {
+  const { to, recipientName, subject, bodyHtml } = opts;
+  const replySubject = encodeURIComponent(`Re: ${subject}`);
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:560px;background:#ffffff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,0.06);overflow:hidden;">
+
+<!-- Header -->
+<tr><td style="background:linear-gradient(135deg,#0E4B31 0%,#1a6b47 100%);padding:32px 40px;text-align:center;">
+<table cellpadding="0" cellspacing="0" style="margin:0 auto 10px;">
+<tr><td style="background:rgba(255,255,255,0.12);border-radius:12px;padding:10px 14px;">
+<span style="font-size:26px;">🎟️</span>
+</td></tr>
+</table>
+<div style="margin-top:10px;">
+<span style="font-size:30px;font-weight:800;letter-spacing:-0.5px;">
+<span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span>
+</span>
+</div>
+<p style="color:rgba(255,255,255,0.75);font-size:13px;margin:4px 0 0;letter-spacing:0.5px;">Nigeria's #1 Event Ticketing Platform</p>
+</td></tr>
+
+<!-- Subject banner -->
+<tr><td style="background:#F7F9F8;border-bottom:1px solid #E8EBE7;padding:16px 40px;">
+<p style="margin:0;font-size:11px;font-weight:700;color:#889C8F;text-transform:uppercase;letter-spacing:1.5px;">Message from OakTix</p>
+<h1 style="margin:4px 0 0;font-size:18px;font-weight:700;color:#1A1A1A;">${subject}</h1>
+</td></tr>
+
+<!-- Body -->
+<tr><td style="padding:36px 40px 28px;">
+<p style="font-size:14px;color:#64786B;margin:0 0 20px;">Hi <strong style="color:#1A1A1A;">${recipientName}</strong>,</p>
+<div style="font-size:14px;color:#333;line-height:1.75;margin:0 0 28px;">${bodyHtml}</div>
+
+<!-- Reply CTA -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center">
+<a href="mailto:theoaktix@gmail.com?subject=${replySubject}"
+   style="display:inline-block;padding:13px 30px;background:linear-gradient(135deg,#0E4B31,#1a6b47);color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;border-radius:12px;letter-spacing:0.3px;">
+  💬 Reply to OakTix
+</a>
+</td></tr>
+</table>
+<p style="font-size:12px;color:#AAB8B2;text-align:center;margin:20px 0 0;">Click the button above to send us a message.</p>
+</td></tr>
+
+<!-- Divider -->
+<tr><td style="padding:0 40px;"><div style="height:1px;background:#E8EBE7;"></div></td></tr>
+
+<!-- Footer -->
+<tr><td style="padding:24px 40px;text-align:center;">
+<p style="font-size:12px;color:#BAC6BF;margin:0 0 4px;">Sent by <strong style="color:#64786B;">OakTix</strong> · Nigeria's Favourite Ticketing Platform</p>
+<p style="font-size:11px;color:#DCE3DF;margin:0;">hello@oaktix.com.ng</p>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  return sendEmail(to, subject, html);
+}
+
+/** ------------------------------------------------------------------ */
+/** KYC submission — admin notification                                  */
+/** ------------------------------------------------------------------ */
+export async function sendKYCSubmittedAdminEmail(opts: {
+  organizerName: string;
+  organizerEmail: string;
+  documentType: string;
+  adminUrl: string;
+}) {
+  const { organizerName, organizerEmail, documentType, adminUrl } = opts;
+  const subject = `KYC Document Submitted — ${organizerName}`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,.05);overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#0E4B31,#1a6b47);padding:32px 40px;text-align:center;">
+<div style="margin-bottom:8px;font-size:28px;font-weight:800;"><span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span></div>
+<p style="color:rgba(255,255,255,.75);font-size:13px;margin:0;">Nigeria's #1 Event Ticketing Platform</p>
+</td></tr>
+<tr><td style="padding:40px 40px 32px;">
+<h1 style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0 0 8px;">New KYC Submission</h1>
+<p style="font-size:14px;color:#64786B;line-height:1.6;margin:0 0 28px;">An organizer has submitted their identity verification document for review.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F0F7F4;border-radius:14px;padding:24px;margin-bottom:24px;">
+<tr><td style="padding-bottom:12px;">
+<p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Organizer</p>
+<p style="margin:4px 0 0;font-size:15px;font-weight:700;color:#1A1A1A;">${organizerName}</p>
+<p style="margin:2px 0 0;font-size:13px;color:#64786B;">${organizerEmail}</p>
+</td></tr>
+<tr><td style="border-top:1px solid #DCE3DF;padding-top:12px;">
+<p style="margin:0;font-size:11px;font-weight:700;color:#64786B;letter-spacing:1.5px;text-transform:uppercase;">Document Type</p>
+<p style="margin:4px 0 0;font-size:14px;color:#1A1A1A;">${documentType}</p>
+</td></tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center">
+<a href="${adminUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#0E4B31,#1a6b47);color:#fff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;">Review KYC →</a>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:24px 40px;text-align:center;border-top:1px solid #E8EBE7;">
+<p style="font-size:11px;color:#DCE3DF;margin:0;">Sent by <strong style="color:#64786B;">OakTix</strong> · hello@oaktix.com.ng</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
+  try {
+    await sendEmail('theoaktix@gmail.com', subject, html);
+  } catch (error) {
+    console.error('⚠ KYC admin notification email failed:', error);
+  }
+}
+
+/** ------------------------------------------------------------------ */
+/** KYC approved — organizer notification                                */
+/** ------------------------------------------------------------------ */
+export async function sendKYCApprovedEmail(opts: {
+  to: string;
+  organizerName: string;
+  dashboardUrl: string;
+}) {
+  const { to, organizerName, dashboardUrl } = opts;
+  const subject = `Your Identity Verification Has Been Approved — OakTix`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,.05);overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#0E4B31,#1a6b47);padding:32px 40px;text-align:center;">
+<div style="margin-bottom:8px;font-size:28px;font-weight:800;"><span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span></div>
+<p style="color:rgba(255,255,255,.75);font-size:13px;margin:0;">Nigeria's #1 Event Ticketing Platform</p>
+</td></tr>
+<tr><td style="padding:40px 40px 32px;">
+<h1 style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0 0 8px;">Identity Verified ✅</h1>
+<p style="font-size:14px;color:#64786B;line-height:1.6;margin:0 0 24px;">Hi <strong>${organizerName}</strong>, your identity verification has been reviewed and approved. You can now request withdrawals from your OakTix account.</p>
+<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+<p style="margin:0;font-size:13px;color:#15803D;font-weight:700;">🎉 You're all set!</p>
+<p style="margin:8px 0 0;font-size:13px;color:#16a34a;line-height:1.6;">Head to your finances dashboard to request your first withdrawal.</p>
+</div>
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center">
+<a href="${dashboardUrl}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#0E4B31,#1a6b47);color:#fff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;">Go to Finances →</a>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:24px 40px;text-align:center;border-top:1px solid #E8EBE7;">
+<p style="font-size:11px;color:#DCE3DF;margin:0;">Sent by <strong style="color:#64786B;">OakTix</strong> · hello@oaktix.com.ng</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
+  try {
+    await sendEmail(to, subject, html);
+  } catch (error) {
+    console.error('⚠ KYC approval email failed:', error);
   }
 }

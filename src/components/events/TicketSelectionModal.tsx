@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { X, Minus, Plus, Loader2, ArrowLeft, Mail, User as UserIcon } from "lucide-react";
+import { X, Minus, Plus, Loader2, ArrowLeft, Mail, User as UserIcon, Phone } from "lucide-react";
 import TransactpayButton from "../checkout/TransactpayButton";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -35,6 +35,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [guestEmail, setGuestEmail] = useState("");
   const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
   const [guestUser, setGuestUser] = useState<{ id: string; email: string } | null>(null);
   const [loadingGuest, setLoadingGuest] = useState(false);
   const [guestError, setGuestError] = useState<string | null>(null);
@@ -186,7 +187,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
 
   const handleGuestCheckoutSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!guestEmail || !guestName) return;
+    if (!guestEmail || !guestName || !guestPhone) return;
 
     setLoadingGuest(true);
     setGuestError(null);
@@ -196,7 +197,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
       const res = await fetch("/api/checkout/guest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: guestEmail, fullName: guestName }),
+        body: JSON.stringify({ email: guestEmail, fullName: guestName, phone: guestPhone }),
       });
 
       const data = await res.json();
@@ -215,7 +216,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
     } finally {
       setLoadingGuest(false);
     }
-  }, [guestEmail, guestName]);
+  }, [guestEmail, guestName, guestPhone]);
 
   const handleClaimFree = useCallback(async () => {
     const checkoutUser = user || guestUser;
@@ -428,6 +429,13 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
                         <div className="relative">
                           <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
                           <input type="email" required placeholder="name@example.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Phone Number <span className="text-red-400">*</span></label>
+                        <div className="relative">
+                          <Phone className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
+                          <input type="tel" required placeholder="+2348012345678" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm" />
                         </div>
                       </div>
                     </div>
