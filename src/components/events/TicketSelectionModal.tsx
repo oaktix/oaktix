@@ -528,6 +528,13 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
                             <input type="email" required placeholder="name@example.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm" />
                           </div>
                         </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Phone Number <span className="text-red-400">*</span></label>
+                          <div className="relative">
+                            <Phone className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
+                            <input type="tel" required placeholder="+2348012345678" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500 text-zinc-800 placeholder:text-zinc-400 transition-colors text-sm" />
+                          </div>
+                        </div>
                       </div>
                       {guestError && <p className="text-red-500 text-xs font-bold text-center mt-1">{guestError}</p>}
                       <button type="submit" disabled={loadingGuest} className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/20">
