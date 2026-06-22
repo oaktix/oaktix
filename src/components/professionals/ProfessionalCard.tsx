@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MapPin, Star, BadgeCheck, Flame, Clock, TrendingUp } from "lucide-react";
 import type { Professional } from "@/lib/professionals/types";
 import { PRICING_TYPE_LABELS } from "@/lib/professionals/types";
+import ProfilePhotoLightbox from "./ProfilePhotoLightbox";
 
 interface ProfessionalCardProps {
   professional: Professional;
@@ -125,21 +126,12 @@ export default function ProfessionalCard({
             </div>
           )}
 
-          {/* Profile photo circle */}
-          <div className="absolute -bottom-6 left-4 w-14 h-14 rounded-full border-4 border-white dark:border-zinc-900 bg-zinc-200 dark:bg-zinc-700 overflow-hidden shadow-md">
-            {p.profile_photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={p.profile_photo}
-                alt={p.business_name || p.professional_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-indigo-500/20 flex items-center justify-center">
-                <span className="text-xl">{p.category?.icon ?? "🎯"}</span>
-              </div>
-            )}
-          </div>
+          {/* Profile photo circle — click to enlarge */}
+          <ProfilePhotoLightbox
+            src={p.profile_photo}
+            alt={p.business_name || p.professional_name}
+            fallbackIcon={p.category?.icon}
+          />
         </div>
 
         {/* Card Body */}
