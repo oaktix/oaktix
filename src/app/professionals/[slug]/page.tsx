@@ -13,6 +13,7 @@ import ProfessionalPortfolioGallery from "@/components/professionals/Professiona
 import ProfessionalInquiryForm from "@/components/professionals/ProfessionalInquiryForm";
 import ProfessionalReviews from "@/components/professionals/ProfessionalReviews";
 import ProfessionalFilters from "@/components/professionals/ProfessionalFilters";
+import ProfessionalShareButton from "@/components/professionals/ProfessionalShareButton";
 import { createClient } from "@/lib/supabase/server";
 import {
   getProfessionalBySlug,
@@ -285,18 +286,24 @@ export default async function ProfessionalSlugPage({ params, searchParams }: Pag
               </div>
             </div>
 
-            {/* Pricing */}
-            {professional.starting_price && (
-              <div className="flex-shrink-0 text-right sm:pb-2">
-                <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Starting from</span>
-                <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">
-                  ₦{professional.starting_price.toLocaleString()}
-                </span>
-                <span className="text-xs text-zinc-400 block">
-                  {PRICING_TYPE_LABELS[professional.pricing_type]}
-                </span>
-              </div>
-            )}
+            {/* Pricing + Share */}
+            <div className="flex items-center gap-3 sm:pb-2">
+              <ProfessionalShareButton
+                slug={slug}
+                name={professional.business_name || professional.professional_name}
+              />
+              {professional.starting_price && (
+                <div className="flex-shrink-0 text-right">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Starting from</span>
+                  <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">
+                    ₦{professional.starting_price.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-zinc-400 block">
+                    {PRICING_TYPE_LABELS[professional.pricing_type]}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Stats row */}
