@@ -1011,3 +1011,300 @@ ${is24h ? `<div style="background:#FFF9EB;border:1px solid #FDE68A;border-radius
     throw new Error(`sendEmail returned false for abandoned checkout reminder → ${to}`);
   }
 }
+
+/** ================================================================== */
+/** Registration approval + waitlist emails (free events)              */
+/** ================================================================== */
+
+/**
+ * Send a branded registration email. Mirrors the free-checkout route's
+ * graceful fallback: try the primary domain first, then fall back to the
+ * onboarding@resend.dev sandbox sender if the primary send fails.
+ */
+async function sendRegistrationEmail(to: string, subject: string, html: string): Promise<void> {
+  try {
+    const result = await resend.emails.send({
+      from: 'OakTix <hello@oaktix.com.ng>',
+      to,
+      subject,
+      html,
+    });
+    if ((result as { error?: unknown }).error) {
+      console.warn('Primary domain dispatch failed, retrying with sandbox onboarding@resend.dev...', (result as { error?: unknown }).error);
+      await resend.emails.send({
+        from: 'OakTix <onboarding@resend.dev>',
+        to,
+        subject: `[Sandbox] ${subject}`,
+        html,
+      });
+    }
+  } catch (err) {
+    console.error('Registration email crashed, retrying with sandbox from address:', err);
+    try {
+      await resend.emails.send({
+        from: 'OakTix <onboarding@resend.dev>',
+        to,
+        subject: `[Sandbox] ${subject}`,
+        html,
+      });
+    } catch (fallbackErr) {
+      console.error('Sandbox fallback dispatch failed:', fallbackErr);
+    }
+  }
+}
+
+/** Shared branded shell — header / body / footer matching the free route. */
+function registrationShell(opts: {
+  emoji: string;
+  tagline: string;
+  bodyHtml: string;
+  title: string;
+}): string {
+  const { emoji, tagline, bodyHtml, title } = opts;
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#FAF9F6; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF9F6; padding:48px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" style="max-width:560px; background:#ffffff; border-radius:24px; border:1px solid #E8EBE7; box-shadow:0 8px 32px rgba(0,0,0,0.04); overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#0E4B31 0%,#1a6b47 100%); padding:32px 40px; text-align:center;">
+              <span style="font-size:28px;">${emoji}</span>
+              <div style="margin-top:8px;">
+                <span style="font-size:26px; font-weight:800; color:#ffffff; letter-spacing:-0.5px;">
+                  <span style="color:#5fa589;">Oak</span>Tix
+                </span>
+              </div>
+              <p style="color:rgba(255,255,255,0.7); font-size:12px; margin:4px 0 0; text-transform:uppercase; letter-spacing:1px;">${tagline}</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px 40px 24px 40px;">
+              ${bodyHtml}
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding:0 40px;">
+              <div style="height:1px; background:#E8EBE7;"></div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 40px; text-align:center;">
+              <p style="font-size:12px; color:#BAC6BF; margin:0 0 4px 0;">
+                OakTix · Nigeria's Favourite Event Marketplace
+              </p>
+              <p style="font-size:11px; color:#889C8F; margin:0;">
+                Need help? Contact us at <a href="mailto:hello@oaktix.com.ng" style="color:#0E4B31; text-decoration:underline;">hello@oaktix.com.ng</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+/** Reusable event-details card for registration emails. */
+function eventDetailsCard(opts: {
+  eventTitle: string;
+  eventDate: string;
+  eventLocation: string;
+  eventBannerUrl?: string;
+}): string {
+  const { eventTitle, eventDate, eventLocation, eventBannerUrl } = opts;
+  return `
+    <div style="background:#FAF9F6; border:1px solid #E8EBE7; border-radius:16px; padding:20px; margin-bottom:32px;">
+      ${eventBannerUrl ? `<img src="${eventBannerUrl}" alt="Event Banner" style="width:100%; height:160px; object-fit:cover; border-radius:8px; margin-bottom:16px;" />` : ""}
+      <h3 style="margin:0 0 8px 0; font-size:18px; font-weight:700; color:#0E4B31;">${eventTitle}</h3>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">
+        <tr><td style="padding:4px 0; font-size:13px; color:#64786B;"><strong>Date:</strong> ${eventDate}</td></tr>
+        <tr><td style="padding:4px 0; font-size:13px; color:#64786B;"><strong>Where:</strong> ${eventLocation}</td></tr>
+      </table>
+    </div>`;
+}
+
+/** Registrant: request received, pending organizer approval. NO meeting link. */
+export async function sendRegistrationPendingEmail(opts: {
+  to: string;
+  eventTitle: string;
+  eventDate: string;
+  eventLocation: string;
+  isVirtual?: boolean;
+  eventBannerUrl?: string;
+}) {
+  const { to, eventTitle, eventDate, eventLocation, isVirtual, eventBannerUrl } = opts;
+  const subject = `Registration received — pending approval: ${eventTitle}`;
+  const venueNote = isVirtual ? "This is a virtual event." : eventLocation;
+  const body = `
+    <h2 style="font-size:22px; font-weight:700; color:#1A1A1A; margin:0 0 8px 0;">Your request is pending approval ⏳</h2>
+    <p style="font-size:14px; color:#64786B; line-height:1.6; margin:0 0 28px 0;">
+      Thanks for registering! The organizer reviews each request before letting attendees in.
+      You'll receive a confirmation email${isVirtual ? " with the meeting link" : " with your ticket"} as soon as you're approved.
+    </p>
+    ${eventDetailsCard({ eventTitle, eventDate, eventLocation: venueNote, eventBannerUrl })}
+    <div style="background:#FFF9EB; border:1px solid #FDE68A; border-radius:14px; padding:18px 22px;">
+      <p style="margin:0; font-size:13px; color:#92400E; font-weight:700;">⏳ What happens next?</p>
+      <p style="margin:8px 0 0; font-size:13px; color:#78350F; line-height:1.6;">The organizer will review your request shortly. No further action is needed from you for now.</p>
+    </div>`;
+  await sendRegistrationEmail(to, subject, registrationShell({
+    emoji: "⏳", tagline: "Registration Pending", title: "Registration Pending", bodyHtml: body,
+  }));
+}
+
+/** Registrant: approved. Includes meeting link for virtual, QR tickets always. */
+export async function sendRegistrationApprovedEmail(opts: {
+  to: string;
+  eventTitle: string;
+  eventDate: string;
+  eventLocation: string;
+  isVirtual?: boolean;
+  meetingLink?: string;
+  meetingPassword?: string;
+  tickets: Array<{ uniqueCode: string; qrCodeUrl: string }>;
+  eventBannerUrl?: string;
+}) {
+  const {
+    to, eventTitle, eventDate, eventLocation, isVirtual,
+    meetingLink, meetingPassword, tickets, eventBannerUrl,
+  } = opts;
+  const subject = `You're in! Your OakTix ticket: ${eventTitle}`;
+
+  let ticketsHtml = "";
+  for (const t of tickets) {
+    ticketsHtml += `
+      <div style="background:#ffffff; border:1px solid #E8EBE7; border-radius:16px; padding:24px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.02); text-align:center;">
+        <p style="margin:0 0 16px 0; font-size:16px; font-weight:700; color:#0E4B31; font-family:monospace;">${t.uniqueCode}</p>
+        <div style="margin:16px auto; width:200px; height:200px; text-align:center;">
+          <img src="${t.qrCodeUrl}" alt="Ticket QR Code" style="width:200px; height:200px; border-radius:8px;" />
+        </div>
+        <p style="margin:12px 0 0 0; font-size:12px; color:#64786B;">Scan this QR code at the entrance for verification.</p>
+      </div>`;
+  }
+
+  const meetingHtml = isVirtual && meetingLink ? `
+    <div style="background:#F0FDF4; border:1px solid #DCFCE7; border-radius:16px; padding:20px; margin-bottom:32px;">
+      <h4 style="margin:0 0 10px 0; font-size:14px; font-weight:700; color:#15803D;">🔗 Join the event online</h4>
+      <p style="margin:0 0 6px 0; font-size:13px; color:#166534; line-height:1.5;">
+        <strong>Meeting Link:</strong> <a href="${meetingLink}" style="color:#0E4B31; font-weight:bold; text-decoration:underline; word-break:break-all;">${meetingLink}</a>
+      </p>
+      ${meetingPassword ? `<p style="margin:0; font-size:13px; color:#166534;"><strong>Passcode:</strong> <span style="font-family:monospace; background:#ffffff; border:1px solid #DCFCE7; padding:2px 8px; border-radius:6px; font-weight:bold;">${meetingPassword}</span></p>` : ""}
+    </div>` : "";
+
+  const body = `
+    <h2 style="font-size:22px; font-weight:700; color:#1A1A1A; margin:0 0 8px 0;">You're approved! 🎉</h2>
+    <p style="font-size:14px; color:#64786B; line-height:1.6; margin:0 0 28px 0;">
+      Great news — the organizer has approved your registration. ${isVirtual ? "Your meeting access details and ticket are below." : "Your ticket is below; please present the QR code at the entrance."}
+    </p>
+    ${eventDetailsCard({ eventTitle, eventDate, eventLocation: isVirtual ? "Virtual event" : eventLocation, eventBannerUrl })}
+    ${meetingHtml}
+    <h4 style="font-size:14px; font-weight:700; color:#1A1A1A; margin:0 0 16px 0; text-transform:uppercase; letter-spacing:0.5px;">Your Ticket${tickets.length > 1 ? `s (${tickets.length})` : ""}</h4>
+    ${ticketsHtml}`;
+
+  await sendRegistrationEmail(to, subject, registrationShell({
+    emoji: "🎟️", tagline: "Registration Approved", title: "You're Approved", bodyHtml: body,
+  }));
+}
+
+/** Registrant: waitlisted (capacity full). NO meeting link. */
+export async function sendRegistrationWaitlistEmail(opts: {
+  to: string;
+  eventTitle: string;
+  eventDate: string;
+  eventLocation: string;
+  isVirtual?: boolean;
+  eventBannerUrl?: string;
+}) {
+  const { to, eventTitle, eventDate, eventLocation, isVirtual, eventBannerUrl } = opts;
+  const subject = `You're on the waitlist: ${eventTitle}`;
+  const body = `
+    <h2 style="font-size:22px; font-weight:700; color:#1A1A1A; margin:0 0 8px 0;">You're on the waitlist 📋</h2>
+    <p style="font-size:14px; color:#64786B; line-height:1.6; margin:0 0 28px 0;">
+      This event is currently at full capacity, so we've added you to the waitlist. If a spot opens up,
+      you'll be notified by email${isVirtual ? " with the meeting link" : " with your ticket"}.
+    </p>
+    ${eventDetailsCard({ eventTitle, eventDate, eventLocation: isVirtual ? "Virtual event" : eventLocation, eventBannerUrl })}
+    <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:14px; padding:18px 22px;">
+      <p style="margin:0; font-size:13px; color:#1E40AF; font-weight:700;">📋 What happens next?</p>
+      <p style="margin:8px 0 0; font-size:13px; color:#1E3A8A; line-height:1.6;">We'll automatically email you if a spot becomes available. No further action is needed.</p>
+    </div>`;
+  await sendRegistrationEmail(to, subject, registrationShell({
+    emoji: "📋", tagline: "Added to Waitlist", title: "You're on the Waitlist", bodyHtml: body,
+  }));
+}
+
+/** Registrant: request declined. NO meeting link. */
+export async function sendRegistrationRejectedEmail(opts: {
+  to: string;
+  eventTitle: string;
+  eventDate: string;
+  eventLocation: string;
+  isVirtual?: boolean;
+  eventBannerUrl?: string;
+}) {
+  const { to, eventTitle, eventDate, eventLocation, isVirtual, eventBannerUrl } = opts;
+  const subject = `Update on your registration: ${eventTitle}`;
+  const body = `
+    <h2 style="font-size:22px; font-weight:700; color:#1A1A1A; margin:0 0 8px 0;">Registration not approved</h2>
+    <p style="font-size:14px; color:#64786B; line-height:1.6; margin:0 0 28px 0;">
+      Thank you for your interest. Unfortunately, the organizer was unable to approve your registration for this event.
+    </p>
+    ${eventDetailsCard({ eventTitle, eventDate, eventLocation: isVirtual ? "Virtual event" : eventLocation, eventBannerUrl })}
+    <p style="font-size:13px; color:#889C8F; line-height:1.6; margin:0; text-align:center;">
+      If you believe this was a mistake, please reach out to the organizer or contact us at <a href="mailto:hello@oaktix.com.ng" style="color:#0E4B31; text-decoration:underline;">hello@oaktix.com.ng</a>.
+    </p>`;
+  await sendRegistrationEmail(to, subject, registrationShell({
+    emoji: "📨", tagline: "Registration Update", title: "Registration Update", bodyHtml: body,
+  }));
+}
+
+/** Organizer: a new registration awaits approval. */
+export async function sendOrganizerPendingRequestEmail(opts: {
+  to: string;
+  organizerName?: string;
+  eventTitle: string;
+  buyerName: string;
+  buyerEmail: string;
+  ticketTypeName: string;
+  quantity: number;
+}) {
+  const { to, organizerName, eventTitle, buyerName, buyerEmail, ticketTypeName, quantity } = opts;
+  const subject = `[OakTix] New registration awaiting your approval: ${eventTitle}`;
+  const body = `
+    <h2 style="font-size:22px; font-weight:700; color:#1A1A1A; margin:0 0 8px 0;">New registration to review ⏳</h2>
+    <p style="font-size:14px; color:#64786B; line-height:1.6; margin:0 0 28px 0;">
+      Hi ${organizerName || "Organizer"}, a new registration for <strong>${eventTitle}</strong> is awaiting your approval.
+    </p>
+    <div style="background:#FAF9F6; border:1px solid #E8EBE7; border-radius:16px; padding:20px; margin-bottom:24px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td style="padding:6px 0; font-size:13px; color:#64786B;"><strong>Name:</strong> ${buyerName}</td></tr>
+        <tr><td style="padding:6px 0; font-size:13px; color:#64786B;"><strong>Email:</strong> ${buyerEmail}</td></tr>
+        <tr><td style="padding:6px 0; font-size:13px; color:#64786B;"><strong>Ticket Type:</strong> ${ticketTypeName}</td></tr>
+        <tr><td style="padding:6px 0; font-size:13px; color:#64786B;"><strong>Quantity:</strong> ${quantity}</td></tr>
+      </table>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr><td align="center">
+        <a href="https://oaktix.com.ng/organizer/attendees" style="display:inline-block; padding:14px 32px; background:linear-gradient(135deg,#0E4B31,#1a6b47); color:#ffffff; font-size:15px; font-weight:700; text-decoration:none; border-radius:12px;">Review Registration →</a>
+      </td></tr>
+    </table>`;
+  await sendRegistrationEmail(to, subject, registrationShell({
+    emoji: "🔔", tagline: "Approval Needed", title: "New Registration", bodyHtml: body,
+  }));
+}

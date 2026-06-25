@@ -2,6 +2,11 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import { Resend } from "resend";
+import {
+  sendRegistrationPendingEmail,
+  sendRegistrationWaitlistEmail,
+  sendOrganizerPendingRequestEmail,
+} from "@/lib/email";
 
 export async function POST(req: Request) {
   let body: {
@@ -63,18 +68,64 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "This ticket type is not free" }, { status: 400 });
   }
 
-  // 6. Check capacity
-  if (tier.capacity) {
-    const { count: soldCount } = await supabase
-      .from("tickets")
-      .select("*", { count: "exact", head: true })
-      .eq("event_id", event_id)
-      .in("status", ["active", "used"])
-      .eq("ticket_type->>name", ticket_type_name);
+  // 5b. Read approval/waitlist config + event format
+  const requiresApproval: boolean = eventData.requires_approval === true;
+  const enableWaitlist: boolean = eventData.enable_waitlist === true;
+  const virtualDetails = (eventData.virtual_details as { platform?: string; link?: string; password?: string } | null) || null;
+  const isVirtual =
+    eventData.type === "virtual" || eventData.venue_details?.name === "Virtual";
 
-    if ((soldCount ?? 0) >= tier.capacity) {
+  // 6. Check capacity using ONLY approved registrations.
+  // Effective capacity is the tier capacity if set, otherwise the event max_attendees.
+  const effectiveCapacity: number | null =
+    typeof tier.capacity === "number"
+      ? tier.capacity
+      : typeof eventData.max_attendees === "number"
+        ? eventData.max_attendees
+        : null;
+
+  // Per-tier approved count (used for the tier-specific capacity gate).
+  const tierApprovedQuery = supabase
+    .from("tickets")
+    .select("*", { count: "exact", head: true })
+    .eq("event_id", event_id)
+    .in("status", ["active", "used"])
+    .eq("registration_status", "approved")
+    .eq("ticket_type->>name", ticket_type_name);
+
+  // Event-wide approved count (used when capacity comes from max_attendees).
+  const eventApprovedQuery = supabase
+    .from("tickets")
+    .select("*", { count: "exact", head: true })
+    .eq("event_id", event_id)
+    .in("status", ["active", "used"])
+    .eq("registration_status", "approved");
+
+  const { count: tierApprovedCount } = await tierApprovedQuery;
+  const { count: eventApprovedCount } = await eventApprovedQuery;
+
+  // When capacity is the tier capacity, compare against the tier approved count;
+  // otherwise (max_attendees) compare against the event-wide approved count.
+  const approvedCount =
+    typeof tier.capacity === "number" ? tierApprovedCount ?? 0 : eventApprovedCount ?? 0;
+
+  const capacityFull = effectiveCapacity !== null && approvedCount >= effectiveCapacity;
+
+  // Decide the registration status for the new tickets.
+  // 'approved' (default) → full ticket/meeting email
+  // 'pending'            → awaiting organizer approval (no meeting link)
+  // 'waitlist'           → capacity full + waitlist enabled (no meeting link)
+  let registrationStatus: "approved" | "pending" | "waitlist" = "approved";
+
+  if (capacityFull) {
+    if (enableWaitlist) {
+      registrationStatus = "waitlist";
+    } else {
+      // No waitlist → preserve existing sold-out behaviour (before creating tickets).
       return NextResponse.json({ error: "Sold out" }, { status: 400 });
     }
+  } else if (requiresApproval) {
+    registrationStatus = "pending";
   }
 
   // 7. Resolve buyer user — mirrors webhook guest user resolution exactly
@@ -286,6 +337,7 @@ export async function POST(req: Request) {
       ticket_type: { name: ticket_type_name, price: 0 },
       price_paid: 0,
       status: "active",
+      registration_status: registrationStatus,
     });
 
     generatedTickets.push({ uniqueCode, qrCodeUrl });
@@ -387,6 +439,17 @@ export async function POST(req: Request) {
                 </table>
               </div>
 
+              <!-- Meeting Link (virtual events only) -->
+              ${isVirtual && virtualDetails?.link ? `
+              <div style="background:#F0FDF4; border:1px solid #DCFCE7; border-radius:16px; padding:20px; margin-bottom:32px;">
+                <h4 style="margin:0 0 10px 0; font-size:14px; font-weight:700; color:#15803D;">🔗 Join the event online</h4>
+                <p style="margin:0 0 6px 0; font-size:13px; color:#166534; line-height:1.5;">
+                  <strong>Meeting Link:</strong> <a href="${virtualDetails.link}" style="color:#0E4B31; font-weight:bold; text-decoration:underline; word-break:break-all;">${virtualDetails.link}</a>
+                </p>
+                ${virtualDetails.password ? `<p style="margin:0; font-size:13px; color:#166534;"><strong>Passcode:</strong> <span style="font-family:monospace; background:#ffffff; border:1px solid #DCFCE7; padding:2px 8px; border-radius:6px; font-weight:bold;">${virtualDetails.password}</span></p>` : ""}
+              </div>
+              ` : ""}
+
               <h4 style="font-size:14px; font-weight:700; color:#1A1A1A; margin:0 0 16px 0; text-transform:uppercase; letter-spacing:0.5px;">Your Tickets (${quantity})</h4>
 
               ${ticketsHtml}
@@ -420,34 +483,58 @@ export async function POST(req: Request) {
 </body>
 </html>`;
 
-  try {
-    const emailSendResult = await resend.emails.send({
-      from: "OakTix <hello@oaktix.com.ng>",
+  // Buyer email depends on the registration decision:
+  //  - approved  → full ticket email (with meeting link for virtual)
+  //  - pending   → "request received, pending approval" (no meeting link)
+  //  - waitlist  → "you're on the waitlist" (no meeting link)
+  if (registrationStatus === "pending") {
+    await sendRegistrationPendingEmail({
       to: buyerEmail,
-      subject: `Your OakTix Tickets: ${eventTitle}`,
-      html: emailHtml,
+      eventTitle,
+      eventDate: eventDateText,
+      eventLocation: eventLocationText,
+      isVirtual,
+      eventBannerUrl,
     });
-
-    if (emailSendResult.error) {
-      console.warn("Primary domain dispatch failed, retrying with sandbox onboarding@resend.dev...", emailSendResult.error);
-      await resend.emails.send({
-        from: "OakTix <onboarding@resend.dev>",
-        to: buyerEmail,
-        subject: `[Sandbox] Your OakTix Tickets: ${eventTitle}`,
-        html: emailHtml,
-      });
-    }
-  } catch (err) {
-    console.error("Resend delivery crashed, retrying with sandbox email from address:", err);
+  } else if (registrationStatus === "waitlist") {
+    await sendRegistrationWaitlistEmail({
+      to: buyerEmail,
+      eventTitle,
+      eventDate: eventDateText,
+      eventLocation: eventLocationText,
+      isVirtual,
+      eventBannerUrl,
+    });
+  } else {
     try {
-      await resend.emails.send({
-        from: "OakTix <onboarding@resend.dev>",
+      const emailSendResult = await resend.emails.send({
+        from: "OakTix <hello@oaktix.com.ng>",
         to: buyerEmail,
-        subject: `[Sandbox] Your OakTix Tickets: ${eventTitle}`,
+        subject: `Your OakTix Tickets: ${eventTitle}`,
         html: emailHtml,
       });
-    } catch (fallbackErr) {
-      console.error("Sandbox fallback dispatch failed:", fallbackErr);
+
+      if (emailSendResult.error) {
+        console.warn("Primary domain dispatch failed, retrying with sandbox onboarding@resend.dev...", emailSendResult.error);
+        await resend.emails.send({
+          from: "OakTix <onboarding@resend.dev>",
+          to: buyerEmail,
+          subject: `[Sandbox] Your OakTix Tickets: ${eventTitle}`,
+          html: emailHtml,
+        });
+      }
+    } catch (err) {
+      console.error("Resend delivery crashed, retrying with sandbox email from address:", err);
+      try {
+        await resend.emails.send({
+          from: "OakTix <onboarding@resend.dev>",
+          to: buyerEmail,
+          subject: `[Sandbox] Your OakTix Tickets: ${eventTitle}`,
+          html: emailHtml,
+        });
+      } catch (fallbackErr) {
+        console.error("Sandbox fallback dispatch failed:", fallbackErr);
+      }
     }
   }
 
@@ -467,7 +554,18 @@ export async function POST(req: Request) {
         organizerEmail = authUser?.user?.email;
       }
 
-      if (organizerEmail) {
+      if (organizerEmail && registrationStatus === "pending") {
+        // Pending request → ask the organizer to review/approve.
+        await sendOrganizerPendingRequestEmail({
+          to: organizerEmail,
+          organizerName: profile?.full_name || undefined,
+          eventTitle,
+          buyerName: guest_name || "Valued Guest",
+          buyerEmail,
+          ticketTypeName: ticket_type_name,
+          quantity: quantity!,
+        });
+      } else if (organizerEmail && registrationStatus === "approved") {
         const buyerName = guest_name || "Valued Guest";
         const organizerEmailHtml = `<!DOCTYPE html>
 <html lang="en">

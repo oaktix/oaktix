@@ -50,7 +50,14 @@ interface EventData {
     latitude?: number | null;
     longitude?: number | null;
   } | null;
+  virtual_details?: {
+    platform?: string;
+    link?: string;
+    password?: string;
+  } | null;
   max_attendees?: number | null;
+  requires_approval?: boolean;
+  enable_waitlist?: boolean;
   ticket_types?: TicketType[] | null;
   featured_image?: string | null;
   absorb_fees?: boolean;
@@ -110,6 +117,10 @@ export default function EventCreationWizard({
     longitude: event?.venue_details?.longitude || null as number | null,
     max_attendees: event?.max_attendees ? String(event.max_attendees) : "",
     isVirtual: event?.venue_details?.name === "Virtual" || event?.venue_details?.address === "Online",
+    meeting_link: event?.virtual_details?.link || "",
+    meeting_password: event?.virtual_details?.password || "",
+    requires_approval: event?.requires_approval || false,
+    enable_waitlist: event?.enable_waitlist || false,
     absorb_fees: event?.absorb_fees || false,
     show_ticket_volume: event?.show_ticket_volume || false,
     ticketTypes: (event?.ticket_types?.map(t => ({ ...t, capacity: t.capacity ?? undefined, early_bird_until: t.early_bird_until ?? undefined, early_bird_capacity: t.early_bird_capacity ?? undefined })) as TicketType[]) || [
@@ -208,7 +219,12 @@ export default function EventCreationWizard({
         latitude: formData.isVirtual ? null : formData.latitude,
         longitude: formData.isVirtual ? null : formData.longitude,
       },
+      virtual_details: formData.isVirtual
+        ? { platform: "Online", link: formData.meeting_link, password: formData.meeting_password }
+        : (event?.virtual_details ?? {}),
       max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
+      requires_approval: formData.requires_approval,
+      enable_waitlist: formData.enable_waitlist,
       ticket_types: formData.ticketTypes,
       featured_image: featured_image_url,
       absorb_fees: formData.absorb_fees,
@@ -446,6 +462,72 @@ export default function EventCreationWizard({
                     </div>
                   </div>
                 )}
+
+                {formData.isVirtual && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-bold text-zinc-800 dark:text-zinc-300">Meeting Link</label>
+                      <input
+                        type="url"
+                        value={formData.meeting_link}
+                        onChange={(e) => updateForm("meeting_link", e.target.value)}
+                        placeholder="https://zoom.us/j/123456789"
+                        className="w-full mt-1 bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
+                      />
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        Shared with approved attendees only — never shown publicly.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-zinc-800 dark:text-zinc-300">Meeting Passcode <span className="text-zinc-400 font-normal">(optional)</span></label>
+                      <input
+                        type="text"
+                        value={formData.meeting_password}
+                        onChange={(e) => updateForm("meeting_password", e.target.value)}
+                        placeholder="E.g., 0427"
+                        className="w-full mt-1 bg-white dark:bg-white/5 border border-zinc-300 dark:border-white/10 rounded-xl px-4 py-3 focus:border-indigo-600 dark:focus:border-indigo-500 text-zinc-900 dark:text-white outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Approval & Registration */}
+              <div className="pt-4 border-t border-zinc-200 dark:border-white/10 space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Approval & Registration</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    These options apply to free events. For paid events, tickets are confirmed on payment.
+                  </p>
+                </div>
+                <label className="flex items-start gap-3 text-sm font-bold text-zinc-800 dark:text-zinc-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.requires_approval}
+                    onChange={(e) => updateForm("requires_approval", e.target.checked)}
+                    className="w-4 h-4 mt-0.5 rounded border-zinc-300 dark:border-white/10 bg-white dark:bg-white/5 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <div>
+                    <span className="block">Require my approval before letting attendees in</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-normal block mt-0.5">
+                      Registrants stay pending until you approve them. Approved attendees receive their ticket{formData.isVirtual ? " and meeting link" : ""}.
+                    </span>
+                  </div>
+                </label>
+                <label className="flex items-start gap-3 text-sm font-bold text-zinc-800 dark:text-zinc-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.enable_waitlist}
+                    onChange={(e) => updateForm("enable_waitlist", e.target.checked)}
+                    className="w-4 h-4 mt-0.5 rounded border-zinc-300 dark:border-white/10 bg-white dark:bg-white/5 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <div>
+                    <span className="block">Enable waitlist when capacity is full</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-normal block mt-0.5">
+                      When the event is at capacity, new registrants join a waitlist and are notified if a spot opens.
+                    </span>
+                  </div>
+                </label>
               </div>
             </div>
           )}
