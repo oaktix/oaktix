@@ -80,10 +80,13 @@ export async function DELETE(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Hard delete the event
+    // Soft delete the event
     const { error } = await supabaseAdmin
       .from("events")
-      .delete()
+      .update({ 
+        deleted_at: new Date().toISOString(),
+        status: "cancelled" 
+      })
       .eq("id", eventId);
 
     if (error) {

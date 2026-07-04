@@ -175,9 +175,9 @@ export default async function DiscoverEvents({
                 const formattedDate = date ? format(date, "MMM d • h:mm a") : "Coming Soon";
                 
                 return (
-                  <Link 
-                    key={event.id} 
-                    href={`/events/${event.slug}`}
+                  <Link
+                    key={event.id}
+                    href={event.slug ? `/events/${event.slug}` : '#'}
                     className="bg-zinc-950 border border-zinc-850 rounded-2xl overflow-hidden group cursor-pointer hover:border-indigo-500/30 transition-all duration-300 flex flex-col justify-between hover:shadow-lg hover:shadow-indigo-500/5"
                   >
                     <div>
@@ -217,7 +217,10 @@ export default async function DiscoverEvents({
                       <div>
                         <span className="text-[10px] text-zinc-500 font-bold block uppercase tracking-wide">Tickets from</span>
                         <span className="text-lg font-bold text-white">
-                          ₦{Number(event.price_naira || event.ticket_types?.[0]?.price || 0).toLocaleString()}
+                          {(() => {
+                            const price = Number(event.price_naira || event.ticket_types?.[0]?.price || 0);
+                            return price === 0 ? "Free" : `₦${price.toLocaleString()}`;
+                          })()}
                         </span>
                       </div>
                       <span className="px-5 py-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all font-bold text-xs">

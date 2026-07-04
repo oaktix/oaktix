@@ -11,11 +11,7 @@ export default function Footer({ theme = "light" }: FooterProps) {
 
   return (
     <footer
-      className={`border-t py-16 transition-all duration-300 ${
-        isDark
-          ? "border-zinc-800/80 bg-[#09090b] text-white"
-          : "border-[#E8EBE7] bg-white text-zinc-900"
-      }`}
+      className="border-t py-16 transition-all duration-300 border-[#E8EBE7] dark:border-zinc-800/80 bg-white dark:bg-[#09090b] text-zinc-900 dark:text-white"
     >
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-5 gap-10">
         <div className="md:col-span-2 space-y-6">
@@ -27,10 +23,10 @@ export default function Footer({ theme = "light" }: FooterProps) {
               className="h-16 w-auto object-contain"
             />
           </Link>
-          <p className={`text-xs leading-relaxed max-w-sm ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
+          <p className="text-xs leading-relaxed max-w-sm text-zinc-500 dark:text-zinc-400">
             Nigeria&apos;s home for unforgettable events. Discover concerts, conferences, festivals and more. Buy tickets in seconds, walk in with a QR code.
           </p>
-          <div className={`text-xs font-bold ${isDark ? "text-zinc-500" : "text-zinc-400"}`}>
+          <div className="text-xs font-bold text-zinc-400 dark:text-zinc-500">
             Support:{" "}
             <a href="mailto:hello@oaktix.com.ng" className="text-indigo-500 hover:underline">
               hello@oaktix.com.ng
@@ -39,10 +35,10 @@ export default function Footer({ theme = "light" }: FooterProps) {
         </div>
 
         <div>
-          <h4 className={`text-xs font-bold uppercase tracking-widest mb-4 ${isDark ? "text-zinc-300" : "text-zinc-800"}`}>
+          <h4 className="text-xs font-bold uppercase tracking-widest mb-4 text-zinc-800 dark:text-zinc-300">
             Discover
           </h4>
-          <ul className={`space-y-2.5 text-xs font-bold ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
+          <ul className="space-y-2.5 text-xs font-bold text-zinc-500 dark:text-zinc-400">
             <li>
               <Link href="/events" className="hover:text-indigo-500 transition-colors">
                 Browse events
@@ -67,10 +63,10 @@ export default function Footer({ theme = "light" }: FooterProps) {
         </div>
 
         <div>
-          <h4 className={`text-xs font-bold uppercase tracking-widest mb-4 ${isDark ? "text-zinc-300" : "text-zinc-800"}`}>
+          <h4 className="text-xs font-bold uppercase tracking-widest mb-4 text-zinc-800 dark:text-zinc-300">
             Sell
           </h4>
-          <ul className={`space-y-2.5 text-xs font-bold ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
+          <ul className="space-y-2.5 text-xs font-bold text-zinc-500 dark:text-zinc-400">
             <li>
               <Link href="/signup" className="hover:text-indigo-500 transition-colors">
                 List your event
@@ -95,10 +91,10 @@ export default function Footer({ theme = "light" }: FooterProps) {
         </div>
 
         <div>
-          <h4 className={`text-xs font-bold uppercase tracking-widest mb-4 ${isDark ? "text-zinc-300" : "text-zinc-800"}`}>
+          <h4 className="text-xs font-bold uppercase tracking-widest mb-4 text-zinc-800 dark:text-zinc-300">
             Company
           </h4>
-          <ul className={`space-y-2.5 text-xs font-bold ${isDark ? "text-zinc-400" : "text-zinc-500"}`}>
+          <ul className="space-y-2.5 text-xs font-bold text-zinc-500 dark:text-zinc-400">
             <li>
               <Link href="/about" className="hover:text-indigo-500 transition-colors">
                 About OakTix
@@ -123,9 +119,7 @@ export default function Footer({ theme = "light" }: FooterProps) {
         </div>
       </div>
 
-      <div className={`max-w-6xl mx-auto px-6 pt-12 mt-12 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-bold uppercase tracking-wider ${
-        isDark ? "border-zinc-800/80 text-zinc-500" : "border-[#E8EBE7] text-zinc-450"
-      }`}>
+      <div className="max-w-6xl mx-auto px-6 pt-12 mt-12 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-bold uppercase tracking-wider border-[#E8EBE7] dark:border-zinc-800/80 text-zinc-500">
         <p>© 2026 OakTix. All rights reserved.</p>
         <div className="flex gap-4">
           <span className="hover:text-indigo-500 cursor-pointer">Instagram</span>

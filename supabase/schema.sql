@@ -30,6 +30,8 @@ create table if not exists events (
   ticket_types jsonb default '[]'::jsonb, -- [{name, description, price, quantity, sale_start, sale_end, perks}]
   promo_codes jsonb default '[]'::jsonb, -- [{code, discount_type, value, usage_limit, used_count, valid_from, valid_until}]
   max_attendees integer,
+  requires_approval boolean default false,
+  enable_waitlist boolean default false,
   featured_image text,
   gallery_images jsonb default '[]'::jsonb,
   video_url text,
@@ -51,6 +53,7 @@ create table if not exists tickets (
   ticket_type jsonb not null, -- {name, price}
   price_paid numeric(10,2) not null,
   status text check (status in ('active', 'used', 'refunded', 'cancelled')) default 'active',
+  registration_status text check (registration_status in ('approved', 'pending', 'waitlist', 'rejected')) default 'approved',
   scanned_at timestamptz,
   scanned_by uuid references profiles(id),
   created_at timestamptz default now()

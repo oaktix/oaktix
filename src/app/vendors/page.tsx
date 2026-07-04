@@ -1,5 +1,6 @@
 import { Users, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import type { Metadata } from 'next';
@@ -27,11 +28,33 @@ export default async function VendorsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Fetch organizers from db
-  const { data: dbVendors } = await supabase
+  // Use admin client to fetch organizers + their event counts
+  const admin = createAdminSupabase(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: dbVendors } = await admin
     .from("profiles")
-    .select("id, full_name, email, avatar_url")
+    .select("id, full_name, email, avatar_url, vendor_details")
     .eq("role", "vendor");
+
+  // Fetch event counts per organizer
+  const vendorIds = (dbVendors || []).map((v) => v.id);
+  let eventCounts: Record<string, number> = {};
+  if (vendorIds.length > 0) {
+    const { data: eventRows } = await admin
+      .from("events")
+      .select("organizer_id")
+      .in("organizer_id", vendorIds)
+      .eq("status", "published")
+      .is("deleted_at", null);
+    if (eventRows) {
+      for (const row of eventRows) {
+        eventCounts[row.organizer_id] = (eventCounts[row.organizer_id] || 0) + 1;
+      }
+    }
+  }
 
   // Fallbacks exactly matching reference copy
   const fallbackVendors = [
@@ -52,17 +75,20 @@ export default async function VendorsPage() {
   ];
 
   const vendors = dbVendors && dbVendors.length > 0
-    ? dbVendors.map((v) => ({
-        id: v.id,
-        full_name: v.full_name || "Organiser",
-        description: "Passionate creator of immersive live events and cultural gatherings.",
-        events_count: 2,
-        followers_count: 0
-      }))
+    ? dbVendors.map((v) => {
+        const details = (v.vendor_details as any) || {};
+        return {
+          id: v.id,
+          full_name: details.business_name || v.full_name || "Organiser",
+          description: details.bio || "Passionate creator of immersive live events and cultural gatherings.",
+          events_count: eventCounts[v.id] || 0,
+          followers_count: 0
+        };
+      })
     : fallbackVendors;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF9F6] text-zinc-900 overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#FAF9F6] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 overflow-hidden">
       {/* Header */}
       <Navbar user={user} theme="light" />
 
@@ -96,8 +122,8 @@ export default async function VendorsPage() {
               </div>
 
               <div className="mt-8 pt-4 border-t border-[#E8EBE7] flex justify-end">
-                <Link 
-                  href={`/events?vendor=${vendor.id}`}
+                <Link
+                  href={`/organizers/${vendor.id}`}
                   className="px-5 py-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 font-bold text-xs hover:bg-indigo-500 hover:text-white transition-all cursor-pointer"
                 >
                   View Profile

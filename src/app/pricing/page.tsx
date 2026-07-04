@@ -28,7 +28,7 @@ export default async function PricingPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF9F6] text-zinc-900 overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#FAF9F6] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 overflow-hidden">
       {/* Header */}
       <Navbar user={user} theme="light" />
 
@@ -44,12 +44,12 @@ export default async function PricingPage() {
           <div className="glass-card p-8 bg-white border-[#E8EBE7] flex flex-col justify-between hover:shadow-md hover:shadow-indigo-500/5 transition-all">
             <div>
               <span className="text-xs uppercase font-bold text-zinc-400 tracking-wider">For free events</span>
-              <h3 className="text-2xl font-bold font-heading text-zinc-800 mt-2">Free</h3>
+              <h3 className="text-2xl font-bold font-heading text-zinc-800 dark:text-zinc-100 mt-2">Free</h3>
               <div className="mt-4 mb-6">
                 <span className="text-3xl font-bold text-indigo-500">₦0</span>
                 <span className="text-xs text-zinc-400 font-bold uppercase ml-1">/ ticket</span>
               </div>
-              <hr className="border-t border-[#E8EBE7] my-4" />
+              <hr className="border-t border-[#E8EBE7] dark:border-white/10 my-4" />
               <ul className="space-y-3.5 text-xs text-zinc-500 font-bold">
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Free events only</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Unlimited tickets</li>
@@ -74,12 +74,12 @@ export default async function PricingPage() {
             </span>
             <div>
               <span className="text-xs uppercase font-bold text-indigo-500 tracking-wider">For paid events</span>
-              <h3 className="text-2xl font-bold font-heading text-zinc-800 mt-2">Standard</h3>
+              <h3 className="text-2xl font-bold font-heading text-zinc-800 dark:text-zinc-100 mt-2">Standard</h3>
               <div className="mt-4 mb-6">
                 <span className="text-3xl font-bold text-indigo-500">4%</span>
                 <span className="text-xs text-zinc-400 font-bold uppercase ml-1">/ ticket sold</span>
               </div>
-              <hr className="border-t border-[#E8EBE7] my-4" />
+              <hr className="border-t border-[#E8EBE7] dark:border-white/10 my-4" />
               <ul className="space-y-3.5 text-xs text-zinc-500 font-bold">
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Up to ₦2,000 max fee per ticket</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Transactpay checkout integration</li>
@@ -101,11 +101,11 @@ export default async function PricingPage() {
           <div className="glass-card p-8 bg-white border-[#E8EBE7] flex flex-col justify-between hover:shadow-md hover:shadow-indigo-500/5 transition-all">
             <div>
               <span className="text-xs uppercase font-bold text-zinc-400 tracking-wider">For high-volume ticket sellers</span>
-              <h3 className="text-2xl font-bold font-heading text-zinc-800 mt-2">Enterprise</h3>
+              <h3 className="text-2xl font-bold font-heading text-zinc-800 dark:text-zinc-100 mt-2">Enterprise</h3>
               <div className="mt-4 mb-6">
                 <span className="text-3xl font-bold text-indigo-500">Custom</span>
               </div>
-              <hr className="border-t border-[#E8EBE7] my-4" />
+              <hr className="border-t border-[#E8EBE7] dark:border-white/10 my-4" />
               <ul className="space-y-3.5 text-xs text-zinc-500 font-bold">
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Lower commission rates</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-500" /> Dedicated account support</li>

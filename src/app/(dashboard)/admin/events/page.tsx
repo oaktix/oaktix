@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
-import { ShieldAlert, Calendar } from "lucide-react";
+import { ShieldAlert, Calendar, Plus } from "lucide-react";
+import Link from "next/link";
 import EventManagementList from "@/components/admin/EventManagementList";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +49,7 @@ export default async function AdminEventsPage() {
         vendor_details
       )
     `)
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -56,10 +58,21 @@ export default async function AdminEventsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold font-heading mb-1 flex items-center gap-2.5">
-          <Calendar className="w-8 h-8 text-indigo-500" /> Platform Events & Moderation</h1>
-        <p className="text-[var(--color-muted)]">Monitor all physical and virtual listings, enforce safety standards, and handle event statuses.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold font-heading mb-1 flex items-center gap-2.5">
+            <Calendar className="w-8 h-8 text-indigo-500" /> Platform Events &amp; Moderation
+          </h1>
+          <p className="text-[var(--color-muted)]">
+            Monitor all listings, enforce safety standards, and handle event statuses.
+          </p>
+        </div>
+        <Link
+          href="/admin/events/new"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors shrink-0"
+        >
+          <Plus className="w-4 h-4" /> Create Event
+        </Link>
       </div>
 
       <EventManagementList initialEvents={events || []} />

@@ -5,6 +5,7 @@ import { Calendar, Plus, MapPin, Eye } from "lucide-react";
 import Image from "next/image";
 import ShareButton from "@/components/organizer/ShareButton";
 import ManageTiersButton from "@/components/organizer/ManageTiersButton";
+import DeleteEventButton from "@/components/organizer/DeleteEventButton";
 
 export default async function VendorEventsPage() {
   const supabase = await createClient();
@@ -16,6 +17,7 @@ export default async function VendorEventsPage() {
     .from("events")
     .select("*, tickets(count)")
     .eq("organizer_id", user.id)
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   return (
@@ -95,14 +97,23 @@ export default async function VendorEventsPage() {
                     <p className="text-xl font-bold font-heading">{ticketsSold}</p>
                   </div>
                   <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
-                    <Link 
-                      href={`/events/${event.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-emerald-600/10 border border-white/10 hover:border-emerald-500/30 hover:text-emerald-400 transition-all text-sm font-bold text-zinc-300 flex items-center justify-center gap-1.5 w-full sm:w-auto"
-                    >
-                      <Eye className="w-4 h-4" /> Preview
-                    </Link>
+                    {event.slug ? (
+                      <Link
+                        href={`/events/${event.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-emerald-600/10 border border-white/10 hover:border-emerald-500/30 hover:text-emerald-400 transition-all text-sm font-bold text-zinc-300 flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                      >
+                        <Eye className="w-4 h-4" /> Preview
+                      </Link>
+                    ) : (
+                      <span
+                        title="Edit and re-save this event to generate a preview URL"
+                        className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-bold text-zinc-600 flex items-center justify-center gap-1.5 w-full sm:w-auto cursor-not-allowed"
+                      >
+                        <Eye className="w-4 h-4" /> No URL
+                      </span>
+                    )}
                     <div className="w-full sm:w-auto">
                       <ShareButton slug={event.slug} />
                     </div>
@@ -117,6 +128,7 @@ export default async function VendorEventsPage() {
                     >
                       Edit
                     </Link>
+                    <DeleteEventButton eventId={event.id} />
                   </div>
                 </div>
               </div>

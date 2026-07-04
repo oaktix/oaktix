@@ -1,7 +1,7 @@
 // src/components/admin/AdminDashboardClient.tsx
 "use client";
 
-import { ShieldCheck, AlertTriangle } from "lucide-react";
+import { ShieldCheck, AlertTriangle, TrendingUp, Users, CalendarDays, Store } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -76,25 +76,65 @@ export default function AdminDashboardClient() {
 
       {/* Platform Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* GMV */}
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
-          <p className="text-sm text-[var(--color-muted)] mb-1">Total Platform GMV</p>
-          <p className="text-2xl font-bold font-heading text-[var(--color-primary)]">₦{(stats?.gmv || 0).toLocaleString()}</p>
-          <div className="mt-2 text-xs text-[var(--color-primary)] font-bold">Platform Fee: ₦{(stats?.platform_fee || 0).toLocaleString()}</div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-[var(--color-muted)]">Total Platform GMV</p>
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-indigo-500" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold font-heading text-[var(--color-primary)]">
+            ₦{(stats?.gmv || 0).toLocaleString()}
+          </p>
+          <div className="mt-2 flex flex-col gap-0.5 text-xs text-[var(--color-muted)]">
+            <span className="text-indigo-500 font-bold">Platform Fee: ₦{(stats?.platform_fee || 0).toLocaleString()}</span>
+            <span>Vendor Net: ₦{(stats?.vendor_net || 0).toLocaleString()}</span>
+          </div>
         </div>
+
+        {/* Users */}
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
-          <p className="text-sm text-[var(--color-muted)] mb-1">Total Users</p>
-          <p className="text-2xl font-bold font-heading text-[var(--color-text)]">{stats?.total_users || 0}</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-[var(--color-muted)]">Total Users</p>
+            <div className="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center">
+              <Users className="w-4 h-4 text-sky-500" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold font-heading text-[var(--color-text)]">
+            {(stats?.total_users || 0).toLocaleString()}
+          </p>
           <div className="mt-2 text-xs text-[var(--color-muted)]">Registered accounts</div>
         </div>
+
+        {/* Events */}
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
-          <p className="text-sm text-[var(--color-muted)] mb-1">Total Events</p>
-          <p className="text-2xl font-bold font-heading text-[var(--color-text)]">{stats?.total_events || 0}</p>
-          <div className="mt-2 text-xs text-[var(--color-muted)]">All events created</div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-[var(--color-muted)]">Total Events</p>
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <CalendarDays className="w-4 h-4 text-amber-500" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold font-heading text-[var(--color-text)]">
+            {(stats?.total_events || 0).toLocaleString()}
+          </p>
+          <div className="mt-2 text-xs text-[var(--color-muted)]">
+            <span className="text-emerald-500 font-bold">{stats?.live_events || 0} live</span> right now
+          </div>
         </div>
+
+        {/* Vendors */}
         <div className="glass-card p-6 border border-[var(--color-muted)] shadow-sm">
-          <p className="text-sm text-[var(--color-muted)] mb-1">Active Vendors</p>
-          <p className="text-2xl font-bold font-heading text-[var(--color-accent)]">{stats?.total_vendors || 0}</p>
-          <div>{/* No pending verification data */}</div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-[var(--color-muted)]">Active Vendors</p>
+            <div className="w-8 h-8 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center">
+              <Store className="w-4 h-4 text-[var(--color-accent)]" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold font-heading text-[var(--color-accent)]">
+            {(stats?.total_vendors || 0).toLocaleString()}
+          </p>
+          <div className="mt-2 text-xs text-[var(--color-muted)]">Event organisers</div>
         </div>
       </div>
 

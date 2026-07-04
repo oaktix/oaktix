@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Calendar, MapPin, Trash2, ShieldAlert, CheckCircle2, AlertCircle, RefreshCw, Eye } from "lucide-react";
+import { Search, Calendar, MapPin, Trash2, ShieldAlert, CheckCircle2, AlertCircle, RefreshCw, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -51,6 +51,7 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
                 vendor_details
               )
             `)
+            .is("deleted_at", null)
             .order("created_at", { ascending: false });
           if (data) {
             setEvents(data as unknown as EventItem[]);
@@ -234,9 +235,15 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
                           )}
                         </div>
                         <div>
-                          <Link href={`/events/${event.slug}`} target="_blank" className="font-bold text-zinc-100 text-sm hover:underline hover:text-indigo-400 flex items-center gap-1">
-                            {event.title} <Eye className="w-3.5 h-3.5 inline text-zinc-500" />
-                          </Link>
+                          {event.slug ? (
+                            <Link href={`/events/${event.slug}`} target="_blank" className="font-bold text-zinc-100 text-sm hover:underline hover:text-indigo-400 flex items-center gap-1">
+                              {event.title} <Eye className="w-3.5 h-3.5 inline text-zinc-500" />
+                            </Link>
+                          ) : (
+                            <span className="font-bold text-zinc-400 text-sm flex items-center gap-1" title="No slug — organiser must re-save this event">
+                              {event.title} <Eye className="w-3.5 h-3.5 inline text-zinc-600" />
+                            </span>
+                          )}
                           <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
                             <MapPin className="w-3.5 h-3.5 text-zinc-650" /> {venueName}
                           </p>
@@ -284,7 +291,7 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
                         {event.status === "draft" ? (
                           <button
                             onClick={() => handleUpdateStatus(event.id, "published")}
@@ -304,6 +311,15 @@ export default function EventManagementList({ initialEvents }: EventManagementPr
                             <RefreshCw className="w-3.5 h-3.5" /> Revert to Draft
                           </button>
                         ) : null}
+
+                        {/* Edit — full CRUD for super-admin */}
+                        <Link
+                          href={`/admin/events/${event.id}/edit`}
+                          className="p-2 rounded bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 hover:text-amber-300 transition-all flex items-center gap-1 text-xs font-bold"
+                          title="Edit Event"
+                        >
+                          <Pencil className="w-3.5 h-3.5" /> Edit
+                        </Link>
 
                         <button
                           onClick={() => handleDeleteEvent(event.id)}

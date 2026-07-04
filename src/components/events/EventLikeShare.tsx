@@ -148,7 +148,7 @@ export default function EventLikeShare({
           className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center active:scale-95 duration-200 ${
             liked
               ? "bg-rose-500/10 border-rose-500/30 text-rose-500 hover:bg-rose-500/20"
-              : "bg-zinc-900/80 border-zinc-800 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white"
+              : "bg-zinc-100 dark:bg-zinc-900/80 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-850 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
           }`}
         >
           <Heart
@@ -162,7 +162,7 @@ export default function EventLikeShare({
         <button
           onClick={() => setIsOpen(true)}
           aria-label="Share event"
-          className="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:bg-zinc-850 hover:border-zinc-700 hover:text-white transition-all text-zinc-400 cursor-pointer flex items-center justify-center active:scale-95 duration-200"
+          className="p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-850 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-800 dark:hover:text-white transition-all text-zinc-500 dark:text-zinc-400 cursor-pointer flex items-center justify-center active:scale-95 duration-200"
         >
           <Share2 className="w-5 h-5" />
         </button>
@@ -177,11 +177,11 @@ export default function EventLikeShare({
             aria-hidden="true"
           />
           
-          <div className="relative bg-zinc-950 border border-zinc-800/80 rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl text-center z-10 animate-in zoom-in-95 duration-200">
+          <div className="relative bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl text-center z-10 animate-in zoom-in-95 duration-200">
             {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-zinc-900/80 hover:bg-zinc-850 border border-zinc-800/60 text-zinc-400 hover:text-white transition-all cursor-pointer"
+              className="absolute top-4 right-4 p-2 rounded-full bg-zinc-100 dark:bg-zinc-900/80 hover:bg-zinc-200 dark:hover:bg-zinc-850 border border-zinc-200 dark:border-zinc-800/60 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white transition-all cursor-pointer"
               aria-label="Close share dialog"
             >
               <X className="w-4 h-4" />
@@ -190,7 +190,7 @@ export default function EventLikeShare({
             {/* Modal Header */}
             <div className="mb-6">
               <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Share Event</span>
-              <h2 className="text-xl font-bold font-heading text-white mt-1 line-clamp-1">{eventTitle}</h2>
+              <h2 className="text-xl font-bold font-heading text-zinc-900 dark:text-white mt-1 line-clamp-1">{eventTitle}</h2>
               <p className="text-zinc-500 text-xs mt-1">Scan the QR code or copy the event link to share.</p>
             </div>
 
@@ -215,14 +215,14 @@ export default function EventLikeShare({
                   </button>
                 </div>
               ) : (
-                <div className="w-48 h-48 mx-auto bg-zinc-900/40 rounded-2xl animate-pulse flex items-center justify-center border border-zinc-850">
+                <div className="w-48 h-48 mx-auto bg-zinc-100 dark:bg-zinc-900/40 rounded-2xl animate-pulse flex items-center justify-center border border-zinc-200 dark:border-zinc-850">
                   <span className="text-zinc-650 text-xs">Generating QR...</span>
                 </div>
               )}
             </div>
 
             {/* Copy Link Input Field */}
-            <div className="flex gap-2 bg-zinc-900/60 border border-zinc-850 rounded-xl p-1.5 pl-3 mb-6 items-center">
+            <div className="flex gap-2 bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-850 rounded-xl p-1.5 pl-3 mb-6 items-center">
               <span className="text-xs text-zinc-500 select-none font-medium truncate flex-1 text-left">
                 {shareUrl}
               </span>
@@ -265,7 +265,7 @@ export default function EventLikeShare({
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${eventTitle} on OakTix!`)}&url=${encodeURIComponent(shareUrl)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 text-white flex items-center justify-center transition-all"
+                  className="w-11 h-11 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-850 text-zinc-800 dark:text-white flex items-center justify-center transition-all"
                   aria-label="Share on Twitter / X"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
@@ -288,7 +288,7 @@ export default function EventLikeShare({
               {isNativeShareSupported && (
                 <button
                   onClick={handleNativeShare}
-                  className="w-full py-3 rounded-xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                  className="w-full py-3 rounded-xl bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-900 dark:text-white font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                 >
                   <ExternalLink className="w-4 h-4 text-indigo-400" /> Share via Device...
                 </button>

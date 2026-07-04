@@ -28,7 +28,7 @@ export default async function AboutPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF9F6] text-zinc-900 overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#FAF9F6] dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 overflow-hidden">
       {/* Header */}
       <Navbar user={user} theme="light" />
 
@@ -46,10 +46,10 @@ export default async function AboutPage() {
         </div>
 
         {/* Our Story */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-8 border-t border-[#E8EBE7] items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-8 border-t border-[#E8EBE7] dark:border-white/10 items-start">
           <div className="space-y-4">
             <h3 className="text-xs uppercase font-bold text-indigo-500 tracking-wider">Our Story</h3>
-            <h2 className="text-2xl font-bold font-heading text-zinc-800">Why we started OakTix</h2>
+            <h2 className="text-2xl font-bold font-heading text-zinc-800 dark:text-zinc-100">Why we started OakTix</h2>
             <p className="text-zinc-500 text-sm leading-relaxed">
               Nigerian events are world-class. However, for too long, the tools to sell tickets have been clunky, expensive, or imported from markets that don&apos;t understand us. We started OakTix to change that.
             </p>
@@ -60,7 +60,7 @@ export default async function AboutPage() {
 
           <div className="space-y-4">
             <h3 className="text-xs uppercase font-bold text-indigo-500 tracking-wider">Our Mission</h3>
-            <h2 className="text-2xl font-bold font-heading text-zinc-800">What drives us forward</h2>
+            <h2 className="text-2xl font-bold font-heading text-zinc-800 dark:text-zinc-100">What drives us forward</h2>
             <p className="text-zinc-500 text-sm leading-relaxed">
               Make it effortless to discover, sell and attend live events across Africa. We obsess over speed, fairness, and the small details that turn a ticket purchase into the start of a great night out.
             </p>
@@ -71,9 +71,9 @@ export default async function AboutPage() {
         </div>
 
         {/* Values */}
-        <div className="space-y-10 pt-8 border-t border-[#E8EBE7]">
+        <div className="space-y-10 pt-8 border-t border-[#E8EBE7] dark:border-white/10">
           <div className="text-center max-w-sm mx-auto">
-            <h2 className="text-3xl font-bold font-heading text-zinc-900 tracking-tight">What we stand for</h2>
+            <h2 className="text-3xl font-bold font-heading text-zinc-900 dark:text-white tracking-tight">What we stand for</h2>
             <p className="text-zinc-400 text-xs font-bold uppercase tracking-wider mt-1.5">Core principles of our service</p>
           </div>
 
@@ -82,7 +82,7 @@ export default async function AboutPage() {
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                 <Heart className="w-5 h-5" />
               </div>
-              <h4 className="font-bold text-lg text-zinc-800">Built for culture</h4>
+              <h4 className="font-bold text-lg text-zinc-800 dark:text-zinc-100">Built for culture</h4>
               <p className="text-zinc-500 text-sm leading-relaxed">
                 From Afrobeats concerts in Lagos to tech summits in Abuja, we celebrate the events that shape Nigeria.
               </p>
@@ -92,7 +92,7 @@ export default async function AboutPage() {
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <h4 className="font-bold text-lg text-zinc-800">Trust by default</h4>
+              <h4 className="font-bold text-lg text-zinc-800 dark:text-zinc-100">Trust by default</h4>
               <p className="text-zinc-500 text-sm leading-relaxed">
                 Secure Transactpay checkout, fraud-resistant QR tickets, and verified vendors keep every transaction safe.
               </p>
@@ -102,7 +102,7 @@ export default async function AboutPage() {
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                 <Users className="w-5 h-5" />
               </div>
-              <h4 className="font-bold text-lg text-zinc-800">Vendor-first</h4>
+              <h4 className="font-bold text-lg text-zinc-800 dark:text-zinc-100">Vendor-first</h4>
               <p className="text-zinc-500 text-sm leading-relaxed">
                 Fair fees, fast payouts, and tools that put organizers in control of their events and audience.
               </p>
@@ -112,7 +112,7 @@ export default async function AboutPage() {
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
                 <MapPin className="w-5 h-5" />
               </div>
-              <h4 className="font-bold text-lg text-zinc-800">Made in Nigeria</h4>
+              <h4 className="font-bold text-lg text-zinc-800 dark:text-zinc-100">Made in Nigeria</h4>
               <p className="text-zinc-500 text-sm leading-relaxed">
                 Built for the Nigerian market with Naira pricing, local banks, and support that understands you.
               </p>

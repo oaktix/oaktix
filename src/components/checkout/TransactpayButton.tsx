@@ -9,6 +9,7 @@ interface TransactpayButtonProps {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  couponCode?: string;
   metadata: {
     event_id: string;
     ticket_type_name: string;
@@ -64,6 +65,7 @@ export default function TransactpayButton({
   firstName,
   lastName,
   phone,
+  couponCode,
   metadata,
   onSuccess,
   onClose,
@@ -94,6 +96,7 @@ export default function TransactpayButton({
           quantity: metadata.quantity,
           user_id: metadata.user_id,
           guest_name: metadata.guest_name,
+          coupon_code: couponCode,
         }),
       });
 
@@ -102,7 +105,7 @@ export default function TransactpayButton({
         throw new Error(errData.error || "Failed to initialize transaction.");
       }
 
-      const { reference } = await res.json();
+      const { reference, amount: confirmedAmount } = await res.json();
 
       // 3. Prepare parameters
       const fullName = (firstName && lastName)
@@ -124,7 +127,7 @@ export default function TransactpayButton({
         country: "NG",
         email: email,
         currency: "NGN",
-        amount: amount, // Transactpay works in major units (Naira)
+        amount: confirmedAmount, // Use server-computed amount (source of truth)
         reference: reference,
         merchantReference: reference,
         description: `${metadata.quantity}x ${metadata.ticket_type_name} for OakTix Event`,
