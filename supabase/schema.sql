@@ -180,6 +180,14 @@ create policy "Vendors manage scanners" on scanners for all using (
 create policy "Everyone can view reviews" on reviews for select using (true);
 create policy "Users can post reviews" on reviews for insert with check (auth.uid() = user_id);
 
+-- EMAIL LOGS Policies
+create policy "Organizers can view own email logs" on email_logs for select using (auth.uid() = sender_id);
+create policy "Organizers can insert own email logs" on email_logs for insert with check (auth.uid() = sender_id);
+create policy "Admins can manage all email logs" on email_logs for all using (
+  (auth.jwt() -> 'user_metadata' ->> 'role') in ('admin', 'super_admin')
+);
+
+
 -- TRIGGER for updating profiles on user signup (handled by Supabase usually, but good to have)
 create or replace function public.handle_new_user()
 returns trigger as $$
