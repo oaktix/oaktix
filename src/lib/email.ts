@@ -546,6 +546,49 @@ export async function sendWithdrawalRequestedEmail(
   }
 }
 
+export async function sendWithdrawalRequestedAdminNotification(
+  vendorEmail: string,
+  vendorName: string,
+  amount: number,
+  bankDetails: { payout_bank?: string; payout_account_number?: string; payout_account_name?: string }
+) {
+  const adminEmail = 'thryveeonline@gmail.com';
+  const subject = `New Withdrawal Request Alert — ₦${amount.toLocaleString()}`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF9F6;padding:48px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:20px;border:1px solid #E8EBE7;box-shadow:0 4px 24px rgba(0,0,0,.05);overflow:hidden;">
+<tr><td style="background:linear-gradient(135deg,#0E4B31,#1a6b47);padding:32px 40px;text-align:center;">
+<div style="margin-bottom:8px;font-size:28px;font-weight:800;"><span style="color:#5fa589;">Oak</span><span style="color:#F19E23;">Tix</span></div>
+<p style="color:rgba(255,255,255,.75);font-size:13px;margin:0;">New Withdrawal Request Alert</p>
+</td></tr>
+<tr><td style="padding:40px 40px 32px;">
+<h1 style="font-size:20px;font-weight:700;color:#1A1A1A;margin:0 0 16px;">New Withdrawal Request</h1>
+<p style="font-size:14px;color:#64786B;line-height:1.6;margin:0 0 20px;">
+  An organizer has requested a withdrawal. Here are the details:
+</p>
+<div style="background:#F0F7F4;border-radius:14px;padding:20px;margin-bottom:20px;font-size:14px;">
+  <p style="margin:4px 0;"><strong>Vendor Name:</strong> ${vendorName}</p>
+  <p style="margin:4px 0;"><strong>Vendor Email:</strong> ${vendorEmail}</p>
+  <p style="margin:4px 0;"><strong>Amount:</strong> ₦${amount.toLocaleString()}</p>
+</div>
+<div style="background:#F7F8F7;border-radius:14px;padding:20px;font-size:14px;">
+  <p style="margin:0 0 8px;font-weight:700;color:#1A1A1A;">Bank/Payout Details:</p>
+  <p style="margin:4px 0;"><strong>Bank:</strong> ${bankDetails.payout_bank || 'N/A'}</p>
+  <p style="margin:4px 0;"><strong>Account Number:</strong> ${bankDetails.payout_account_number || 'N/A'}</p>
+  <p style="margin:4px 0;"><strong>Account Name:</strong> ${bankDetails.payout_account_name || 'N/A'}</p>
+</div>
+</td></tr>
+</table></td></tr></table></body></html>`;
+
+  try {
+    await sendEmail(adminEmail, subject, html);
+  } catch (error) {
+    console.error('⚠ Admin withdrawal alert failed:', error);
+  }
+}
+
 export async function sendWithdrawalStatusEmail(
   to: string,
   amount: number,

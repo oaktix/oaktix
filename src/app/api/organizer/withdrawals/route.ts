@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminSupabase } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { sendWithdrawalRequestedEmail } from "@/lib/email";
+import { sendWithdrawalRequestedEmail, sendWithdrawalRequestedAdminNotification } from "@/lib/email";
 import { sendWithdrawalStatusEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
@@ -100,6 +100,18 @@ export async function POST(req: Request) {
     }
 
     await sendWithdrawalRequestedEmail(user.email!, amount);
+
+    const vendorName = profile.vendor_details?.business_name || profile.full_name || "Unknown Vendor";
+    await sendWithdrawalRequestedAdminNotification(
+      user.email!,
+      vendorName,
+      amount,
+      {
+        payout_bank: profile.vendor_details?.payout_bank,
+        payout_account_number: profile.vendor_details?.payout_account_number,
+        payout_account_name: profile.vendor_details?.payout_account_name,
+      }
+    );
 
     return NextResponse.json({
       success: true,
