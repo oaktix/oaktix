@@ -21,7 +21,19 @@ export async function GET(request: Request) {
 
   // Use service role to bypass RLS
   const admin = createAdminSupabase(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-  const query = admin.from("withdrawals").select("id, vendor_id, amount, requested_at, status, processed_at");
+  const query = admin.from("withdrawals").select(`
+    id,
+    vendor_id,
+    amount,
+    requested_at,
+    status,
+    processed_at,
+    profiles:vendor_id (
+      full_name,
+      phone,
+      vendor_details
+    )
+  `);
   if (status) query.eq("status", status);
   const { data, error } = await query.order("requested_at", { ascending: false });
 

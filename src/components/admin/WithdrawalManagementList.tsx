@@ -8,6 +8,16 @@ export interface Withdrawal {
   requested_at: string;
   status: string;
   processed_at?: string;
+  profiles?: {
+    full_name: string | null;
+    phone: string | null;
+    vendor_details?: {
+      payout_bank?: string;
+      payout_account_number?: string;
+      payout_account_name?: string;
+      business_name?: string;
+    };
+  } | null;
 }
 
 interface Props {
@@ -23,6 +33,7 @@ export default function WithdrawalManagementList({ withdrawals, onAction, loadin
         <thead className="bg-gray-50">
           <tr>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Details</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount (₦)</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -32,7 +43,28 @@ export default function WithdrawalManagementList({ withdrawals, onAction, loadin
         <tbody className="bg-white divide-y divide-gray-100">
           {withdrawals.map((w) => (
             <tr key={w.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-4 py-2 text-sm text-gray-700">{w.vendor_id}</td>
+              <td className="px-4 py-2 text-sm text-gray-700">
+                <div className="space-y-0.5">
+                  <div className="font-semibold text-gray-900">
+                    {w.profiles?.vendor_details?.business_name || w.profiles?.full_name || "Unknown Vendor"}
+                  </div>
+                  {w.profiles?.phone && (
+                    <div className="text-xs text-gray-500">{w.profiles.phone}</div>
+                  )}
+                  <div className="text-[10px] font-mono text-gray-400 select-all">{w.vendor_id}</div>
+                </div>
+              </td>
+              <td className="px-4 py-2 text-sm text-gray-700">
+                {w.profiles?.vendor_details?.payout_bank ? (
+                  <div className="space-y-0.5">
+                    <div className="font-medium text-gray-800">{w.profiles.vendor_details.payout_bank}</div>
+                    <div className="font-mono text-indigo-600 font-bold select-all">{w.profiles.vendor_details.payout_account_number}</div>
+                    <div className="text-xs text-gray-500">{w.profiles.vendor_details.payout_account_name}</div>
+                  </div>
+                ) : (
+                  <span className="text-rose-500 text-xs italic">No bank account linked</span>
+                )}
+              </td>
               <td className="px-4 py-2 text-sm font-semibold text-indigo-600">{w.amount.toLocaleString()}</td>
               <td className="px-4 py-2 text-sm text-gray-500">{new Date(w.requested_at).toLocaleDateString()}</td>
               <td className="px-4 py-2 text-sm">
