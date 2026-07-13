@@ -143,7 +143,7 @@ export async function POST(req: Request) {
       // Try to list users to see if they already exist
       const { data: existingUsers } = await supabase.auth.admin.listUsers();
       if (existingUsers) {
-        matchedUser = existingUsers.users.find((u) => u.email?.toLowerCase() === customerEmail);
+        matchedUser = existingUsers.users.find((u: any) => u.email?.toLowerCase() === customerEmail);
       }
 
       if (!matchedUser) {
