@@ -252,6 +252,45 @@ export async function POST(req: Request) {
     }
   }
 
+  // Ensure profile exists in profiles table for buyerId to avoid foreign key violation
+  if (buyerId && uuidRegex.test(buyerId)) {
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", buyerId)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      let profileEmail = email?.toLowerCase() || "";
+      let profileName = guest_name || "Valued Guest";
+
+      if (!profileEmail || profileName === "Valued Guest") {
+        try {
+          const { data: authUser } = await supabase.auth.admin.getUserById(buyerId);
+          if (authUser?.user) {
+            profileEmail = authUser.user.email || profileEmail;
+            profileName = authUser.user.user_metadata?.full_name || authUser.user.user_metadata?.name || profileName;
+          }
+        } catch (e) {
+          console.warn("Failed to fetch auth user details for profile creation:", e);
+        }
+      }
+
+      const { error: profileInsertError } = await supabase.from("profiles").insert({
+        id: buyerId,
+        full_name: profileName,
+        email: profileEmail,
+        role: "user",
+      });
+
+      if (profileInsertError) {
+        console.error("Failed to auto-create missing profile for buyer:", buyerId, profileInsertError);
+      } else {
+        console.log("Successfully auto-created missing profile for buyer:", buyerId);
+      }
+    }
+  }
+
   // 8. Generate reference
   const reference = `FREE-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
