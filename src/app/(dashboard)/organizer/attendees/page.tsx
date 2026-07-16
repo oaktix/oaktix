@@ -36,7 +36,8 @@ export default async function AttendeesPage() {
         profiles:buyer_id (
           id,
           full_name,
-          email
+          email,
+          phone
         )
       `)
       .in("event_id", eventIds);

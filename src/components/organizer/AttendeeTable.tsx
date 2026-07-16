@@ -6,6 +6,7 @@ import { Search, Download, ArrowUpDown, Check, X, Loader2 } from "lucide-react";
 interface Profile {
   full_name?: string | null;
   email?: string | null;
+  phone?: string | null;
 }
 
 interface Event {
@@ -81,6 +82,9 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
       } else if (key === "email") {
         valA = a.profiles?.email || "";
         valB = b.profiles?.email || "";
+      } else if (key === "phone") {
+        valA = a.profiles?.phone || "";
+        valB = b.profiles?.phone || "";
       } else if (key === "event") {
         valA = a.events?.title || "";
         valB = b.events?.title || "";
@@ -103,7 +107,8 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
     const code = t.unique_code?.toLowerCase() || "";
     const search = searchTerm.toLowerCase();
 
-    const matchesSearch = name.includes(search) || email.includes(search) || code.includes(search);
+    const phone = t.profiles?.phone?.toLowerCase() || "";
+    const matchesSearch = name.includes(search) || email.includes(search) || code.includes(search) || phone.includes(search);
     const matchesEvent = selectedEvent === "all" || t.event_id === selectedEvent;
     const reg = t.registration_status || "approved";
     const matchesStatus = selectedStatus === "all" || reg === selectedStatus;
@@ -174,10 +179,11 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
   };
 
   const exportCSV = () => {
-    const headers = ["Attendee Name", "Email", "Event", "Ticket Code", "Tier", "Price Paid (NGN)", "Status", "Registration"];
+    const headers = ["Attendee Name", "Email", "Phone", "Event", "Ticket Code", "Tier", "Price Paid (NGN)", "Status", "Registration"];
     const rows = filteredTickets.map((t) => [
       t.profiles?.full_name || "N/A",
       t.profiles?.email || "N/A",
+      t.profiles?.phone || "N/A",
       t.events?.title || "N/A",
       t.unique_code || "",
       t.ticket_type?.name || "General Admission",
@@ -296,6 +302,9 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
                 <th className="p-4 cursor-pointer hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleSort("email")}>
                   <div className="flex items-center gap-1">Email <ArrowUpDown className="w-3 h-3" /></div>
                 </th>
+                <th className="p-4 cursor-pointer hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleSort("phone")}>
+                  <div className="flex items-center gap-1">Phone <ArrowUpDown className="w-3 h-3" /></div>
+                </th>
                 <th className="p-4 cursor-pointer hover:text-zinc-900 dark:hover:text-white transition-colors" onClick={() => handleSort("event")}>
                   <div className="flex items-center gap-1">Event <ArrowUpDown className="w-3 h-3" /></div>
                 </th>
@@ -312,7 +321,7 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
             <tbody>
               {filteredTickets.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-12 text-center text-zinc-500">
+                  <td colSpan={11} className="p-12 text-center text-zinc-500">
                     No attendees found.
                   </td>
                 </tr>
@@ -335,6 +344,7 @@ export default function AttendeeTable({ initialTickets, events }: AttendeeTableP
                       </td>
                       <td className="p-4 font-bold">{t.profiles?.full_name || "Anonymous"}</td>
                       <td className="p-4 text-zinc-600 dark:text-zinc-400">{t.profiles?.email || "N/A"}</td>
+                      <td className="p-4 font-mono text-zinc-600 dark:text-zinc-400">{t.profiles?.phone || "N/A"}</td>
                       <td className="p-4 font-medium">{t.events?.title || "N/A"}</td>
                       <td className="p-4 font-mono text-zinc-600 dark:text-zinc-400">{t.unique_code}</td>
                       <td className="p-4">
