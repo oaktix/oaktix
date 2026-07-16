@@ -16,6 +16,7 @@ export async function POST(req: Request) {
     quantity?: number;
     user_id?: string;
     guest_name?: string;
+    phone?: string;
     coupon_code?: string;
   };
 
@@ -26,12 +27,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { email, event_id, ticket_type_name, quantity, user_id, guest_name } = body;
+  const { email, event_id, ticket_type_name, quantity, user_id, guest_name, phone } = body;
 
   // 1. Validate required fields
   if (!email || !event_id || !ticket_type_name || !quantity) {
     return NextResponse.json(
       { error: "Missing required fields: email, event_id, ticket_type_name, quantity" },
+      { status: 400 }
+    );
+  }
+
+  // Phone is mandatory for guest checkouts
+  const isGuest = !user_id || user_id === "guest_pending";
+  if (isGuest && !phone) {
+    return NextResponse.json(
+      { error: "Phone number is required for guest checkout" },
       { status: 400 }
     );
   }
@@ -161,10 +171,11 @@ export async function POST(req: Request) {
           email: customerEmail,
           password: tempPassword,
           email_confirm: false,
-          user_metadata: {
-            full_name: customerName,
-            role: "user",
-          },
+            user_metadata: {
+              full_name: customerName,
+              role: "user",
+              phone: phone || null,
+            },
         });
 
         // Send the OTP verification email so the guest can confirm their
@@ -183,6 +194,7 @@ export async function POST(req: Request) {
             full_name: customerName,
             email: customerEmail,
             role: "user",
+            phone: phone || null,
           });
         }
       }
@@ -217,6 +229,7 @@ export async function POST(req: Request) {
               data: {
                 full_name: customerName,
                 role: "user",
+                phone: phone || null,
               },
             },
           });
@@ -228,6 +241,7 @@ export async function POST(req: Request) {
               full_name: customerName,
               email: customerEmail,
               role: "user",
+              phone: phone || null,
             });
           } else {
             console.warn("Public signup fallback inside free checkout failed:", signUpError);
@@ -281,6 +295,7 @@ export async function POST(req: Request) {
         full_name: profileName,
         email: profileEmail,
         role: "user",
+        ...(phone ? { phone } : {}),
       });
 
       if (profileInsertError) {

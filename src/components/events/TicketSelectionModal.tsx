@@ -234,6 +234,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
           quantity,
           user_id: checkoutUser.id,
           guest_name: !user ? guestName : undefined,
+          phone: !user ? guestPhone : undefined,
         }),
       });
       const data = await res.json();
@@ -247,7 +248,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
     } finally {
       setFreeLoading(false);
     }
-  }, [user, guestUser, event.id, ticketType.name, quantity, guestName, handleSuccess]);
+  }, [user, guestUser, event.id, ticketType.name, quantity, guestName, guestPhone, handleSuccess]);
 
   const activeUser = user || guestUser;
 
@@ -480,7 +481,7 @@ export default function TicketSelectionModal({ event, ticketType, user, onClose 
                     amount={totalAmount}
                     firstName={userProfile?.full_name?.split(" ")[0] || undefined}
                     lastName={userProfile?.full_name?.split(" ").slice(1).join(" ") || undefined}
-                    phone={userProfile?.phone || undefined}
+                    phone={userProfile?.phone || guestPhone || undefined}
                     couponCode={appliedCoupon?.code || undefined}
                     metadata={{
                       event_id: event.id,

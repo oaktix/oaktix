@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Corrupted transaction metadata" }, { status: 400 });
   }
 
-  const { email, ticket_type_name, quantity, user_id, guest_name } = metadata;
+  const { email, ticket_type_name, quantity, user_id, guest_name, phone } = metadata;
   const amount = Number(dbTx.amount);
 
   let buyerId = user_id;
@@ -119,6 +119,7 @@ export async function POST(req: Request) {
           user_metadata: {
             full_name: customerName,
             role: "user",
+            phone: phone || null,
           }
         });
 
@@ -137,7 +138,8 @@ export async function POST(req: Request) {
             id: matchedUser.id,
             full_name: customerName,
             email: customerEmail,
-            role: "user"
+            role: "user",
+            phone: phone || null,
           });
         }
       }
@@ -167,7 +169,8 @@ export async function POST(req: Request) {
             options: {
               data: {
                 full_name: customerName,
-                role: "user"
+                role: "user",
+                phone: phone || null,
               }
             }
           });
@@ -178,7 +181,8 @@ export async function POST(req: Request) {
               id: buyerId,
               full_name: customerName,
               email: customerEmail,
-              role: "user"
+              role: "user",
+              phone: phone || null,
             });
           } else {
             console.warn("Public signup fallback inside webhook failed:", signUpError);
@@ -232,6 +236,7 @@ export async function POST(req: Request) {
         full_name: profileName,
         email: profileEmail,
         role: "user",
+        ...(phone ? { phone } : {}),
       });
 
       if (profileInsertError) {

@@ -97,6 +97,7 @@ export default function TransactpayButton({
           user_id: metadata.user_id,
           guest_name: metadata.guest_name,
           coupon_code: couponCode,
+          phone,
         }),
       });
 

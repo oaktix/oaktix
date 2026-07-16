@@ -3,10 +3,16 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { email, amount, event_id, ticket_type_name, quantity, user_id, guest_name, coupon_code } = await req.json();
+    const { email, amount, event_id, ticket_type_name, quantity, user_id, guest_name, phone, coupon_code } = await req.json();
 
     if (!email || !amount || !event_id || !ticket_type_name || !quantity) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Phone is mandatory for guest checkouts
+    const isGuest = !user_id || user_id === "guest_pending";
+    if (isGuest && !phone) {
+      return NextResponse.json({ error: "Phone number is required for guest checkout" }, { status: 400 });
     }
 
     const supabase = createClient(
@@ -202,7 +208,8 @@ export async function POST(req: Request) {
       ticket_type_name,
       quantity: Number(quantity),
       guest_name: guest_name || null,
-      user_id: user_id || null
+      user_id: user_id || null,
+      phone: phone || null,
     };
 
     const { error: txError } = await supabase

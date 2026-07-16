@@ -47,6 +47,13 @@ export default function SignupPage() {
     const businessBio = formData.get("businessBio") as string;
     const phone = (formData.get("phone") as string | null)?.trim() || "";
 
+    // Phone is mandatory for ALL signups
+    if (!phone) {
+      setError("Phone number is required.");
+      setLoading(false);
+      return;
+    }
+
     const isProfessionalSignup = role === "professional";
     const resolvedRole = email.includes("gahdejtheprince")
       ? "super_admin"
@@ -96,7 +103,7 @@ export default function SignupPage() {
         id: data.user.id,
         full_name: fullName,
         role: resolvedRole,
-        ...(phone ? { phone } : {}),
+        phone,
       });
       redirectAfterSignup(isProfessionalSignup, resolvedRole);
       return;
@@ -140,7 +147,7 @@ export default function SignupPage() {
         id: data.user.id,
         full_name: pending.fullName,
         role: pending.resolvedRole,
-        ...(pending.phone ? { phone: pending.phone } : {}),
+        phone: pending.phone,
       });
     }
 

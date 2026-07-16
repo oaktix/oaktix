@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { email, fullName } = await req.json();
+    const { email, fullName, phone } = await req.json();
 
-    if (!email || !fullName) {
-      return NextResponse.json({ error: "Email and Full Name are required" }, { status: 400 });
+    if (!email || !fullName || !phone) {
+      return NextResponse.json({ error: "Email, Full Name and Phone Number are required" }, { status: 400 });
     }
 
     const supabaseAdmin = createClient(
